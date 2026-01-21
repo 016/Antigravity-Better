@@ -1,0 +1,1069 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    /* ===== 自定义颜色变量 ===== */
+    :root {
+      --color-user-message: #60A5FA;
+      --color-ai-response: #E0E0E0;
+      --color-code-block: #A78BFA;
+      --color-action-status: #4ADE80;
+      --color-thinking: #9CA3AF;
+      --bg-modal: #1e1e1e;
+      --border-color: #3c3c3c;
+      --accent-color: #667eea;
+      --text-main: #fff;
+      --text-sub: #999;
+    }
+
+    /* ===== 悬浮按钮样式 ===== */
+    #settings-toggle-btn {
+      position: fixed;
+      right: 0;
+      top: 66%;
+      transform: translateY(-50%);
+      width: 28px;
+      height: 48px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      border-radius: 8px 0 0 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: -2px 2px 8px rgba(0,0,0,0.3);
+      z-index: 9999;
+      transition: all 0.3s ease;
+    }
+    #settings-toggle-btn:hover {
+      width: 36px;
+      background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    }
+    #settings-toggle-btn svg {
+      width: 18px;
+      height: 18px;
+      fill: white;
+      transition: transform 0.3s ease;
+    }
+    #settings-toggle-btn:hover svg {
+      transform: rotate(90deg);
+    }
+
+    /* ===== 弹窗遮罩层 ===== */
+    #settings-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 10000;
+      display: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      align-items: center;
+      justify-content: center;
+    }
+    #settings-overlay.show {
+      display: flex;
+    }
+    #settings-overlay.visible {
+      opacity: 1;
+    }
+
+    /* ===== 设置弹窗 ===== */
+    #settings-modal {
+      background: var(--bg-modal);
+      border-radius: 12px;
+      width: 400px;
+      max-width: 90%;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      border: 1px solid var(--border-color);
+      transform: scale(0.9);
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      overflow: hidden;
+    }
+    #settings-overlay.visible #settings-modal {
+      transform: scale(1);
+    }
+    
+    /* 弹窗 Header */
+    .modal-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255,255,255,0.02);
+    }
+    .header-left {
+      display: flex;
+      flex-direction: column;
+    }
+    .brand-name {
+      color: var(--text-main);
+      font-size: 16px;
+      font-weight: 700;
+      background: linear-gradient(90deg, #fff, #a5b4fc);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .brand-links {
+      display: flex;
+      gap: 12px;
+      margin-top: 4px;
+    }
+    .brand-link {
+      color: var(--text-sub);
+      font-size: 10px;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .brand-link:hover {
+      color: var(--accent-color);
+    }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .lang-switch {
+      background: none;
+      border: 1px solid var(--border-color);
+      color: var(--text-sub);
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .lang-switch:hover {
+      border-color: var(--text-main);
+      color: var(--text-main);
+    }
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-sub);
+      font-size: 20px;
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+      transition: color 0.2s;
+    }
+    .modal-close:hover {
+      color: var(--text-main);
+    }
+
+    /* 选项卡导航 */
+    .tab-nav {
+      display: flex;
+      border-bottom: 1px solid var(--border-color);
+      padding: 0 10px;
+      background: rgba(0,0,0,0.1);
+    }
+    .tab-btn {
+      flex: 1;
+      background: none;
+      border: none;
+      color: var(--text-sub);
+      padding: 12px;
+      font-size: 13px;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s;
+    }
+    .tab-btn:hover {
+      color: var(--text-main);
+    }
+    .tab-btn.active {
+      color: var(--accent-color);
+      font-weight: 600;
+    }
+    .tab-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: var(--accent-color);
+    }
+
+    /* 内容区域 */
+    .modal-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0;
+    }
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.2s ease;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 手风琴效果 */
+    .accordion-item {
+      border-bottom: 1px solid var(--border-color);
+    }
+    .accordion-header {
+      padding: 14px 20px;
+      background: rgba(255,255,255,0.01);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background 0.2s;
+    }
+    .accordion-header:hover {
+      background: rgba(255,255,255,0.03);
+    }
+    .accordion-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .accordion-icon {
+      font-size: 10px;
+      color: var(--text-sub);
+      transition: transform 0.3s;
+    }
+    .accordion-item.expanded .accordion-icon {
+      transform: rotate(180deg);
+    }
+    .accordion-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s cubic-bezier(0, 1, 0, 1);
+      background: rgba(0,0,0,0.1);
+    }
+    .accordion-item.expanded .accordion-body {
+      max-height: 1000px; /* 足够大的值 */
+      transition: max-height 0.3s ease-in-out;
+    }
+    .accordion-inner {
+      padding: 16px 20px;
+    }
+
+    /* 通用控件样式 */
+    .main-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      background: rgba(102, 126, 234, 0.1);
+      border: 1px solid rgba(102, 126, 234, 0.2);
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+    .main-toggle-label {
+      color: var(--text-main);
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .setting-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .setting-item:last-child {
+      border-bottom: none;
+    }
+    .setting-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .setting-icon {
+      font-size: 15px;
+      width: 20px;
+      text-align: center;
+      color: var(--text-sub);
+    }
+    .setting-name {
+      color: #ccc;
+      font-size: 13px;
+    }
+    .setting-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    /* Toggle Switch */
+    .toggle-switch {
+      position: relative;
+      width: 32px;
+      height: 18px;
+    }
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #3c3c3c;
+      transition: 0.3s;
+      border-radius: 20px;
+    }
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 12px;
+      width: 12px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 50%;
+    }
+    .toggle-switch input:checked + .toggle-slider {
+      background: var(--accent-color);
+    }
+    .toggle-switch input:checked + .toggle-slider:before {
+      transform: translateX(14px);
+    }
+
+    /* Color Input */
+    .color-input {
+      width: 24px;
+      height: 24px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      cursor: pointer;
+      padding: 0;
+      background: none;
+    }
+    .color-input::-webkit-color-swatch-wrapper {
+      padding: 2px;
+    }
+    .color-input::-webkit-color-swatch {
+      border-radius: 2px;
+      border: none;
+    }
+
+    /* Select Input */
+    .select-input {
+      background: #2d2d2d;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 4px 8px;
+      color: #ccc;
+      font-size: 12px;
+      cursor: pointer;
+      outline: none;
+      min-width: 110px;
+    }
+    .select-input:focus {
+      border-color: var(--accent-color);
+    }
+
+    /* ===== 颜色覆盖样式 ===== */
+    /* 用户消息 */
+    #react-app.color-user-message .bg-gray-500\/15 .whitespace-pre-wrap,
+    #react-app.color-user-message .bg-gray-500\/15 [style*="word-break"] {
+      color: var(--color-user-message) !important;
+    }
+    /* AI回复 (排除思考) */
+    #react-app.color-ai-response .prose:not(.opacity-70) p,
+    #react-app.color-ai-response .prose:not(.opacity-70) li,
+    #react-app.color-ai-response .prose:not(.opacity-70) h2,
+    #react-app.color-ai-response .prose:not(.opacity-70) h3,
+    #react-app.color-ai-response .prose:not(.opacity-70) strong,
+    #react-app.color-ai-response .prose:not(.opacity-70) ul,
+    #react-app.color-ai-response .prose:not(.opacity-70) ol,
+    #react-app.color-ai-response .prose:not(.opacity-70) table,
+    #react-app.color-ai-response .prose:not(.opacity-70) th,
+    #react-app.color-ai-response .prose:not(.opacity-70) td {
+      color: var(--color-ai-response) !important;
+    }
+    /* 代码块 */
+    #react-app.color-code-block pre,
+    #react-app.color-code-block pre code,
+    #react-app.color-code-block .code-block,
+    #react-app.color-code-block .code-line {
+      color: var(--color-code-block) !important;
+    }
+    /* 操作状态 */
+    #react-app.color-action-status .shrink-0:is(:contains('Analyzed'), :contains('Created'), :contains('Edited')),
+    #react-app.color-action-status [class*="animate-fade-in"] .truncate {
+      color: var(--color-action-status) !important;
+    }
+    /* 思考过程 */
+    #react-app.color-thinking .opacity-70.prose,
+    #react-app.color-thinking .opacity-70.prose * {
+      color: var(--color-thinking) !important;
+    }
+
+    /* ===== 复制按钮样式 ===== */
+    .copy-btn {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 26px;
+      height: 26px;
+      background: rgba(60, 60, 60, 0.9);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: all 0.2s ease;
+      z-index: 10;
+    }
+    .copy-btn svg {
+      width: 14px;
+      height: 14px;
+      fill: #ccc;
+    }
+    .copy-btn:hover {
+      background: rgba(102, 126, 234, 0.8);
+      border-color: rgba(102, 126, 234, 0.5);
+    }
+    .copy-btn:hover svg {
+      fill: #fff;
+    }
+    .copy-btn.copied {
+      background: rgba(74, 222, 128, 0.8);
+    }
+    .copy-btn.copied svg {
+      fill: #fff;
+    }
+    .copy-target { position: relative; }
+    .copy-target:hover .copy-btn { opacity: 1; }
+  </style>
+</head>
+<body style="margin: 0">
+  <div id="react-app" class="react-app-container"></div>
+  
+  <!-- 悬浮设置按钮 -->
+  <button id="settings-toggle-btn" title="Open Settings">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19.14,12.94c0.04-0.31,0.06-0.63,0.06-0.94c0-0.31-0.02-0.63-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.37,4.8,11.69,4.8,12s0.02,0.63,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+    </svg>
+  </button>
+
+  <!-- 设置弹窗 -->
+  <div id="settings-overlay">
+    <div id="settings-modal">
+      <!-- Header -->
+      <div class="modal-header">
+        <div class="header-left">
+          <span class="brand-name">Antigravity Better</span>
+          <div class="brand-links">
+            <a href="https://dpit.lib00.com" target="_blank" class="brand-link">🌐 dpit.lib00.com</a>
+            <a href="https://github.com/016/Antigravity-Better" target="_blank" class="brand-link">📦 GitHub</a>
+          </div>
+        </div>
+        <div class="header-right">
+          <button class="lang-switch" id="lang-switch">🌐 En/中</button>
+          <button class="modal-close" id="modal-close-btn">&times;</button>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tab-nav">
+        <button class="tab-btn active" data-tab="appearance" data-i18n="tab_appearance">🎨 外观</button>
+        <button class="tab-btn" data-tab="features" data-i18n="tab_features">🛠️ 功能</button>
+      </div>
+
+      <!-- Content -->
+      <div class="modal-body">
+        <!-- Tab: Appearance -->
+        <div class="tab-content active" id="tab-appearance">
+          <!-- Accordion: Colors -->
+          <div class="accordion-item expanded">
+            <div class="accordion-header">
+              <span class="accordion-title" data-i18n="colors_title">🎨 颜色自定义</span>
+              <span class="accordion-icon">▼</span>
+            </div>
+            <div class="accordion-body">
+              <div class="accordion-inner">
+                <div class="main-toggle">
+                  <span class="main-toggle-label" data-i18n="enable_custom_colors">启用自定义颜色</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="master-toggle">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                
+                <div id="color-settings">
+                  <div class="setting-item">
+                    <div class="setting-left">
+                      <span class="setting-icon">📝</span>
+                      <span class="setting-name" data-i18n="lbl_user_msg">用户消息</span>
+                    </div>
+                    <div class="setting-right">
+                      <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-user-message" checked>
+                        <span class="toggle-slider"></span>
+                      </label>
+                      <input type="color" id="color-user-message" class="color-input" value="#60A5FA">
+                    </div>
+                  </div>
+
+                  <div class="setting-item">
+                    <div class="setting-left">
+                      <span class="setting-icon">🤖</span>
+                      <span class="setting-name" data-i18n="lbl_ai_resp">AI回复</span>
+                    </div>
+                    <div class="setting-right">
+                      <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-ai-response" checked>
+                        <span class="toggle-slider"></span>
+                      </label>
+                      <input type="color" id="color-ai-response" class="color-input" value="#E0E0E0">
+                    </div>
+                  </div>
+
+                  <div class="setting-item">
+                    <div class="setting-left">
+                      <span class="setting-icon">💻</span>
+                      <span class="setting-name" data-i18n="lbl_code">代码块</span>
+                    </div>
+                    <div class="setting-right">
+                      <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-code-block" checked>
+                        <span class="toggle-slider"></span>
+                      </label>
+                      <input type="color" id="color-code-block" class="color-input" value="#A78BFA">
+                    </div>
+                  </div>
+
+                  <div class="setting-item">
+                    <div class="setting-left">
+                      <span class="setting-icon">✅</span>
+                      <span class="setting-name" data-i18n="lbl_status">操作状态</span>
+                    </div>
+                    <div class="setting-right">
+                      <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-action-status">
+                        <span class="toggle-slider"></span>
+                      </label>
+                      <input type="color" id="color-action-status" class="color-input" value="#4ADE80">
+                    </div>
+                  </div>
+
+                  <div class="setting-item">
+                    <div class="setting-left">
+                      <span class="setting-icon">💭</span>
+                      <span class="setting-name" data-i18n="lbl_thinking">思考过程</span>
+                    </div>
+                    <div class="setting-right">
+                      <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-thinking">
+                        <span class="toggle-slider"></span>
+                      </label>
+                      <input type="color" id="color-thinking" class="color-input" value="#9CA3AF">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Features -->
+        <div class="tab-content" id="tab-features">
+          <!-- Accordion: Copy -->
+          <div class="accordion-item expanded">
+            <div class="accordion-header">
+              <span class="accordion-title" data-i18n="copy_title">📋 一键复制</span>
+              <span class="accordion-icon">▼</span>
+            </div>
+            <div class="accordion-body">
+              <div class="accordion-inner">
+                <div class="main-toggle">
+                  <span class="main-toggle-label" data-i18n="enable_copy">启用复制按钮</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="copy-master-toggle">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                
+                <div id="copy-settings">
+                  <div class="setting-item">
+                    <div class="setting-left">
+                      <span class="setting-icon">📝</span>
+                      <span class="setting-name" data-i18n="lbl_user_msg">用户消息</span>
+                    </div>
+                    <div class="setting-right">
+                      <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-copy-user" checked>
+                        <span class="toggle-slider"></span>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="setting-item">
+                    <div class="setting-left">
+                      <span class="setting-icon">💭</span>
+                      <span class="setting-name" data-i18n="lbl_thinking">思考过程</span>
+                    </div>
+                    <div class="setting-right">
+                      <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-copy-thinking" checked>
+                        <span class="toggle-slider"></span>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="setting-item">
+                    <div class="setting-left">
+                      <span class="setting-icon">🤖</span>
+                      <span class="setting-name" data-i18n="lbl_ai_resp">AI回复</span>
+                    </div>
+                    <div class="setting-right">
+                      <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-copy-ai" checked>
+                        <span class="toggle-slider"></span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Accordion: Hotkeys -->
+          <div class="accordion-item">
+            <div class="accordion-header">
+              <span class="accordion-title" data-i18n="hotkey_title">⌨️ 快捷键设置</span>
+              <span class="accordion-icon">▼</span>
+            </div>
+            <div class="accordion-body">
+              <div class="accordion-inner">
+                <div class="main-toggle">
+                  <span class="main-toggle-label" data-i18n="enable_hotkey">自定义发送快捷键</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="hotkey-master-toggle">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                
+                <div id="hotkey-settings">
+                  <div class="setting-item">
+                    <div class="setting-left">
+                      <span class="setting-icon">↵</span>
+                      <span class="setting-name" data-i18n="lbl_send_hotkey">发送快捷键</span>
+                    </div>
+                    <div class="setting-right">
+                      <select id="send-hotkey-select" class="select-input">
+                        <option value="enter">Enter</option>
+                        <option value="cmd+enter">⌘ Cmd + Enter</option>
+                        <option value="ctrl+enter">Ctrl + Enter</option>
+                        <option value="shift+enter">⇧ Shift + Enter</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    /* ===== I18N 字典 ===== */
+    const TRANSLATIONS = {
+      zh: {
+        tab_appearance: '🎨 外观',
+        tab_features: '🛠️ 功能',
+        colors_title: '🎨 颜色自定义',
+        enable_custom_colors: '启用自定义颜色',
+        lbl_user_msg: '用户消息',
+        lbl_ai_resp: 'AI回复',
+        lbl_code: '代码块',
+        lbl_status: '操作状态',
+        lbl_thinking: '思考过程',
+        copy_title: '📋 一键复制',
+        enable_copy: '启用复制按钮',
+        hotkey_title: '⌨️ 快捷键设置',
+        enable_hotkey: '自定义发送快捷键',
+        lbl_send_hotkey: '发送快捷键'
+      },
+      en: {
+        tab_appearance: '🎨 Appearance',
+        tab_features: '🛠️ Features',
+        colors_title: '🎨 Colors',
+        enable_custom_colors: 'Enable Custom Colors',
+        lbl_user_msg: 'User Message',
+        lbl_ai_resp: 'AI Response',
+        lbl_code: 'Code Block',
+        lbl_status: 'Action Status',
+        lbl_thinking: 'Thinking Process',
+        copy_title: '📋 One-Click Copy',
+        enable_copy: 'Enable Copy Buttons',
+        hotkey_title: '⌨️ Shortcuts',
+        enable_hotkey: 'Custom Send Hotkey',
+        lbl_send_hotkey: 'Send Hotkey'
+      }
+    };
+
+    /* ===== 既存配置逻辑 ===== */
+    const STORAGE_KEY = 'cascade-panel-settings';
+    
+    // 颜色配置
+    const COLOR_CONFIGS = [
+      { id: 'user-message', cssVar: '--color-user-message', cssClass: 'color-user-message', default: '#60A5FA', enabled: true },
+      { id: 'ai-response', cssVar: '--color-ai-response', cssClass: 'color-ai-response', default: '#E0E0E0', enabled: true },
+      { id: 'code-block', cssVar: '--color-code-block', cssClass: 'color-code-block', default: '#A78BFA', enabled: true },
+      { id: 'action-status', cssVar: '--color-action-status', cssClass: 'color-action-status', default: '#4ADE80', enabled: false },
+      { id: 'thinking', cssVar: '--color-thinking', cssClass: 'color-thinking', default: '#9CA3AF', enabled: false },
+    ];
+
+    // 复制配置
+    const COPY_CONFIGS = [
+      { id: 'copy-user', selector: '.bg-gray-500\\/15', textSelector: '.whitespace-pre-wrap', type: 'user' },
+      { id: 'copy-thinking', selector: '.opacity-70.prose', textSelector: null, type: 'thinking' },
+      { id: 'copy-ai', selector: '.prose:not(.opacity-70)', textSelector: null, type: 'ai' },
+    ];
+
+    // 快捷键选项
+    const HOTKEY_OPTIONS = [
+      { id: 'enter', label: 'Enter', check: (e) => e.key === 'Enter' && !e.metaKey && !e.ctrlKey && !e.shiftKey },
+      { id: 'cmd+enter', label: '⌘ Cmd + Enter', check: (e) => e.key === 'Enter' && e.metaKey },
+      { id: 'ctrl+enter', label: 'Ctrl + Enter', check: (e) => e.key === 'Enter' && e.ctrlKey },
+      { id: 'shift+enter', label: '⇧ Shift + Enter', check: (e) => e.key === 'Enter' && e.shiftKey },
+    ];
+
+    const defaultSettings = {
+      lang: 'zh',
+      masterEnabled: false,
+      colors: COLOR_CONFIGS.reduce((acc, c) => { acc[c.id] = { color: c.default, enabled: c.enabled }; return acc; }, {}),
+      copyEnabled: false,
+      copy: COPY_CONFIGS.reduce((acc, c) => { acc[c.id] = { enabled: true }; return acc; }, {}),
+      hotkeyEnabled: false,
+      sendHotkey: 'cmd+enter'
+    };
+
+    function loadSettings() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          return {
+            lang: parsed.lang ?? defaultSettings.lang,
+            masterEnabled: parsed.masterEnabled ?? defaultSettings.masterEnabled,
+            colors: { ...defaultSettings.colors, ...parsed.colors },
+            copyEnabled: parsed.copyEnabled ?? defaultSettings.copyEnabled,
+            copy: { ...defaultSettings.copy, ...parsed.copy },
+            hotkeyEnabled: parsed.hotkeyEnabled ?? defaultSettings.hotkeyEnabled,
+            sendHotkey: parsed.sendHotkey ?? defaultSettings.sendHotkey
+          };
+        }
+        return defaultSettings;
+      } catch (e) { return defaultSettings; }
+    }
+
+    function saveSettings(settings) {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(settings)); } catch (e) { console.warn('Save failed:', e); }
+    }
+
+    /* ===== DOM 元素 ===== */
+    const settingsBtn = document.getElementById('settings-toggle-btn');
+    const overlay = document.getElementById('settings-overlay');
+    const closeBtn = document.getElementById('modal-close-btn');
+    const langSwitch = document.getElementById('lang-switch');
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    const accordionHeaders = document.querySelectorAll('.accordion-header');
+    
+    // 控件引用
+    const masterToggle = document.getElementById('master-toggle');
+    const copyMasterToggle = document.getElementById('copy-master-toggle');
+    const hotkeyMasterToggle = document.getElementById('hotkey-master-toggle');
+    const sendHotkeySelect = document.getElementById('send-hotkey-select');
+    const reactApp = document.getElementById('react-app');
+
+    /* ===== 交互逻辑 ===== */
+    let currentSettings = loadSettings();
+
+    // 1. 语言切换
+    function updateLanguage() {
+      const lang = currentSettings.lang;
+      const dict = TRANSLATIONS[lang];
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (dict[key]) el.textContent = dict[key];
+      });
+      langSwitch.textContent = lang === 'zh' ? '🌐 English' : '🌐 中文';
+    }
+
+    langSwitch.addEventListener('click', () => {
+      currentSettings.lang = currentSettings.lang === 'zh' ? 'en' : 'zh';
+      saveSettings(currentSettings);
+      updateLanguage();
+    });
+
+    // 2. Tab 切换
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        tabBtns.forEach(b => b.classList.remove('active'));
+        tabContents.forEach(c => c.classList.remove('active'));
+        
+        btn.classList.add('active');
+        const tabId = `tab-${btn.dataset.tab}`;
+        document.getElementById(tabId).classList.add('active');
+      });
+    });
+
+    // 3. 手风琴逻辑
+    accordionHeaders.forEach(header => {
+      header.addEventListener('click', () => {
+        const item = header.parentElement;
+        item.classList.toggle('expanded');
+      });
+    });
+
+    // 4. 弹窗控制
+    function openModal() {
+      overlay.classList.add('show');
+      requestAnimationFrame(() => overlay.classList.add('visible'));
+    }
+    function closeModal() {
+      overlay.classList.remove('visible');
+      setTimeout(() => overlay.classList.remove('show'), 300);
+    }
+    settingsBtn.addEventListener('click', openModal);
+    closeBtn.addEventListener('click', closeModal);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+
+    /* ===== 功能实现 ===== */
+    // A. 颜色功能
+    function applyColorSettings() {
+      COLOR_CONFIGS.forEach(config => {
+        const colorSetting = currentSettings.colors[config.id];
+        document.documentElement.style.setProperty(config.cssVar, colorSetting.color);
+        if (currentSettings.masterEnabled && colorSetting.enabled) {
+          reactApp.classList.add(config.cssClass);
+        } else {
+          reactApp.classList.remove(config.cssClass);
+        }
+      });
+    }
+
+    masterToggle.addEventListener('change', () => {
+      currentSettings.masterEnabled = masterToggle.checked;
+      saveSettings(currentSettings);
+      applyColorSettings();
+    });
+
+    COLOR_CONFIGS.forEach(config => {
+      const toggleEl = document.getElementById(`toggle-${config.id}`);
+      const colorEl = document.getElementById(`color-${config.id}`);
+      
+      if (toggleEl) {
+        toggleEl.addEventListener('change', () => {
+          currentSettings.colors[config.id].enabled = toggleEl.checked;
+          saveSettings(currentSettings);
+          applyColorSettings();
+        });
+      }
+      if (colorEl) {
+        colorEl.addEventListener('input', () => {
+          currentSettings.colors[config.id].color = colorEl.value;
+          saveSettings(currentSettings);
+          applyColorSettings();
+        });
+      }
+    });
+
+    // B. 复制功能
+    let copyObserver = null;
+    const COPY_ICON = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>';
+    const CHECK_ICON = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>';
+
+    function copyToClipboard(text) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.left = '-9999px';
+      document.body.appendChild(textarea);
+      textarea.select();
+      let success = false;
+      try { success = document.execCommand('copy'); } catch (err) {}
+      document.body.removeChild(textarea);
+      return success;
+    }
+
+    function createCopyButton(targetEl, getText) {
+      const btn = document.createElement('button');
+      btn.className = 'copy-btn';
+      btn.innerHTML = COPY_ICON;
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        const success = copyToClipboard(getText());
+        if (success) {
+          btn.innerHTML = CHECK_ICON;
+          btn.classList.add('copied');
+          setTimeout(() => {
+            btn.innerHTML = COPY_ICON;
+            btn.classList.remove('copied');
+          }, 1500);
+        }
+      });
+      return btn;
+    }
+
+    function injectCopyButtons() {
+      if (!currentSettings.copyEnabled) return;
+      COPY_CONFIGS.forEach(config => {
+        if (!currentSettings.copy[config.id]?.enabled) return;
+        const elements = reactApp.querySelectorAll(config.selector);
+        elements.forEach(el => {
+          if (el.querySelector('.copy-btn') || el.closest('#settings-overlay')) return;
+          el.classList.add('copy-target');
+          const getText = () => config.textSelector ? (el.querySelector(config.textSelector)?.textContent || el.textContent) : el.textContent;
+          el.appendChild(createCopyButton(el, getText));
+        });
+      });
+    }
+
+    function removeCopyButtons() {
+      reactApp.querySelectorAll('.copy-btn').forEach(btn => btn.remove());
+      reactApp.querySelectorAll('.copy-target').forEach(el => el.classList.remove('copy-target'));
+    }
+
+    function applyCopySettings() {
+      if (currentSettings.copyEnabled) {
+        if (!copyObserver) {
+          copyObserver = new MutationObserver(() => setTimeout(injectCopyButtons, 100));
+          copyObserver.observe(reactApp, { childList: true, subtree: true });
+          injectCopyButtons();
+        }
+      } else {
+        if (copyObserver) { copyObserver.disconnect(); copyObserver = null; }
+        removeCopyButtons();
+      }
+    }
+
+    copyMasterToggle.addEventListener('change', () => {
+      currentSettings.copyEnabled = copyMasterToggle.checked;
+      saveSettings(currentSettings);
+      applyCopySettings();
+    });
+
+    COPY_CONFIGS.forEach(config => {
+      const toggleEl = document.getElementById(`toggle-${config.id}`);
+      if (toggleEl) {
+        toggleEl.addEventListener('change', () => {
+          currentSettings.copy[config.id].enabled = toggleEl.checked;
+          saveSettings(currentSettings);
+          removeCopyButtons();
+          if (currentSettings.copyEnabled) injectCopyButtons();
+        });
+      }
+    });
+
+    // C. 快捷键功能
+    let hotkeyHandler = null;
+    const INPUT_SELECTOR = 'div[contenteditable="true"][data-lexical-editor="true"]';
+    const SEND_BTN_SELECTOR = 'button[data-tooltip-id="input-send-button-send-tooltip"]';
+
+    function createHotkeyHandler() {
+      const selected = currentSettings.sendHotkey;
+      const config = HOTKEY_OPTIONS.find(h => h.id === selected);
+      return function(e) {
+        const inputEl = e.target.closest(INPUT_SELECTOR);
+        if (!inputEl || e.key !== 'Enter') return;
+        
+        // 检查下拉菜单
+        if (inputEl.hasAttribute('aria-activedescendant') || 
+            (document.querySelector('.lexical-typeahead-menu') && document.querySelector('.lexical-typeahead-menu').style.display !== 'none')) {
+          return;
+        }
+
+        if (config && config.check(e)) {
+          e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+          const sendBtn = document.querySelector(SEND_BTN_SELECTOR);
+          if (sendBtn) sendBtn.click();
+        } else if (e.key === 'Enter') {
+          // 阻止默认发送 (除非shift+enter)
+          if (!e.shiftKey || selected === 'shift+enter') {
+            e.stopPropagation(); e.stopImmediatePropagation();
+          }
+        }
+      };
+    }
+
+    function applyHotkeySettings() {
+      if (hotkeyHandler) { document.removeEventListener('keydown', hotkeyHandler, { capture: true }); hotkeyHandler = null; }
+      if (currentSettings.hotkeyEnabled) {
+        hotkeyHandler = createHotkeyHandler();
+        document.addEventListener('keydown', hotkeyHandler, { capture: true });
+      }
+    }
+
+    hotkeyMasterToggle.addEventListener('change', () => {
+      currentSettings.hotkeyEnabled = hotkeyMasterToggle.checked;
+      saveSettings(currentSettings);
+      applyHotkeySettings();
+    });
+
+    sendHotkeySelect.addEventListener('change', () => {
+      currentSettings.sendHotkey = sendHotkeySelect.value;
+      saveSettings(currentSettings);
+      if (currentSettings.hotkeyEnabled) applyHotkeySettings();
+    });
+
+    /* ===== 初始化 ===== */
+    function initUI() {
+      // 1. 设置控件状态
+      masterToggle.checked = currentSettings.masterEnabled;
+      copyMasterToggle.checked = currentSettings.copyEnabled;
+      hotkeyMasterToggle.checked = currentSettings.hotkeyEnabled;
+      sendHotkeySelect.value = currentSettings.sendHotkey;
+
+      COLOR_CONFIGS.forEach(c => {
+        const t = document.getElementById(`toggle-${c.id}`);
+        const col = document.getElementById(`color-${c.id}`);
+        if (t) t.checked = currentSettings.colors[c.id].enabled;
+        if (col) col.value = currentSettings.colors[c.id].color;
+      });
+
+      COPY_CONFIGS.forEach(c => {
+        const t = document.getElementById(`toggle-${c.id}`);
+        if (t) t.checked = currentSettings.copy[c.id]?.enabled ?? true;
+      });
+
+      // 2. 应用功能
+      applyColorSettings();
+      applyCopySettings();
+      applyHotkeySettings();
+      updateLanguage();
+    }
+
+    if (document.readyState !== 'loading') initUI();
+    else document.addEventListener('DOMContentLoaded', initUI);
+    
+    console.log('[Cascade Panel] Antigravity Better Loaded');
+  </script>
+</body>
+</html>
