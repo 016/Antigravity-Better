@@ -54,6 +54,7 @@ You can freely customize this HTML file to build your own features. Following ou
 | 🎨 **Custom Colors** | Change text colors for user messages, AI responses, code blocks, thinking process, and more |
 | 📋 **Copy Buttons** | One-click copy for any message type (user, AI, thinking) |
 | ⌨️ **Hotkey Override** | Change the send shortcut (Enter → Cmd+Enter, Ctrl+Enter, etc.) |
+| 🔄 **Auto Retry** | Automatically click the Retry button when AI agent errors occur (configurable count & delay) |
 | 🌐 **i18n Ready** | Built-in English/Chinese support, easily extendable to other languages |
 
 ### For Developers
