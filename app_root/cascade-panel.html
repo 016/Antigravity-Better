@@ -1517,7 +1517,7 @@
     };
 
     /* ===== 版本检测配置 ===== */
-    const APP_VERSION = '0.1.4';
+    const APP_VERSION = '0.1.5';
     const VERSION_API = 'https://hub.lib00.com/api/v1/antigravity-better/version';
 
     // 语义化版本比较：remote > local 返回 true
@@ -2470,7 +2470,9 @@
 
         if (rendered) {
           const wrapper = document.createElement(isBlock ? 'div' : 'span');
-          if (isBlock) wrapper.className = 'latex-block';
+          wrapper.className = isBlock ? 'latex-block latex-rendered' : 'latex-rendered';
+          // 保存原始公式用于还原
+          wrapper.dataset.latexOriginal = fullMatch;
           wrapper.innerHTML = rendered;
           fragment.appendChild(wrapper);
         } else {
@@ -2500,11 +2502,6 @@
         // 跳过已处理的
         if (prose.dataset.latexProcessed) return;
 
-        // 保存原始 HTML (用于恢复)
-        if (!prose.dataset.latexOriginal) {
-          prose.dataset.latexOriginal = prose.innerHTML;
-        }
-
         // 获取所有文本节点
         const walker = document.createTreeWalker(prose, NodeFilter.SHOW_TEXT, null, false);
         const textNodes = [];
@@ -2526,16 +2523,22 @@
       });
     }
 
-    // 恢复原始内容 (取消渲染)
-    function restoreLatexContent() {
-      const proseElements = reactApp.querySelectorAll('.prose[data-latex-processed]');
-      proseElements.forEach(prose => {
-        // 恢复原始 HTML
-        if (prose.dataset.latexOriginal) {
-          prose.innerHTML = prose.dataset.latexOriginal;
-          delete prose.dataset.latexOriginal;
+    // 还原所有已渲染的 LaTeX 公式为原始文本
+    function revertLatex() {
+      // 查找所有已渲染的公式元素
+      const renderedElements = reactApp.querySelectorAll('.latex-rendered');
+      
+      renderedElements.forEach(el => {
+        const original = el.dataset.latexOriginal;
+        if (original) {
+          const textNode = document.createTextNode(original);
+          el.parentNode.replaceChild(textNode, el);
         }
-        delete prose.dataset.latexProcessed;
+      });
+
+      // 清除处理标记
+      reactApp.querySelectorAll('[data-latex-processed]').forEach(el => {
+        delete el.dataset.latexProcessed;
       });
     }
 
@@ -2548,8 +2551,8 @@
       }
 
       if (!currentSettings.latexEnabled) {
-        // 关闭时恢复原始内容
-        restoreLatexContent();
+        // 禁用时立即还原公式
+        revertLatex();
         return;
       }
 
