@@ -8,6 +8,7 @@
     <a href="./README_ZH.md">中文</a>
   </p>
   <p>
+    <img src="https://img.shields.io/badge/version-0.1.4-brightgreen" alt="Version">
     <img src="https://img.shields.io/badge/dependencies-zero-green" alt="Zero Dependencies">
     <img src="https://img.shields.io/badge/file-single%20HTML-blue" alt="Single File">
     <img src="https://img.shields.io/badge/target-Antigravity-purple" alt="Antigravity">
@@ -52,9 +53,13 @@ You can freely customize this HTML file to build your own features. Following ou
 | Feature | Description |
 |---------|-------------|
 | 🎨 **Custom Colors** | Change text colors for user messages, AI responses, code blocks, thinking process, and more |
+| 🔤 **Font Size Control** | Customize font sizes for different content types with sync-all option |
 | 📋 **Copy Buttons** | One-click copy for any message type (user, AI, thinking) |
 | ⌨️ **Hotkey Override** | Change the send shortcut (Enter → Cmd+Enter, Ctrl+Enter, etc.) |
 | 🔄 **Auto Retry** | Automatically click the Retry button when AI agent errors occur (configurable count & delay) |
+| 🤖 **Auto Accept** | Auto-click Accept/Run/Apply/Execute/Confirm/Allow buttons with configurable patterns |
+| 🛡️ **Safety Rules** | Block dangerous commands from auto-execution with customizable blacklist |
+| 🔔 **Version Check** | Auto/manual check for updates with in-app notification |
 | 🌐 **i18n Ready** | Built-in English/Chinese support, easily extendable to other languages |
 
 ### For Developers
@@ -140,6 +145,15 @@ We welcome contributions! Whether it's:
 - 💡 Feature ideas
 - 🔧 Pull requests
 - 📖 Documentation
+
+### 🌟 Contributors
+
+A huge thank you to all our amazing contributors! 💖
+
+| Contributor | Contribution | Date |
+|-------------|--------------|------|
+| [@moshouhot](https://github.com/moshouhot) | 🤖 Auto Accept + 🛡️ Safety Rules - Configurable button auto-click with dangerous command filtering | 2026-01-24 |
+| [@chengcodex](https://github.com/chengcodex) | 🔄 Auto Retry - Smart error detection and auto-retry with XPath optimization | 2026-01-23 |
 
 ---
 

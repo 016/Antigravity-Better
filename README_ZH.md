@@ -1,12 +1,14 @@
 <div align="center">
   <h1>🚀 Antigravity Better</h1>
   <p><strong>自定义你的 Antigravity AI 聊天面板。你的 IDE，你做主。</strong></p>
+  <p><strong>Customize your Antigravity AI chat panel. Your IDE, your rules.</strong></p>
   <br>
   <p>
     <a href="./README.md">English</a> •
     <strong>中文</strong>
   </p>
   <p>
+    <img src="https://img.shields.io/badge/version-0.1.4-brightgreen" alt="Version">
     <img src="https://img.shields.io/badge/dependencies-zero-green" alt="Zero Dependencies">
     <img src="https://img.shields.io/badge/file-single%20HTML-blue" alt="Single File">
     <img src="https://img.shields.io/badge/target-Antigravity-purple" alt="Antigravity">
@@ -51,9 +53,13 @@
 | 功能 | 说明 |
 |------|------|
 | 🎨 **自定义颜色** | 修改用户消息、AI 回复、代码块、思考过程等的文字颜色 |
+| 🔤 **字体大小** | 为不同内容类型自定义字体大小，支持一键同步 |
 | 📋 **一键复制** | 为任意消息类型（用户、AI、思考）添加复制按钮 |
 | ⌨️ **快捷键覆盖** | 修改发送快捷键（Enter → Cmd+Enter、Ctrl+Enter 等） |
 | 🔄 **自动重试** | 当 AI Agent 运行出错时，自动点击重试按钮（可配置次数和延迟） |
+| 🤖 **自动操作** | 自动点击 Accept/Run/Apply/Execute/Confirm/Allow 按钮，按钮类型可配置 |
+| 🛡️ **安全规则** | 危险命令过滤，可自定义黑名单，阻止危险命令自动执行 |
+| 🔔 **版本检测** | 支持自动/手动检测更新，新版本可用时弹出提醒 |
 | 🌐 **多语言支持** | 内置中英文，可轻松扩展其他语言 |
 
 ### 开发者友好
@@ -139,6 +145,15 @@ Antigravity Better 专为扩展设计：
 - 💡 功能建议
 - 🔧 Pull Request
 - 📖 文档完善
+
+### 🌟 贡献者
+
+感谢所有优秀的贡献者！你们太棒了！💖
+
+| 贡献者 | 贡献内容 | 日期 |
+|--------|----------|------|
+| [@moshouhot](https://github.com/moshouhot) | 🤖 自动操作 + 🛡️ 安全规则 - 可配置按钮自动点击，支持危险命令过滤 | 2026-01-24 |
+| [@chengcodex](https://github.com/chengcodex) | 🔄 自动重试 - 智能错误检测与自动重试，采用 XPath 优化性能 | 2026-01-23 |
 
 ---
 
