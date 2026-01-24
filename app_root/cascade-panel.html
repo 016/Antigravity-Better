@@ -1,5 +1,6 @@
 <!doctype html>
 <html>
+
 <head>
   <meta charset="UTF-8">
   <style>
@@ -32,20 +33,23 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: -2px 2px 8px rgba(0,0,0,0.3);
+      box-shadow: -2px 2px 8px rgba(0, 0, 0, 0.3);
       z-index: 9999;
       transition: all 0.3s ease;
     }
+
     #settings-toggle-btn:hover {
       width: 36px;
       background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
     }
+
     #settings-toggle-btn svg {
       width: 18px;
       height: 18px;
       fill: white;
       transition: transform 0.3s ease;
     }
+
     #settings-toggle-btn:hover svg {
       transform: rotate(90deg);
     }
@@ -57,7 +61,7 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(0,0,0,0.5);
+      background: rgba(0, 0, 0, 0.5);
       z-index: 10000;
       display: none;
       opacity: 0;
@@ -65,9 +69,11 @@
       align-items: center;
       justify-content: center;
     }
+
     #settings-overlay.show {
       display: flex;
     }
+
     #settings-overlay.visible {
       opacity: 1;
     }
@@ -81,16 +87,17 @@
       max-height: 85vh;
       display: flex;
       flex-direction: column;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
       border: 1px solid var(--border-color);
       transform: scale(0.9);
       transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
       overflow: hidden;
     }
+
     #settings-overlay.visible #settings-modal {
       transform: scale(1);
     }
-    
+
     /* 弹窗 Header */
     .modal-header {
       padding: 16px 20px;
@@ -98,12 +105,14 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: rgba(255,255,255,0.02);
+      background: rgba(255, 255, 255, 0.02);
     }
+
     .header-left {
       display: flex;
       flex-direction: column;
     }
+
     .brand-name {
       color: var(--text-main);
       font-size: 16px;
@@ -113,25 +122,30 @@
       background-clip: text;
       -webkit-text-fill-color: transparent;
     }
+
     .brand-links {
       display: flex;
       gap: 12px;
       margin-top: 4px;
     }
+
     .brand-link {
       color: var(--text-sub);
       font-size: 10px;
       text-decoration: none;
       transition: color 0.2s;
     }
+
     .brand-link:hover {
       color: var(--accent-color);
     }
+
     .header-right {
       display: flex;
       align-items: center;
       gap: 12px;
     }
+
     .lang-switch {
       background: none;
       border: 1px solid var(--border-color);
@@ -142,10 +156,12 @@
       cursor: pointer;
       transition: all 0.2s;
     }
+
     .lang-switch:hover {
       border-color: var(--text-main);
       color: var(--text-main);
     }
+
     .modal-close {
       background: none;
       border: none;
@@ -156,6 +172,7 @@
       line-height: 1;
       transition: color 0.2s;
     }
+
     .modal-close:hover {
       color: var(--text-main);
     }
@@ -165,8 +182,9 @@
       display: flex;
       border-bottom: 1px solid var(--border-color);
       padding: 0 10px;
-      background: rgba(0,0,0,0.1);
+      background: rgba(0, 0, 0, 0.1);
     }
+
     .tab-btn {
       flex: 1;
       background: none;
@@ -178,13 +196,16 @@
       position: relative;
       transition: all 0.2s;
     }
+
     .tab-btn:hover {
       color: var(--text-main);
     }
+
     .tab-btn.active {
       color: var(--accent-color);
       font-weight: 600;
     }
+
     .tab-btn.active::after {
       content: '';
       position: absolute;
@@ -201,34 +222,47 @@
       overflow-y: auto;
       padding: 0;
     }
+
     .tab-content {
       display: none;
       animation: fadeIn 0.2s ease;
     }
+
     .tab-content.active {
       display: block;
     }
+
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(5px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(5px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     /* 手风琴效果 */
     .accordion-item {
       border-bottom: 1px solid var(--border-color);
     }
+
     .accordion-header {
       padding: 14px 20px;
-      background: rgba(255,255,255,0.01);
+      background: rgba(255, 255, 255, 0.01);
       cursor: pointer;
       display: flex;
       justify-content: space-between;
       align-items: center;
       transition: background 0.2s;
     }
+
     .accordion-header:hover {
-      background: rgba(255,255,255,0.03);
+      background: rgba(255, 255, 255, 0.03);
     }
+
     .accordion-title {
       font-size: 13px;
       font-weight: 600;
@@ -237,24 +271,30 @@
       align-items: center;
       gap: 8px;
     }
+
     .accordion-icon {
       font-size: 10px;
       color: var(--text-sub);
       transition: transform 0.3s;
     }
+
     .accordion-item.expanded .accordion-icon {
       transform: rotate(180deg);
     }
+
     .accordion-body {
       max-height: 0;
       overflow: hidden;
       transition: max-height 0.3s cubic-bezier(0, 1, 0, 1);
-      background: rgba(0,0,0,0.1);
+      background: rgba(0, 0, 0, 0.1);
     }
+
     .accordion-item.expanded .accordion-body {
-      max-height: 1000px; /* 足够大的值 */
+      max-height: 1000px;
+      /* 足够大的值 */
       transition: max-height 0.3s ease-in-out;
     }
+
     .accordion-inner {
       padding: 16px 20px;
     }
@@ -270,6 +310,7 @@
       border-radius: 8px;
       margin-bottom: 12px;
     }
+
     .main-toggle-label {
       color: var(--text-main);
       font-size: 13px;
@@ -281,43 +322,50 @@
       align-items: center;
       justify-content: space-between;
       padding: 8px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     }
+
     .setting-item:last-child {
       border-bottom: none;
     }
+
     .setting-left {
       display: flex;
       align-items: center;
       gap: 10px;
     }
+
     .setting-icon {
       font-size: 15px;
       width: 20px;
       text-align: center;
       color: var(--text-sub);
     }
+
     .setting-name {
       color: #ccc;
       font-size: 13px;
     }
+
     .setting-right {
       display: flex;
       align-items: center;
       gap: 8px;
     }
-    
+
     /* Toggle Switch */
     .toggle-switch {
       position: relative;
       width: 32px;
       height: 18px;
     }
+
     .toggle-switch input {
       opacity: 0;
       width: 0;
       height: 0;
     }
+
     .toggle-slider {
       position: absolute;
       cursor: pointer;
@@ -329,6 +377,7 @@
       transition: 0.3s;
       border-radius: 20px;
     }
+
     .toggle-slider:before {
       position: absolute;
       content: "";
@@ -340,10 +389,12 @@
       transition: 0.3s;
       border-radius: 50%;
     }
-    .toggle-switch input:checked + .toggle-slider {
+
+    .toggle-switch input:checked+.toggle-slider {
       background: var(--accent-color);
     }
-    .toggle-switch input:checked + .toggle-slider:before {
+
+    .toggle-switch input:checked+.toggle-slider:before {
       transform: translateX(14px);
     }
 
@@ -357,9 +408,11 @@
       padding: 0;
       background: none;
     }
+
     .color-input::-webkit-color-swatch-wrapper {
       padding: 2px;
     }
+
     .color-input::-webkit-color-swatch {
       border-radius: 2px;
       border: none;
@@ -377,6 +430,7 @@
       outline: none;
       min-width: 110px;
     }
+
     .select-input:focus {
       border-color: var(--accent-color);
     }
@@ -387,6 +441,7 @@
     #react-app.color-user-message .bg-gray-500\/15 [style*="word-break"] {
       color: var(--color-user-message) !important;
     }
+
     /* AI回复 (排除思考) */
     #react-app.color-ai-response .prose:not(.opacity-70) p,
     #react-app.color-ai-response .prose:not(.opacity-70) li,
@@ -400,6 +455,7 @@
     #react-app.color-ai-response .prose:not(.opacity-70) td {
       color: var(--color-ai-response) !important;
     }
+
     /* 代码块 */
     #react-app.color-code-block pre,
     #react-app.color-code-block pre code,
@@ -407,11 +463,13 @@
     #react-app.color-code-block .code-line {
       color: var(--color-code-block) !important;
     }
+
     /* 操作状态 */
     #react-app.color-action-status .shrink-0:is(:contains('Analyzed'), :contains('Created'), :contains('Edited')),
     #react-app.color-action-status [class*="animate-fade-in"] .truncate {
       color: var(--color-action-status) !important;
     }
+
     /* 思考过程 */
     #react-app.color-thinking .opacity-70.prose,
     #react-app.color-thinking .opacity-70.prose * {
@@ -426,7 +484,7 @@
       width: 26px;
       height: 26px;
       background: rgba(60, 60, 60, 0.9);
-      border: 1px solid rgba(255,255,255,0.1);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 5px;
       cursor: pointer;
       display: flex;
@@ -436,26 +494,37 @@
       transition: all 0.2s ease;
       z-index: 10;
     }
+
     .copy-btn svg {
       width: 14px;
       height: 14px;
       fill: #ccc;
     }
+
     .copy-btn:hover {
       background: rgba(102, 126, 234, 0.8);
       border-color: rgba(102, 126, 234, 0.5);
     }
+
     .copy-btn:hover svg {
       fill: #fff;
     }
+
     .copy-btn.copied {
       background: rgba(74, 222, 128, 0.8);
     }
+
     .copy-btn.copied svg {
       fill: #fff;
     }
-    .copy-target { position: relative; }
-    .copy-target:hover .copy-btn { opacity: 1; }
+
+    .copy-target {
+      position: relative;
+    }
+
+    .copy-target:hover .copy-btn {
+      opacity: 1;
+    }
 
     /* ===== Toast 提示样式 ===== */
     #retry-toast {
@@ -474,44 +543,199 @@
       transition: opacity 0.3s ease, top 0.3s ease;
       align-items: center;
       gap: 10px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
+
     #retry-toast.show {
       display: flex;
       opacity: 1;
       top: 60px;
     }
+
     #retry-toast.success {
       background: rgba(46, 125, 50, 0.9);
       border-color: rgba(76, 175, 80, 0.3);
     }
+
     .toast-spinner {
       width: 14px;
       height: 14px;
-      border: 2px solid rgba(255,255,255,0.3);
+      border: 2px solid rgba(255, 255, 255, 0.3);
       border-top: 2px solid #fff;
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
+
     @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* ===== 自动操作功能样式 ===== */
+    /* 按钮类型 Grid */
+    .pattern-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    .pattern-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 12px;
+      color: #ccc;
+    }
+
+    .pattern-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .pattern-item.active {
+      border-color: var(--accent-color);
+      background: rgba(102, 126, 234, 0.15);
+      color: var(--text-main);
+    }
+
+    .pattern-item input[type="checkbox"] {
+      accent-color: var(--accent-color);
+      width: 14px;
+      height: 14px;
+      cursor: pointer;
+    }
+
+    /* 统计面板 */
+    .stats-panel {
+      display: flex;
+      justify-content: space-around;
+      padding: 12px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      margin-top: 12px;
+    }
+
+    .stat-item {
+      text-align: center;
+      flex: 1;
+    }
+
+    .stat-icon {
+      font-size: 16px;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      display: block;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .stat-label {
+      font-size: 10px;
+      color: var(--text-sub);
+      text-transform: uppercase;
+    }
+
+    /* 危险命令输入框 */
+    .banned-textarea {
+      width: 100%;
+      min-height: 100px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      color: #ccc;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 11px;
+      padding: 10px;
+      resize: vertical;
+      outline: none;
+      box-sizing: border-box;
+    }
+
+    .banned-textarea:focus {
+      border-color: var(--accent-color);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .btn-action {
+      flex: 1;
+      padding: 8px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s;
+    }
+
+    .btn-action.primary {
+      background: var(--accent-color);
+      color: white;
+    }
+
+    .btn-action.primary:hover {
+      filter: brightness(1.1);
+    }
+
+    .btn-action.secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: #ccc;
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-action.secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .save-status {
+      font-size: 11px;
+      text-align: center;
+      margin-top: 8px;
+      min-height: 16px;
+      color: #4ADE80;
+    }
+
+    .setting-desc {
+      font-size: 11px;
+      color: var(--text-sub);
+      margin-bottom: 12px;
+      line-height: 1.5;
     }
   </style>
 </head>
+
 <body style="margin: 0">
   <div id="react-app" class="react-app-container"></div>
-  
+
   <div id="retry-toast">
     <div class="toast-spinner"></div>
     <span id="retry-toast-text"></span>
   </div>
-  
+
   <!-- 悬浮设置按钮 -->
   <button id="settings-toggle-btn" title="Open Settings">
     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19.14,12.94c0.04-0.31,0.06-0.63,0.06-0.94c0-0.31-0.02-0.63-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.37,4.8,11.69,4.8,12s0.02,0.63,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+      <path
+        d="M19.14,12.94c0.04-0.31,0.06-0.63,0.06-0.94c0-0.31-0.02-0.63-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.37,4.8,11.69,4.8,12s0.02,0.63,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z" />
     </svg>
   </button>
 
@@ -558,7 +782,7 @@
                     <span class="toggle-slider"></span>
                   </label>
                 </div>
-                
+
                 <div id="color-settings">
                   <div class="setting-item">
                     <div class="setting-left">
@@ -652,7 +876,7 @@
                     <span class="toggle-slider"></span>
                   </label>
                 </div>
-                
+
                 <div id="copy-settings">
                   <div class="setting-item">
                     <div class="setting-left">
@@ -710,7 +934,7 @@
                     <span class="toggle-slider"></span>
                   </label>
                 </div>
-                
+
                 <div id="hotkey-settings">
                   <div class="setting-item">
                     <div class="setting-left">
@@ -746,7 +970,7 @@
                     <span class="toggle-slider"></span>
                   </label>
                 </div>
-                
+
                 <div id="auto-retry-settings">
                   <div class="setting-item">
                     <div class="setting-left">
@@ -754,7 +978,8 @@
                       <span class="setting-name" data-i18n="lbl_retry_count">重试次数</span>
                     </div>
                     <div class="setting-right">
-                      <input type="number" id="retry-count-input" class="select-input" min="1" max="5" style="width: 60px; min-width: 60px;">
+                      <input type="number" id="retry-count-input" class="select-input" min="1" max="5"
+                        style="width: 60px; min-width: 60px;">
                     </div>
                   </div>
                   <div class="setting-item">
@@ -763,10 +988,74 @@
                       <span class="setting-name" data-i18n="lbl_retry_delay">延迟时间 (秒)</span>
                     </div>
                     <div class="setting-right">
-                      <input type="number" id="retry-delay-input" class="select-input" min="1" max="10" style="width: 60px; min-width: 60px;">
+                      <input type="number" id="retry-delay-input" class="select-input" min="1" max="10"
+                        style="width: 60px; min-width: 60px;">
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Accordion: Auto Accept -->
+          <div class="accordion-item">
+            <div class="accordion-header">
+              <span class="accordion-title" data-i18n="auto_accept_title">🤖 自动操作</span>
+              <span class="accordion-icon">▼</span>
+            </div>
+            <div class="accordion-body">
+              <div class="accordion-inner">
+                <div class="main-toggle">
+                  <span class="main-toggle-label" data-i18n="enable_auto_accept">启用自动操作</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="auto-accept-master-toggle">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+
+                <div class="setting-desc" data-i18n="auto_accept_desc">选择要自动点击的按钮类型</div>
+
+                <div id="auto-accept-patterns" class="pattern-grid">
+                  <!-- 动态生成 -->
+                </div>
+
+                <!-- 统计面板 -->
+                <div id="auto-accept-stats" class="stats-panel">
+                  <div class="stat-item">
+                    <span class="stat-icon">✅</span>
+                    <span class="stat-value" id="stat-clicks">0</span>
+                    <span class="stat-label" data-i18n="stat_clicks">已点击</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-icon">🛡️</span>
+                    <span class="stat-value" id="stat-blocked">0</span>
+                    <span class="stat-label" data-i18n="stat_blocked">已阻止</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-icon">✓</span>
+                    <span class="stat-value" id="stat-verified">0</span>
+                    <span class="stat-label" data-i18n="stat_verified">已验证</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Accordion: Safety Rules -->
+          <div class="accordion-item">
+            <div class="accordion-header">
+              <span class="accordion-title" data-i18n="banned_title">🛡️ 安全规则</span>
+              <span class="accordion-icon">▼</span>
+            </div>
+            <div class="accordion-body">
+              <div class="accordion-inner">
+                <div class="setting-desc" data-i18n="banned_desc">包含以下关键词的命令将不会被自动执行（每行一个）</div>
+                <textarea id="banned-commands-input" class="banned-textarea" rows="6"></textarea>
+                <div class="btn-group">
+                  <button id="save-banned-btn" class="btn-action primary" data-i18n="btn_save">保存</button>
+                  <button id="reset-banned-btn" class="btn-action secondary" data-i18n="btn_reset">重置</button>
+                </div>
+                <div id="banned-save-status" class="save-status"></div>
               </div>
             </div>
           </div>
@@ -774,7 +1063,7 @@
       </div>
     </div>
   </div>
-  
+
   <script>
     /* ===== I18N 字典 ===== */
     const TRANSLATIONS = {
@@ -798,7 +1087,19 @@
         lbl_retry_count: '重试次数',
         lbl_retry_delay: '延迟时间 (秒)',
         retry_toast_msg: '正在自动重试 ({n}/{max})...',
-        retry_toast_done: '重试触发成功'
+        retry_toast_done: '重试触发成功',
+        auto_accept_title: '🤖 自动操作',
+        enable_auto_accept: '启用自动操作',
+        auto_accept_desc: '选择要自动点击的按钮类型',
+        stat_clicks: '已点击',
+        stat_blocked: '已阻止',
+        stat_verified: '已验证',
+        banned_title: '🛡️ 安全规则',
+        banned_desc: '包含以下关键词的命令将不会被自动执行（每行一个）',
+        btn_save: '保存',
+        btn_reset: '重置',
+        banned_saved: '✓ 安全规则已保存',
+        banned_reset: '✓ 已重置为默认值'
       },
       en: {
         tab_appearance: '🎨 Appearance',
@@ -820,13 +1121,25 @@
         lbl_retry_count: 'Retry Count',
         lbl_retry_delay: 'Delay (s)',
         retry_toast_msg: 'Auto retrying ({n}/{max})...',
-        retry_toast_done: 'Retry triggered'
+        retry_toast_done: 'Retry triggered',
+        auto_accept_title: '🤖 Auto Accept',
+        enable_auto_accept: 'Enable Auto Accept',
+        auto_accept_desc: 'Select button types to auto-click',
+        stat_clicks: 'Clicked',
+        stat_blocked: 'Blocked',
+        stat_verified: 'Verified',
+        banned_title: '🛡️ Safety Rules',
+        banned_desc: 'Commands containing these keywords will not be auto-executed (one per line)',
+        btn_save: 'Save',
+        btn_reset: 'Reset',
+        banned_saved: '✓ Safety rules saved',
+        banned_reset: '✓ Reset to defaults'
       }
     };
 
     /* ===== 既存配置逻辑 ===== */
     const STORAGE_KEY = 'cascade-panel-settings';
-    
+
     // 颜色配置
     const COLOR_CONFIGS = [
       { id: 'user-message', cssVar: '--color-user-message', cssClass: 'color-user-message', default: '#60A5FA', enabled: true },
@@ -851,6 +1164,32 @@
       { id: 'shift+enter', label: '⇧ Shift + Enter', check: (e) => e.key === 'Enter' && e.shiftKey },
     ];
 
+    // 自动操作按钮配置 - 每个类型可独立开关
+    const AUTO_ACCEPT_CONFIGS = [
+      { id: 'accept', label: 'Accept', defaultEnabled: false },
+      { id: 'retry', label: 'Retry', defaultEnabled: true },
+      { id: 'run', label: 'Run', defaultEnabled: true },
+      { id: 'apply', label: 'Apply', defaultEnabled: true },
+      { id: 'execute', label: 'Execute', defaultEnabled: true },
+      { id: 'confirm', label: 'Confirm', defaultEnabled: true },
+      { id: 'allow', label: 'Allow', defaultEnabled: true },
+    ];
+
+    // 危险命令默认黑名单
+    const DEFAULT_BANNED_COMMANDS = [
+      'rm -rf /',
+      'rm -rf ~',
+      'rm -rf *',
+      'format c:',
+      'del /f /s /q',
+      'rmdir /s /q',
+      ':(){:|:&};:',
+      'dd if=',
+      'mkfs.',
+      '> /dev/sda',
+      'chmod -R 777 /'
+    ];
+
     const defaultSettings = {
       lang: 'zh',
       masterEnabled: false,
@@ -861,7 +1200,13 @@
       sendHotkey: 'cmd+enter',
       autoRetryEnabled: false,
       retryCount: 1,
-      retryDelay: 2
+      retryDelay: 2,
+      // 自动操作配置
+      autoAcceptEnabled: false,
+      autoAcceptPatterns: AUTO_ACCEPT_CONFIGS.reduce((acc, c) => { acc[c.id] = c.defaultEnabled; return acc; }, {}),
+      bannedCommands: [...DEFAULT_BANNED_COMMANDS],
+      // 统计数据
+      autoAcceptStats: { clicks: 0, blocked: 0, verified: 0 }
     };
 
     function loadSettings() {
@@ -879,11 +1224,16 @@
             sendHotkey: parsed.sendHotkey ?? defaultSettings.sendHotkey,
             autoRetryEnabled: parsed.autoRetryEnabled ?? defaultSettings.autoRetryEnabled,
             retryCount: parsed.retryCount ?? defaultSettings.retryCount,
-            retryDelay: parsed.retryDelay ?? defaultSettings.retryDelay
+            retryDelay: parsed.retryDelay ?? defaultSettings.retryDelay,
+            // 自动操作配置
+            autoAcceptEnabled: parsed.autoAcceptEnabled ?? defaultSettings.autoAcceptEnabled,
+            autoAcceptPatterns: { ...defaultSettings.autoAcceptPatterns, ...parsed.autoAcceptPatterns },
+            bannedCommands: parsed.bannedCommands ?? [...DEFAULT_BANNED_COMMANDS],
+            autoAcceptStats: { ...defaultSettings.autoAcceptStats, ...parsed.autoAcceptStats }
           };
         }
-        return defaultSettings;
-      } catch (e) { return defaultSettings; }
+        return { ...defaultSettings };
+      } catch (e) { return { ...defaultSettings }; }
     }
 
     function saveSettings(settings) {
@@ -898,7 +1248,7 @@
     const tabBtns = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
     const accordionHeaders = document.querySelectorAll('.accordion-header');
-    
+
     // 控件引用
     const masterToggle = document.getElementById('master-toggle');
     const copyMasterToggle = document.getElementById('copy-master-toggle');
@@ -910,6 +1260,17 @@
     const retryToastText = document.getElementById('retry-toast-text');
     const sendHotkeySelect = document.getElementById('send-hotkey-select');
     const reactApp = document.getElementById('react-app');
+
+    // 自动操作控件引用
+    const autoAcceptMasterToggle = document.getElementById('auto-accept-master-toggle');
+    const autoAcceptPatternsContainer = document.getElementById('auto-accept-patterns');
+    const bannedCommandsInput = document.getElementById('banned-commands-input');
+    const saveBannedBtn = document.getElementById('save-banned-btn');
+    const resetBannedBtn = document.getElementById('reset-banned-btn');
+    const bannedSaveStatus = document.getElementById('banned-save-status');
+    const statClicksEl = document.getElementById('stat-clicks');
+    const statBlockedEl = document.getElementById('stat-blocked');
+    const statVerifiedEl = document.getElementById('stat-verified');
 
     /* ===== 交互逻辑 ===== */
     let currentSettings = loadSettings();
@@ -936,7 +1297,7 @@
       btn.addEventListener('click', () => {
         tabBtns.forEach(b => b.classList.remove('active'));
         tabContents.forEach(c => c.classList.remove('active'));
-        
+
         btn.classList.add('active');
         const tabId = `tab-${btn.dataset.tab}`;
         document.getElementById(tabId).classList.add('active');
@@ -987,7 +1348,7 @@
     COLOR_CONFIGS.forEach(config => {
       const toggleEl = document.getElementById(`toggle-${config.id}`);
       const colorEl = document.getElementById(`color-${config.id}`);
-      
+
       if (toggleEl) {
         toggleEl.addEventListener('change', () => {
           currentSettings.colors[config.id].enabled = toggleEl.checked;
@@ -1017,7 +1378,7 @@
       document.body.appendChild(textarea);
       textarea.select();
       let success = false;
-      try { success = document.execCommand('copy'); } catch (err) {}
+      try { success = document.execCommand('copy'); } catch (err) { }
       document.body.removeChild(textarea);
       return success;
     }
@@ -1100,13 +1461,13 @@
     function createHotkeyHandler() {
       const selected = currentSettings.sendHotkey;
       const config = HOTKEY_OPTIONS.find(h => h.id === selected);
-      return function(e) {
+      return function (e) {
         const inputEl = e.target.closest(INPUT_SELECTOR);
         if (!inputEl || e.key !== 'Enter') return;
-        
+
         // 检查下拉菜单
-        if (inputEl.hasAttribute('aria-activedescendant') || 
-            (document.querySelector('.lexical-typeahead-menu') && document.querySelector('.lexical-typeahead-menu').style.display !== 'none')) {
+        if (inputEl.hasAttribute('aria-activedescendant') ||
+          (document.querySelector('.lexical-typeahead-menu') && document.querySelector('.lexical-typeahead-menu').style.display !== 'none')) {
           return;
         }
 
@@ -1168,17 +1529,17 @@
 
     function handleAutoRetryLogic() {
       if (!currentSettings.autoRetryEnabled || isRetrying) return;
-      
+
       // 1. 使用 XPath 高效查找错误关键词（避免全量 DOM 扫描）
       // 查找包含 ERROR_KEYWORDS 中任意一个的文本节点，且不是 script/style 标签
       const keywordChecks = ERROR_KEYWORDS.map(k => `contains(text(), '${k}')`).join(' or ');
       const xpathSafe = `//*[not(self::script) and not(self::style) and (${keywordChecks})]`;
-      
+
       let hasError = false;
       try {
         const result = document.evaluate(xpathSafe, reactApp, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
         hasError = !!result.singleNodeValue;
-      } catch (e) {}
+      } catch (e) { }
 
       if (hasError) {
         // 2. 查找重试按钮
@@ -1187,17 +1548,17 @@
         try {
           const btnResult = document.evaluate(btnXpath, reactApp, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
           retryBtn = btnResult.singleNodeValue;
-        } catch (e) {}
+        } catch (e) { }
 
         if (retryBtn && currentRetryCount < currentSettings.retryCount) {
           isRetrying = true;
           currentRetryCount++;
-          
+
           const toastMsg = TRANSLATIONS[currentSettings.lang].retry_toast_msg
             .replace('{n}', currentRetryCount)
             .replace('{max}', currentSettings.retryCount);
           showRetryToast(toastMsg);
-          
+
           setTimeout(() => {
             // 安全检查：点击前确认按钮仍然存在且连接在 DOM 中
             if (retryBtn && retryBtn.isConnected) {
@@ -1206,7 +1567,7 @@
             } else {
               hideRetryToast(); // 按钮消失了，取消提示
             }
-            
+
             setTimeout(() => {
               isRetrying = false;
               hideRetryToast();
@@ -1261,6 +1622,233 @@
       saveSettings(currentSettings);
     });
 
+    /* ===== E. 自动操作功能 ===== */
+    let autoAcceptObserver = null;
+
+    // 更新统计面板
+    function updateStatsUI() {
+      if (statClicksEl) statClicksEl.textContent = currentSettings.autoAcceptStats.clicks;
+      if (statBlockedEl) statBlockedEl.textContent = currentSettings.autoAcceptStats.blocked;
+      if (statVerifiedEl) statVerifiedEl.textContent = currentSettings.autoAcceptStats.verified;
+    }
+
+    // 更新统计数据
+    function updateStats(delta) {
+      if (delta.clicks) currentSettings.autoAcceptStats.clicks += delta.clicks;
+      if (delta.blocked) currentSettings.autoAcceptStats.blocked += delta.blocked;
+      if (delta.verified) currentSettings.autoAcceptStats.verified += delta.verified;
+      saveSettings(currentSettings);
+      updateStatsUI();
+    }
+
+    // 渲染按钮类型 checkbox
+    function renderPatternCheckboxes() {
+      if (!autoAcceptPatternsContainer) return;
+      autoAcceptPatternsContainer.innerHTML = '';
+
+      AUTO_ACCEPT_CONFIGS.forEach(config => {
+        const isEnabled = currentSettings.autoAcceptPatterns[config.id];
+        const label = document.createElement('label');
+        label.className = `pattern-item${isEnabled ? ' active' : ''}`;
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = isEnabled;
+        checkbox.addEventListener('change', () => {
+          currentSettings.autoAcceptPatterns[config.id] = checkbox.checked;
+          label.classList.toggle('active', checkbox.checked);
+          saveSettings(currentSettings);
+        });
+
+        const text = document.createElement('span');
+        text.textContent = config.label;
+
+        label.appendChild(checkbox);
+        label.appendChild(text);
+        autoAcceptPatternsContainer.appendChild(label);
+      });
+    }
+
+    // 判断按钮是否为自动接受目标
+    function isAutoAcceptButton(el) {
+      const text = (el.textContent || '').trim().toLowerCase();
+      if (text.length === 0 || text.length > 50) return false;
+
+      // 获取启用的按钮模式
+      const patterns = Object.entries(currentSettings.autoAcceptPatterns)
+        .filter(([_, enabled]) => enabled)
+        .map(([pattern, _]) => pattern);
+
+      if (patterns.length === 0) return false;
+
+      // 排除词
+      const rejects = ['skip', 'reject', 'cancel', 'close', 'refine', 'dismiss'];
+      if (rejects.some(r => text.includes(r))) return false;
+
+      // 匹配启用的模式
+      if (!patterns.some(p => text.includes(p))) return false;
+
+      // 检查可见性
+      const style = window.getComputedStyle(el);
+      const rect = el.getBoundingClientRect();
+      return style.display !== 'none' && rect.width > 0 && !el.disabled;
+    }
+
+    // 从按钮附近提取命令文本
+    function findNearbyCommandText(buttonEl) {
+      let commandText = '';
+      let container = buttonEl.parentElement;
+      let depth = 0;
+
+      while (container && depth < 10) {
+        let sibling = container.previousElementSibling;
+        let siblingCount = 0;
+
+        while (sibling && siblingCount < 5) {
+          if (sibling.tagName === 'PRE' || sibling.tagName === 'CODE') {
+            commandText += ' ' + sibling.textContent.trim();
+          }
+          const codeEls = sibling.querySelectorAll('pre, code');
+          codeEls.forEach(el => {
+            if (el.textContent) commandText += ' ' + el.textContent.trim();
+          });
+          sibling = sibling.previousElementSibling;
+          siblingCount++;
+        }
+
+        if (commandText.length > 10) break;
+        container = container.parentElement;
+        depth++;
+      }
+
+      return commandText.trim().toLowerCase();
+    }
+
+    // 检查命令是否在黑名单中
+    function isCommandBanned(commandText) {
+      const bannedList = currentSettings.bannedCommands || [];
+      if (!commandText || bannedList.length === 0) return false;
+
+      const lowerText = commandText.toLowerCase();
+      return bannedList.some(pattern => {
+        if (!pattern) return false;
+        return lowerText.includes(pattern.toLowerCase());
+      });
+    }
+
+    // 检查元素是否可见
+    function isElementVisible(el) {
+      if (!el || !el.isConnected) return false;
+      const style = window.getComputedStyle(el);
+      const rect = el.getBoundingClientRect();
+      return style.display !== 'none' && rect.width > 0;
+    }
+
+    // 等待元素消失（验证点击成功）
+    function waitForDisappear(el, timeout = 500) {
+      return new Promise(resolve => {
+        const startTime = Date.now();
+        const check = () => {
+          if (!isElementVisible(el)) {
+            resolve(true);
+          } else if (Date.now() - startTime >= timeout) {
+            resolve(false);
+          } else {
+            requestAnimationFrame(check);
+          }
+        };
+        setTimeout(check, 50);
+      });
+    }
+
+    // 执行自动操作
+    async function performAutoAccept() {
+      if (!currentSettings.autoAcceptEnabled) return;
+
+      const buttons = reactApp.querySelectorAll('button');
+
+      for (const btn of buttons) {
+        if (!isAutoAcceptButton(btn)) continue;
+
+        const buttonText = (btn.textContent || '').trim().toLowerCase();
+
+        // 检查是否为命令执行按钮
+        if (/run|execute/i.test(buttonText)) {
+          const nearbyText = findNearbyCommandText(btn);
+          if (isCommandBanned(nearbyText)) {
+            console.log('[AutoAccept] Blocked dangerous command:', nearbyText.substring(0, 50));
+            updateStats({ blocked: 1 });
+            continue;
+          }
+        }
+
+        // 执行点击
+        btn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+        updateStats({ clicks: 1 });
+
+        // 验证点击
+        const disappeared = await waitForDisappear(btn);
+        if (disappeared) {
+          updateStats({ verified: 1 });
+        }
+
+        // 防止连续点击太快
+        await new Promise(r => setTimeout(r, 100));
+      }
+    }
+
+    // 应用自动操作设置
+    function applyAutoAcceptSettings() {
+      if (autoAcceptObserver) {
+        autoAcceptObserver.disconnect();
+        autoAcceptObserver = null;
+      }
+
+      if (currentSettings.autoAcceptEnabled) {
+        autoAcceptObserver = new MutationObserver(() => {
+          clearTimeout(window.autoAcceptThrottleTimer);
+          window.autoAcceptThrottleTimer = setTimeout(performAutoAccept, 500);
+        });
+        autoAcceptObserver.observe(reactApp, { childList: true, subtree: true });
+        performAutoAccept(); // 初始执行一次
+      }
+    }
+
+    // 自动操作主开关事件
+    if (autoAcceptMasterToggle) {
+      autoAcceptMasterToggle.addEventListener('change', () => {
+        currentSettings.autoAcceptEnabled = autoAcceptMasterToggle.checked;
+        saveSettings(currentSettings);
+        applyAutoAcceptSettings();
+      });
+    }
+
+    // 危险命令保存按钮
+    if (saveBannedBtn) {
+      saveBannedBtn.addEventListener('click', () => {
+        const lines = bannedCommandsInput.value.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        currentSettings.bannedCommands = lines;
+        saveSettings(currentSettings);
+        if (bannedSaveStatus) {
+          bannedSaveStatus.textContent = TRANSLATIONS[currentSettings.lang].banned_saved;
+          setTimeout(() => { bannedSaveStatus.textContent = ''; }, 3000);
+        }
+      });
+    }
+
+    // 危险命令重置按钮
+    if (resetBannedBtn) {
+      resetBannedBtn.addEventListener('click', () => {
+        currentSettings.bannedCommands = [...DEFAULT_BANNED_COMMANDS];
+        bannedCommandsInput.value = DEFAULT_BANNED_COMMANDS.join('\n');
+        saveSettings(currentSettings);
+        if (bannedSaveStatus) {
+          bannedSaveStatus.textContent = TRANSLATIONS[currentSettings.lang].banned_reset;
+          setTimeout(() => { bannedSaveStatus.textContent = ''; }, 3000);
+        }
+      });
+    }
+
     /* ===== 初始化 ===== */
     function initUI() {
       // 1. 设置控件状态
@@ -1285,11 +1873,22 @@
       retryCountInput.value = currentSettings.retryCount;
       retryDelayInput.value = currentSettings.retryDelay;
 
-      // 2. 应用功能
+      // 2. 自动操作初始化
+      if (autoAcceptMasterToggle) {
+        autoAcceptMasterToggle.checked = currentSettings.autoAcceptEnabled;
+      }
+      renderPatternCheckboxes();
+      if (bannedCommandsInput) {
+        bannedCommandsInput.value = currentSettings.bannedCommands.join('\n');
+      }
+      updateStatsUI();
+
+      // 3. 应用功能
       applyColorSettings();
       applyCopySettings();
       applyHotkeySettings();
       applyAutoRetrySettings();
+      applyAutoAcceptSettings();
       updateLanguage();
     }
 
@@ -1297,4 +1896,5 @@
     else document.addEventListener('DOMContentLoaded', initUI);
   </script>
 </body>
+
 </html>
