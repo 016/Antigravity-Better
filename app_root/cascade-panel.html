@@ -11,6 +11,12 @@
       --color-code-block: #A78BFA;
       --color-action-status: #4ADE80;
       --color-thinking: #9CA3AF;
+      /* 字体大小变量 */
+      --fontsize-user-message: 14px;
+      --fontsize-ai-response: 14px;
+      --fontsize-code-block: 13px;
+      --fontsize-action-status: 13px;
+      --fontsize-thinking: 13px;
       --bg-modal: #1e1e1e;
       --border-color: #3c3c3c;
       --accent-color: #667eea;
@@ -476,6 +482,47 @@
       color: var(--color-thinking) !important;
     }
 
+    /* ===== 字体大小覆盖样式 ===== */
+    /* 用户消息字体大小 */
+    #react-app.fontsize-user-message .bg-gray-500\/15 .whitespace-pre-wrap,
+    #react-app.fontsize-user-message .bg-gray-500\/15 [style*="word-break"] {
+      font-size: var(--fontsize-user-message) !important;
+    }
+
+    /* AI回复字体大小 */
+    #react-app.fontsize-ai-response .prose:not(.opacity-70) p,
+    #react-app.fontsize-ai-response .prose:not(.opacity-70) li,
+    #react-app.fontsize-ai-response .prose:not(.opacity-70) h2,
+    #react-app.fontsize-ai-response .prose:not(.opacity-70) h3,
+    #react-app.fontsize-ai-response .prose:not(.opacity-70) strong,
+    #react-app.fontsize-ai-response .prose:not(.opacity-70) ul,
+    #react-app.fontsize-ai-response .prose:not(.opacity-70) ol,
+    #react-app.fontsize-ai-response .prose:not(.opacity-70) table,
+    #react-app.fontsize-ai-response .prose:not(.opacity-70) th,
+    #react-app.fontsize-ai-response .prose:not(.opacity-70) td {
+      font-size: var(--fontsize-ai-response) !important;
+    }
+
+    /* 代码块字体大小 */
+    #react-app.fontsize-code-block pre,
+    #react-app.fontsize-code-block pre code,
+    #react-app.fontsize-code-block .code-block,
+    #react-app.fontsize-code-block .code-line {
+      font-size: var(--fontsize-code-block) !important;
+    }
+
+    /* 操作状态字体大小 */
+    #react-app.fontsize-action-status .shrink-0:is(:contains('Analyzed'), :contains('Created'), :contains('Edited')),
+    #react-app.fontsize-action-status [class*="animate-fade-in"] .truncate {
+      font-size: var(--fontsize-action-status) !important;
+    }
+
+    /* 思考过程字体大小 */
+    #react-app.fontsize-thinking .opacity-70.prose,
+    #react-app.fontsize-thinking .opacity-70.prose * {
+      font-size: var(--fontsize-thinking) !important;
+    }
+
     /* ===== 复制按钮样式 ===== */
     .copy-btn {
       position: absolute;
@@ -720,6 +767,41 @@
       margin-bottom: 12px;
       line-height: 1.5;
     }
+
+    /* 字体大小输入框 */
+    .fontsize-input {
+      width: 50px;
+      background: #2d2d2d;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 4px 6px;
+      color: #ccc;
+      font-size: 12px;
+      text-align: center;
+      outline: none;
+    }
+
+    .fontsize-input:focus {
+      border-color: var(--accent-color);
+    }
+
+    /* 同步按钮 */
+    .sync-btn {
+      background: rgba(102, 126, 234, 0.2);
+      border: 1px solid var(--accent-color);
+      border-radius: 4px;
+      color: var(--accent-color);
+      font-size: 11px;
+      padding: 3px 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-left: 6px;
+    }
+
+    .sync-btn:hover {
+      background: var(--accent-color);
+      color: #fff;
+    }
   </style>
 </head>
 
@@ -851,6 +933,98 @@
                         <span class="toggle-slider"></span>
                       </label>
                       <input type="color" id="color-thinking" class="color-input" value="#9CA3AF">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Accordion: Font Size -->
+          <div class="accordion-item">
+            <div class="accordion-header">
+              <span class="accordion-title" data-i18n="fontsize_title">🔤 字体大小</span>
+              <span class="accordion-icon">▼</span>
+            </div>
+            <div class="accordion-body">
+              <div class="accordion-inner">
+                <div class="main-toggle">
+                  <span class="main-toggle-label" data-i18n="enable_custom_fontsize">启用自定义字体大小</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="fontsize-master-toggle">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+
+                <div id="fontsize-settings">
+                  <div class="setting-item">
+                    <div class="setting-left">
+                      <span class="setting-icon">📝</span>
+                      <span class="setting-name" data-i18n="lbl_user_msg">用户消息</span>
+                    </div>
+                    <div class="setting-right">
+                      <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-fontsize-user-message" checked>
+                        <span class="toggle-slider"></span>
+                      </label>
+                      <input type="number" id="fontsize-user-message" class="fontsize-input" value="14" min="10" max="24"> px
+                      <button id="fontsize-sync-btn" class="sync-btn" data-i18n="btn_sync">同步全部</button>
+                    </div>
+                  </div>
+
+                  <div class="setting-item">
+                    <div class="setting-left">
+                      <span class="setting-icon">🤖</span>
+                      <span class="setting-name" data-i18n="lbl_ai_resp">AI回复</span>
+                    </div>
+                    <div class="setting-right">
+                      <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-fontsize-ai-response" checked>
+                        <span class="toggle-slider"></span>
+                      </label>
+                      <input type="number" id="fontsize-ai-response" class="fontsize-input" value="14" min="10" max="24"> px
+                    </div>
+                  </div>
+
+                  <div class="setting-item">
+                    <div class="setting-left">
+                      <span class="setting-icon">💻</span>
+                      <span class="setting-name" data-i18n="lbl_code">代码块</span>
+                    </div>
+                    <div class="setting-right">
+                      <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-fontsize-code-block" checked>
+                        <span class="toggle-slider"></span>
+                      </label>
+                      <input type="number" id="fontsize-code-block" class="fontsize-input" value="13" min="10" max="24"> px
+                    </div>
+                  </div>
+
+                  <div class="setting-item">
+                    <div class="setting-left">
+                      <span class="setting-icon">✅</span>
+                      <span class="setting-name" data-i18n="lbl_status">操作状态</span>
+                    </div>
+                    <div class="setting-right">
+                      <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-fontsize-action-status">
+                        <span class="toggle-slider"></span>
+                      </label>
+                      <input type="number" id="fontsize-action-status" class="fontsize-input" value="13" min="10" max="24"> px
+                    </div>
+                  </div>
+
+                  <div class="setting-item">
+                    <div class="setting-left">
+                      <span class="setting-icon">💭</span>
+                      <span class="setting-name" data-i18n="lbl_thinking">思考过程</span>
+                    </div>
+                    <div class="setting-right">
+                      <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-fontsize-thinking">
+                        <span class="toggle-slider"></span>
+                      </label>
+                      <input type="number" id="fontsize-thinking" class="fontsize-input" value="13" min="10" max="24"> px
                     </div>
                   </div>
                 </div>
@@ -1077,6 +1251,9 @@
         lbl_code: '代码块',
         lbl_status: '操作状态',
         lbl_thinking: '思考过程',
+        fontsize_title: '🔤 字体大小',
+        enable_custom_fontsize: '启用自定义字体大小',
+        btn_sync: '同步全部',
         copy_title: '📋 一键复制',
         enable_copy: '启用复制按钮',
         hotkey_title: '⌨️ 快捷键设置',
@@ -1111,6 +1288,9 @@
         lbl_code: 'Code Block',
         lbl_status: 'Action Status',
         lbl_thinking: 'Thinking Process',
+        fontsize_title: '🔤 Font Size',
+        enable_custom_fontsize: 'Enable Custom Font Size',
+        btn_sync: 'Sync All',
         copy_title: '📋 One-Click Copy',
         enable_copy: 'Enable Copy Buttons',
         hotkey_title: '⌨️ Shortcuts',
@@ -1147,6 +1327,15 @@
       { id: 'code-block', cssVar: '--color-code-block', cssClass: 'color-code-block', default: '#A78BFA', enabled: true },
       { id: 'action-status', cssVar: '--color-action-status', cssClass: 'color-action-status', default: '#4ADE80', enabled: false },
       { id: 'thinking', cssVar: '--color-thinking', cssClass: 'color-thinking', default: '#9CA3AF', enabled: false },
+    ];
+
+    // 字体大小配置
+    const FONTSIZE_CONFIGS = [
+      { id: 'user-message', cssVar: '--fontsize-user-message', cssClass: 'fontsize-user-message', default: 14, enabled: true },
+      { id: 'ai-response', cssVar: '--fontsize-ai-response', cssClass: 'fontsize-ai-response', default: 14, enabled: true },
+      { id: 'code-block', cssVar: '--fontsize-code-block', cssClass: 'fontsize-code-block', default: 13, enabled: true },
+      { id: 'action-status', cssVar: '--fontsize-action-status', cssClass: 'fontsize-action-status', default: 13, enabled: false },
+      { id: 'thinking', cssVar: '--fontsize-thinking', cssClass: 'fontsize-thinking', default: 13, enabled: false },
     ];
 
     // 复制配置
@@ -1194,6 +1383,9 @@
       lang: 'zh',
       masterEnabled: false,
       colors: COLOR_CONFIGS.reduce((acc, c) => { acc[c.id] = { color: c.default, enabled: c.enabled }; return acc; }, {}),
+      // 字体大小设置
+      fontsizeMasterEnabled: false,
+      fontsizes: FONTSIZE_CONFIGS.reduce((acc, c) => { acc[c.id] = { size: c.default, enabled: c.enabled }; return acc; }, {}),
       copyEnabled: false,
       copy: COPY_CONFIGS.reduce((acc, c) => { acc[c.id] = { enabled: true }; return acc; }, {}),
       hotkeyEnabled: false,
@@ -1218,6 +1410,8 @@
             lang: parsed.lang ?? defaultSettings.lang,
             masterEnabled: parsed.masterEnabled ?? defaultSettings.masterEnabled,
             colors: { ...defaultSettings.colors, ...parsed.colors },
+            fontsizeMasterEnabled: parsed.fontsizeMasterEnabled ?? defaultSettings.fontsizeMasterEnabled,
+            fontsizes: { ...defaultSettings.fontsizes, ...parsed.fontsizes },
             copyEnabled: parsed.copyEnabled ?? defaultSettings.copyEnabled,
             copy: { ...defaultSettings.copy, ...parsed.copy },
             hotkeyEnabled: parsed.hotkeyEnabled ?? defaultSettings.hotkeyEnabled,
@@ -1256,6 +1450,7 @@
     const autoRetryMasterToggle = document.getElementById('auto-retry-master-toggle');
     const retryCountInput = document.getElementById('retry-count-input');
     const retryDelayInput = document.getElementById('retry-delay-input');
+    const fontsizeMasterToggle = document.getElementById('fontsize-master-toggle');
     const retryToast = document.getElementById('retry-toast');
     const retryToastText = document.getElementById('retry-toast-text');
     const sendHotkeySelect = document.getElementById('send-hotkey-select');
@@ -1363,6 +1558,58 @@
           applyColorSettings();
         });
       }
+    });
+
+    // A2. 字体大小功能
+    function applyFontsizeSettings() {
+      FONTSIZE_CONFIGS.forEach(config => {
+        const fontSetting = currentSettings.fontsizes[config.id];
+        document.documentElement.style.setProperty(config.cssVar, fontSetting.size + 'px');
+        if (currentSettings.fontsizeMasterEnabled && fontSetting.enabled) {
+          reactApp.classList.add(config.cssClass);
+        } else {
+          reactApp.classList.remove(config.cssClass);
+        }
+      });
+    }
+
+    fontsizeMasterToggle.addEventListener('change', () => {
+      currentSettings.fontsizeMasterEnabled = fontsizeMasterToggle.checked;
+      saveSettings(currentSettings);
+      applyFontsizeSettings();
+    });
+
+    FONTSIZE_CONFIGS.forEach(config => {
+      const toggleEl = document.getElementById(`toggle-fontsize-${config.id}`);
+      const sizeEl = document.getElementById(`fontsize-${config.id}`);
+
+      if (toggleEl) {
+        toggleEl.addEventListener('change', () => {
+          currentSettings.fontsizes[config.id].enabled = toggleEl.checked;
+          saveSettings(currentSettings);
+          applyFontsizeSettings();
+        });
+      }
+      if (sizeEl) {
+        sizeEl.addEventListener('input', () => {
+          const val = parseInt(sizeEl.value) || config.default;
+          currentSettings.fontsizes[config.id].size = Math.max(10, Math.min(24, val));
+          saveSettings(currentSettings);
+          applyFontsizeSettings();
+        });
+      }
+    });
+
+    // 一键同步字体大小按钮
+    document.getElementById('fontsize-sync-btn').addEventListener('click', () => {
+      const baseSize = currentSettings.fontsizes['user-message'].size;
+      FONTSIZE_CONFIGS.forEach(config => {
+        currentSettings.fontsizes[config.id].size = baseSize;
+        const sizeEl = document.getElementById(`fontsize-${config.id}`);
+        if (sizeEl) sizeEl.value = baseSize;
+      });
+      saveSettings(currentSettings);
+      applyFontsizeSettings();
     });
 
     // B. 复制功能
@@ -1869,6 +2116,15 @@
         if (t) t.checked = currentSettings.copy[c.id]?.enabled ?? true;
       });
 
+      // 字体大小控件初始化
+      fontsizeMasterToggle.checked = currentSettings.fontsizeMasterEnabled;
+      FONTSIZE_CONFIGS.forEach(c => {
+        const t = document.getElementById(`toggle-fontsize-${c.id}`);
+        const sizeEl = document.getElementById(`fontsize-${c.id}`);
+        if (t) t.checked = currentSettings.fontsizes[c.id].enabled;
+        if (sizeEl) sizeEl.value = currentSettings.fontsizes[c.id].size;
+      });
+
       autoRetryMasterToggle.checked = currentSettings.autoRetryEnabled;
       retryCountInput.value = currentSettings.retryCount;
       retryDelayInput.value = currentSettings.retryDelay;
@@ -1885,6 +2141,7 @@
 
       // 3. 应用功能
       applyColorSettings();
+      applyFontsizeSettings();
       applyCopySettings();
       applyHotkeySettings();
       applyAutoRetrySettings();
