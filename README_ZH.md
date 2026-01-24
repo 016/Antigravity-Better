@@ -78,6 +78,12 @@
 
 2. **备份并替换**
    ```bash
+   # 进入安装目录
+   ## Mac os
+   cd /Applications/Antigravity.app/Contents/Resources/app/extensions/antigravity/
+   ## Windows
+   cd [应用安装目录]/Antigravity/resources/app/extensions/antigravity/
+
    # 备份原文件
    cp cascade-panel.html cascade-panel.html.bak
    
