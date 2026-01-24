@@ -761,6 +761,25 @@
       color: #4ADE80;
     }
 
+    /* ===== LaTeX 公式渲染样式 ===== */
+    /* 块级公式居中 */
+    .latex-block {
+      display: block;
+      text-align: center;
+      margin: 1em 0;
+      overflow-x: auto;
+    }
+
+    /* 错误提示样式 */
+    .latex-error {
+      color: #f87171;
+      font-size: 12px;
+      background: rgba(248, 113, 113, 0.1);
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+
     .setting-desc {
       font-size: 11px;
       color: var(--text-sub);
@@ -1117,6 +1136,27 @@
               </div>
             </div>
           </div>
+
+          <!-- Accordion: LaTeX -->
+          <div class="accordion-item">
+            <div class="accordion-header">
+              <span class="accordion-title" data-i18n="latex_title">📐 LaTeX 公式</span>
+              <span class="accordion-icon">▼</span>
+            </div>
+            <div class="accordion-body">
+              <div class="accordion-inner">
+                <div class="main-toggle">
+                  <span class="main-toggle-label" data-i18n="enable_latex">启用 LaTeX 渲染</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="latex-master-toggle">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                <div class="setting-desc" data-i18n="latex_desc">自动渲染 AI 回复中的 LaTeX 数学公式</div>
+                <div id="latex-status" class="save-status"></div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Tab: Features -->
@@ -1412,7 +1452,13 @@
         update_checking: '正在检测...',
         update_latest: '✓ 已是最新版本',
         update_found: '✓ 发现新版本',
-        update_failed: '✗ 检测失败'
+        update_failed: '✗ 检测失败',
+        latex_title: '📐 LaTeX 公式',
+        enable_latex: '启用 LaTeX 渲染',
+        latex_desc: '自动渲染 AI 回复中的 LaTeX 数学公式',
+        latex_loading: '加载 KaTeX 库...',
+        latex_ready: '✓ KaTeX 已就绪',
+        latex_failed: '✗ KaTeX 加载失败'
       },
       en: {
         tab_appearance: '🎨 Appearance',
@@ -1460,7 +1506,13 @@
         update_checking: 'Checking...',
         update_latest: '✓ Already latest',
         update_found: '✓ New version found',
-        update_failed: '✗ Check failed'
+        update_failed: '✗ Check failed',
+        latex_title: '📐 LaTeX Formulas',
+        enable_latex: 'Enable LaTeX Rendering',
+        latex_desc: 'Auto-render LaTeX math formulas in AI responses',
+        latex_loading: 'Loading KaTeX...',
+        latex_ready: '✓ KaTeX Ready',
+        latex_failed: '✗ KaTeX Load Failed'
       }
     };
 
@@ -1622,7 +1674,9 @@
       // 统计数据
       autoAcceptStats: { clicks: 0, blocked: 0, verified: 0 },
       // 系统设置
-      autoUpdateEnabled: true
+      autoUpdateEnabled: true,
+      // LaTeX 渲染设置
+      latexEnabled: false
     };
 
     function loadSettings() {
@@ -1648,7 +1702,8 @@
             autoAcceptPatterns: { ...defaultSettings.autoAcceptPatterns, ...parsed.autoAcceptPatterns },
             bannedCommands: parsed.bannedCommands ?? [...DEFAULT_BANNED_COMMANDS],
             autoAcceptStats: { ...defaultSettings.autoAcceptStats, ...parsed.autoAcceptStats },
-            autoUpdateEnabled: parsed.autoUpdateEnabled ?? defaultSettings.autoUpdateEnabled
+            autoUpdateEnabled: parsed.autoUpdateEnabled ?? defaultSettings.autoUpdateEnabled,
+            latexEnabled: parsed.latexEnabled ?? defaultSettings.latexEnabled
           };
         }
         return { ...defaultSettings };
@@ -1691,6 +1746,10 @@
     const statClicksEl = document.getElementById('stat-clicks');
     const statBlockedEl = document.getElementById('stat-blocked');
     const statVerifiedEl = document.getElementById('stat-verified');
+
+    // LaTeX 控件引用
+    const latexMasterToggle = document.getElementById('latex-master-toggle');
+    const latexStatusEl = document.getElementById('latex-status');
 
     /* ===== 交互逻辑 ===== */
     let currentSettings = loadSettings();
@@ -2321,6 +2380,206 @@
       });
     }
 
+    /* ===== LaTeX 渲染功能 ===== */
+    let katexLoaded = false;
+    let katexLoading = false;
+    let latexObserver = null;
+
+    // KaTeX CDN 资源
+    const KATEX_CSS = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css';
+    const KATEX_JS = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js';
+
+    // 动态加载 KaTeX (仅在启用时加载)
+    function loadKaTeX() {
+      return new Promise((resolve, reject) => {
+        if (katexLoaded) { resolve(); return; }
+        if (katexLoading) {
+          // 等待加载完成
+          const check = setInterval(() => {
+            if (katexLoaded) { clearInterval(check); resolve(); }
+          }, 100);
+          return;
+        }
+
+        katexLoading = true;
+        const dict = TRANSLATIONS[currentSettings.lang];
+        if (latexStatusEl) latexStatusEl.textContent = dict.latex_loading;
+
+        // 加载 CSS
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = KATEX_CSS;
+        document.head.appendChild(link);
+
+        // 加载 JS
+        const script = document.createElement('script');
+        script.src = KATEX_JS;
+        script.onload = () => {
+          katexLoaded = true;
+          katexLoading = false;
+          if (latexStatusEl) latexStatusEl.textContent = dict.latex_ready;
+          setTimeout(() => { if (latexStatusEl) latexStatusEl.textContent = ''; }, 2000);
+          resolve();
+        };
+        script.onerror = () => {
+          katexLoading = false;
+          if (latexStatusEl) latexStatusEl.textContent = dict.latex_failed;
+          reject(new Error('KaTeX load failed'));
+        };
+        document.head.appendChild(script);
+      });
+    }
+
+    // 渲染单个公式
+    function renderLatex(formula, displayMode = false) {
+      if (!window.katex) return null;
+      try {
+        return window.katex.renderToString(formula, {
+          throwOnError: false,
+          displayMode: displayMode
+        });
+      } catch (e) {
+        return `<span class="latex-error">[LaTeX Error: ${e.message}]</span>`;
+      }
+    }
+
+    // 处理文本节点中的 LaTeX 公式
+    function processLatexInText(textNode) {
+      const text = textNode.textContent;
+      // 块级公式: $$...$$
+      // 行内公式: $...$ (但排除 $$ 和单独的 $)
+      const pattern = /(\$\$[\s\S]+?\$\$|\$(?!\$)(?:[^$\n]|\n(?!\n))+?\$(?!\$))/g;
+      
+      if (!pattern.test(text)) return false;
+      pattern.lastIndex = 0;
+
+      const fragment = document.createDocumentFragment();
+      let lastIndex = 0;
+      let match;
+
+      while ((match = pattern.exec(text)) !== null) {
+        // 添加公式前的普通文本
+        if (match.index > lastIndex) {
+          fragment.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
+        }
+
+        const fullMatch = match[0];
+        const isBlock = fullMatch.startsWith('$$');
+        const formula = isBlock ? fullMatch.slice(2, -2).trim() : fullMatch.slice(1, -1).trim();
+        const rendered = renderLatex(formula, isBlock);
+
+        if (rendered) {
+          const wrapper = document.createElement(isBlock ? 'div' : 'span');
+          if (isBlock) wrapper.className = 'latex-block';
+          wrapper.innerHTML = rendered;
+          fragment.appendChild(wrapper);
+        } else {
+          fragment.appendChild(document.createTextNode(fullMatch));
+        }
+
+        lastIndex = match.index + fullMatch.length;
+      }
+
+      // 添加剩余文本
+      if (lastIndex < text.length) {
+        fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
+      }
+
+      textNode.parentNode.replaceChild(fragment, textNode);
+      return true;
+    }
+
+    // 扫描并渲染 LaTeX 公式
+    function scanAndRenderLatex() {
+      if (!currentSettings.latexEnabled || !katexLoaded) return;
+
+      // 只处理 AI 回复区域 (.prose)
+      const proseElements = reactApp.querySelectorAll('.prose:not(.opacity-70)');
+      
+      proseElements.forEach(prose => {
+        // 跳过已处理的
+        if (prose.dataset.latexProcessed) return;
+
+        // 保存原始 HTML (用于恢复)
+        if (!prose.dataset.latexOriginal) {
+          prose.dataset.latexOriginal = prose.innerHTML;
+        }
+
+        // 获取所有文本节点
+        const walker = document.createTreeWalker(prose, NodeFilter.SHOW_TEXT, null, false);
+        const textNodes = [];
+        let node;
+        while (node = walker.nextNode()) {
+          // 跳过 code/pre/script/style 中的内容
+          const parent = node.parentNode;
+          if (parent && /^(code|pre|script|style)$/i.test(parent.tagName)) continue;
+          if (node.textContent.includes('$')) textNodes.push(node);
+        }
+
+        // 处理文本节点 (倒序避免索引问题)
+        let hasLatex = false;
+        for (let i = textNodes.length - 1; i >= 0; i--) {
+          if (processLatexInText(textNodes[i])) hasLatex = true;
+        }
+
+        if (hasLatex) prose.dataset.latexProcessed = 'true';
+      });
+    }
+
+    // 恢复原始内容 (取消渲染)
+    function restoreLatexContent() {
+      const proseElements = reactApp.querySelectorAll('.prose[data-latex-processed]');
+      proseElements.forEach(prose => {
+        // 恢复原始 HTML
+        if (prose.dataset.latexOriginal) {
+          prose.innerHTML = prose.dataset.latexOriginal;
+          delete prose.dataset.latexOriginal;
+        }
+        delete prose.dataset.latexProcessed;
+      });
+    }
+
+    // 应用 LaTeX 设置
+    async function applyLatexSettings() {
+      // 销毁现有 observer
+      if (latexObserver) {
+        latexObserver.disconnect();
+        latexObserver = null;
+      }
+
+      if (!currentSettings.latexEnabled) {
+        // 关闭时恢复原始内容
+        restoreLatexContent();
+        return;
+      }
+
+      // 加载 KaTeX 并开始监听
+      try {
+        await loadKaTeX();
+        
+        // 创建 observer 监听新内容
+        latexObserver = new MutationObserver(() => {
+          clearTimeout(window.latexThrottleTimer);
+          window.latexThrottleTimer = setTimeout(scanAndRenderLatex, 300);
+        });
+        latexObserver.observe(reactApp, { childList: true, subtree: true });
+        
+        // 立即扫描当前内容
+        scanAndRenderLatex();
+      } catch (e) {
+        console.warn('[LaTeX] Init failed:', e.message);
+      }
+    }
+
+    // LaTeX 开关事件
+    if (latexMasterToggle) {
+      latexMasterToggle.addEventListener('change', () => {
+        currentSettings.latexEnabled = latexMasterToggle.checked;
+        saveSettings(currentSettings);
+        applyLatexSettings();
+      });
+    }
+
     /* ===== 初始化 ===== */
     function initUI() {
       // 0. 显示当前版本号
@@ -2376,6 +2635,14 @@
       applyAutoRetrySettings();
       applyAutoAcceptSettings();
       updateLanguage();
+
+      // LaTeX 初始化
+      if (latexMasterToggle) {
+        latexMasterToggle.checked = currentSettings.latexEnabled;
+      }
+      if (currentSettings.latexEnabled) {
+        applyLatexSettings();
+      }
 
       // 4. 系统设置初始化
       const autoUpdateToggle = document.getElementById('auto-update-toggle');
