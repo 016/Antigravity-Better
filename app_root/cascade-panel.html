@@ -930,9 +930,11 @@
           </div>
           <!-- 更新提示条 -->
           <div class="update-banner" id="update-banner">
-            <span class="update-text">🎉 <span data-i18n="update_available">新版本可用</span> <span id="new-version" class="update-version"></span></span>
+            <span class="update-text">🎉 <span data-i18n="update_available">新版本可用</span> <span id="new-version"
+                class="update-version"></span></span>
             <span>
-              <a href="https://github.com/016/Antigravity-Better/releases" target="_blank" class="update-btn" data-i18n="btn_download">下载更新</a>
+              <a href="https://github.com/016/Antigravity-Better/releases" target="_blank" class="update-btn"
+                data-i18n="btn_download">下载更新</a>
               <button class="update-close" id="update-close-btn" title="Close">&times;</button>
             </span>
           </div>
@@ -1072,7 +1074,8 @@
                         <input type="checkbox" id="toggle-fontsize-user-message" checked>
                         <span class="toggle-slider"></span>
                       </label>
-                      <input type="number" id="fontsize-user-message" class="fontsize-input" value="14" min="10" max="24"> px
+                      <input type="number" id="fontsize-user-message" class="fontsize-input" value="14" min="10"
+                        max="24"> px
                       <button id="fontsize-sync-btn" class="sync-btn" data-i18n="btn_sync">同步全部</button>
                     </div>
                   </div>
@@ -1087,7 +1090,8 @@
                         <input type="checkbox" id="toggle-fontsize-ai-response" checked>
                         <span class="toggle-slider"></span>
                       </label>
-                      <input type="number" id="fontsize-ai-response" class="fontsize-input" value="14" min="10" max="24"> px
+                      <input type="number" id="fontsize-ai-response" class="fontsize-input" value="14" min="10"
+                        max="24"> px
                     </div>
                   </div>
 
@@ -1101,7 +1105,8 @@
                         <input type="checkbox" id="toggle-fontsize-code-block" checked>
                         <span class="toggle-slider"></span>
                       </label>
-                      <input type="number" id="fontsize-code-block" class="fontsize-input" value="13" min="10" max="24"> px
+                      <input type="number" id="fontsize-code-block" class="fontsize-input" value="13" min="10" max="24">
+                      px
                     </div>
                   </div>
 
@@ -1115,7 +1120,8 @@
                         <input type="checkbox" id="toggle-fontsize-action-status">
                         <span class="toggle-slider"></span>
                       </label>
-                      <input type="number" id="fontsize-action-status" class="fontsize-input" value="13" min="10" max="24"> px
+                      <input type="number" id="fontsize-action-status" class="fontsize-input" value="13" min="10"
+                        max="24"> px
                     </div>
                   </div>
 
@@ -1129,7 +1135,8 @@
                         <input type="checkbox" id="toggle-fontsize-thinking">
                         <span class="toggle-slider"></span>
                       </label>
-                      <input type="number" id="fontsize-thinking" class="fontsize-input" value="13" min="10" max="24"> px
+                      <input type="number" id="fontsize-thinking" class="fontsize-input" value="13" min="10" max="24">
+                      px
                     </div>
                   </div>
                 </div>
@@ -1255,47 +1262,6 @@
             </div>
           </div>
 
-          <!-- Accordion: Auto Retry -->
-          <div class="accordion-item">
-            <div class="accordion-header">
-              <span class="accordion-title" data-i18n="auto_retry_title">🔄 自动重试</span>
-              <span class="accordion-icon">▼</span>
-            </div>
-            <div class="accordion-body">
-              <div class="accordion-inner">
-                <div class="main-toggle">
-                  <span class="main-toggle-label" data-i18n="enable_auto_retry">启用自动重试</span>
-                  <label class="toggle-switch">
-                    <input type="checkbox" id="auto-retry-master-toggle">
-                    <span class="toggle-slider"></span>
-                  </label>
-                </div>
-
-                <div id="auto-retry-settings">
-                  <div class="setting-item">
-                    <div class="setting-left">
-                      <span class="setting-icon">🔢</span>
-                      <span class="setting-name" data-i18n="lbl_retry_count">重试次数</span>
-                    </div>
-                    <div class="setting-right">
-                      <input type="number" id="retry-count-input" class="select-input" min="1" max="5"
-                        style="width: 60px; min-width: 60px;">
-                    </div>
-                  </div>
-                  <div class="setting-item">
-                    <div class="setting-left">
-                      <span class="setting-icon">⏱️</span>
-                      <span class="setting-name" data-i18n="lbl_retry_delay">延迟时间 (秒)</span>
-                    </div>
-                    <div class="setting-right">
-                      <input type="number" id="retry-delay-input" class="select-input" min="1" max="10"
-                        style="width: 60px; min-width: 60px;">
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
 
           <!-- Accordion: Auto Accept -->
           <div class="accordion-item">
@@ -1426,12 +1392,6 @@
         hotkey_title: '⌨️ 快捷键设置',
         enable_hotkey: '自定义发送快捷键',
         lbl_send_hotkey: '发送快捷键',
-        auto_retry_title: '🔄 自动重试',
-        enable_auto_retry: '启用自动重试',
-        lbl_retry_count: '重试次数',
-        lbl_retry_delay: '延迟时间 (秒)',
-        retry_toast_msg: '正在自动重试 ({n}/{max})...',
-        retry_toast_done: '重试触发成功',
         auto_accept_title: '🤖 自动操作',
         enable_auto_accept: '启用自动操作',
         auto_accept_desc: '选择要自动点击的按钮类型',
@@ -1480,12 +1440,6 @@
         hotkey_title: '⌨️ Shortcuts',
         enable_hotkey: 'Custom Send Hotkey',
         lbl_send_hotkey: 'Send Hotkey',
-        auto_retry_title: '🔄 Auto Retry',
-        enable_auto_retry: 'Enable Auto Retry',
-        lbl_retry_count: 'Retry Count',
-        lbl_retry_delay: 'Delay (s)',
-        retry_toast_msg: 'Auto retrying ({n}/{max})...',
-        retry_toast_done: 'Retry triggered',
         auto_accept_title: '🤖 Auto Accept',
         enable_auto_accept: 'Enable Auto Accept',
         auto_accept_desc: 'Select button types to auto-click',
@@ -1576,12 +1530,12 @@
       const statusEl = document.getElementById('update-status');
       const btn = document.getElementById('manual-update-btn');
       const dict = TRANSLATIONS[currentSettings.lang];
-      
+
       if (statusEl) statusEl.textContent = dict.update_checking;
       if (btn) btn.disabled = true;
-      
+
       const result = await checkForUpdate();
-      
+
       if (statusEl) {
         if (result === 'found') statusEl.textContent = dict.update_found;
         else if (result === 'latest') statusEl.textContent = dict.update_latest;
@@ -1664,9 +1618,6 @@
       copy: COPY_CONFIGS.reduce((acc, c) => { acc[c.id] = { enabled: true }; return acc; }, {}),
       hotkeyEnabled: false,
       sendHotkey: 'cmd+enter',
-      autoRetryEnabled: false,
-      retryCount: 1,
-      retryDelay: 2,
       // 自动操作配置
       autoAcceptEnabled: false,
       autoAcceptPatterns: AUTO_ACCEPT_CONFIGS.reduce((acc, c) => { acc[c.id] = c.defaultEnabled; return acc; }, {}),
@@ -1694,9 +1645,6 @@
             copy: { ...defaultSettings.copy, ...parsed.copy },
             hotkeyEnabled: parsed.hotkeyEnabled ?? defaultSettings.hotkeyEnabled,
             sendHotkey: parsed.sendHotkey ?? defaultSettings.sendHotkey,
-            autoRetryEnabled: parsed.autoRetryEnabled ?? defaultSettings.autoRetryEnabled,
-            retryCount: parsed.retryCount ?? defaultSettings.retryCount,
-            retryDelay: parsed.retryDelay ?? defaultSettings.retryDelay,
             // 自动操作配置
             autoAcceptEnabled: parsed.autoAcceptEnabled ?? defaultSettings.autoAcceptEnabled,
             autoAcceptPatterns: { ...defaultSettings.autoAcceptPatterns, ...parsed.autoAcceptPatterns },
@@ -1727,12 +1675,7 @@
     const masterToggle = document.getElementById('master-toggle');
     const copyMasterToggle = document.getElementById('copy-master-toggle');
     const hotkeyMasterToggle = document.getElementById('hotkey-master-toggle');
-    const autoRetryMasterToggle = document.getElementById('auto-retry-master-toggle');
-    const retryCountInput = document.getElementById('retry-count-input');
-    const retryDelayInput = document.getElementById('retry-delay-input');
     const fontsizeMasterToggle = document.getElementById('fontsize-master-toggle');
-    const retryToast = document.getElementById('retry-toast');
-    const retryToastText = document.getElementById('retry-toast-text');
     const sendHotkeySelect = document.getElementById('send-hotkey-select');
     const reactApp = document.getElementById('react-app');
 
@@ -2006,8 +1949,6 @@
           e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
           const sendBtn = document.querySelector(SEND_BTN_SELECTOR);
           if (sendBtn) {
-            // [新增] 点击发送时重置重试计数
-            currentRetryCount = 0;
             sendBtn.click();
           }
         } else if (e.key === 'Enter') {
@@ -2039,119 +1980,6 @@
       if (currentSettings.hotkeyEnabled) applyHotkeySettings();
     });
 
-    // D. 自动重试功能
-    let autoRetryObserver = null;
-    let currentRetryCount = 0;
-    let isRetrying = false;
-    const ERROR_KEYWORDS = ['Agent terminated due to error', 'Try again', 'Try Again'];
-
-    function showRetryToast(msg, isSuccess = false) {
-      if (!retryToast) return;
-      retryToastText.textContent = msg;
-      retryToast.classList.add('show');
-      if (isSuccess) retryToast.classList.add('success');
-      else retryToast.classList.remove('success');
-    }
-
-    function hideRetryToast() {
-      if (!retryToast) return;
-      retryToast.classList.remove('show');
-    }
-
-    function handleAutoRetryLogic() {
-      if (!currentSettings.autoRetryEnabled || isRetrying) return;
-
-      // 1. 使用 XPath 高效查找错误关键词（避免全量 DOM 扫描）
-      // 查找包含 ERROR_KEYWORDS 中任意一个的文本节点，且不是 script/style 标签
-      const keywordChecks = ERROR_KEYWORDS.map(k => `contains(text(), '${k}')`).join(' or ');
-      const xpathSafe = `//*[not(self::script) and not(self::style) and (${keywordChecks})]`;
-
-      let hasError = false;
-      try {
-        const result = document.evaluate(xpathSafe, reactApp, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
-        hasError = !!result.singleNodeValue;
-      } catch (e) { }
-
-      if (hasError) {
-        // 2. 查找重试按钮
-        const btnXpath = ".//button[contains(text(), 'Retry') or contains(text(), 'retry') or contains(text(), '重试')]";
-        let retryBtn = null;
-        try {
-          const btnResult = document.evaluate(btnXpath, reactApp, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
-          retryBtn = btnResult.singleNodeValue;
-        } catch (e) { }
-
-        if (retryBtn && currentRetryCount < currentSettings.retryCount) {
-          isRetrying = true;
-          currentRetryCount++;
-
-          const toastMsg = TRANSLATIONS[currentSettings.lang].retry_toast_msg
-            .replace('{n}', currentRetryCount)
-            .replace('{max}', currentSettings.retryCount);
-          showRetryToast(toastMsg);
-
-          setTimeout(() => {
-            // 安全检查：点击前确认按钮仍然存在且连接在 DOM 中
-            if (retryBtn && retryBtn.isConnected) {
-              retryBtn.click();
-              showRetryToast(TRANSLATIONS[currentSettings.lang].retry_toast_done, true);
-            } else {
-              hideRetryToast(); // 按钮消失了，取消提示
-            }
-
-            setTimeout(() => {
-              isRetrying = false;
-              hideRetryToast();
-            }, 1500);
-          }, currentSettings.retryDelay * 1000);
-        }
-      } else {
-        // 3. 成功检测优化：如果之前有错误，且现在检测到 AI 回复，则重置
-        if (currentRetryCount > 0 && !isRetrying) {
-          const hasAIPrompt = reactApp.querySelector('.prose:not(.opacity-70)');
-          if (hasAIPrompt) {
-            currentRetryCount = 0;
-          }
-        }
-      }
-    }
-
-    // 重置重试计数的简单启发式：当输入框获得焦点或内容变化时
-    reactApp.addEventListener('input', (e) => {
-      if (e.target.closest(INPUT_SELECTOR)) {
-        if (currentRetryCount > 0) {
-          currentRetryCount = 0;
-        }
-      }
-    });
-
-    function applyAutoRetrySettings() {
-      if (autoRetryObserver) { autoRetryObserver.disconnect(); autoRetryObserver = null; }
-      if (currentSettings.autoRetryEnabled) {
-        autoRetryObserver = new MutationObserver(() => {
-          clearTimeout(window.retryThrottleTimer);
-          window.retryThrottleTimer = setTimeout(handleAutoRetryLogic, 500);
-        });
-        autoRetryObserver.observe(reactApp, { childList: true, subtree: true });
-        handleAutoRetryLogic();
-      }
-    }
-
-    autoRetryMasterToggle.addEventListener('change', () => {
-      currentSettings.autoRetryEnabled = autoRetryMasterToggle.checked;
-      saveSettings(currentSettings);
-      applyAutoRetrySettings();
-    });
-
-    retryCountInput.addEventListener('change', () => {
-      currentSettings.retryCount = parseInt(retryCountInput.value) || 1;
-      saveSettings(currentSettings);
-    });
-
-    retryDelayInput.addEventListener('change', () => {
-      currentSettings.retryDelay = parseInt(retryDelayInput.value) || 2;
-      saveSettings(currentSettings);
-    });
 
     /* ===== E. 自动操作功能 ===== */
     let autoAcceptObserver = null;
@@ -2449,7 +2277,7 @@
       // 块级公式: $$...$$
       // 行内公式: $...$ (但排除 $$ 和单独的 $)
       const pattern = /(\$\$[\s\S]+?\$\$|\$(?!\$)(?:[^$\n]|\n(?!\n))+?\$(?!\$))/g;
-      
+
       if (!pattern.test(text)) return false;
       pattern.lastIndex = 0;
 
@@ -2497,7 +2325,7 @@
 
       // 只处理 AI 回复区域 (.prose)
       const proseElements = reactApp.querySelectorAll('.prose:not(.opacity-70)');
-      
+
       proseElements.forEach(prose => {
         // 跳过已处理的
         if (prose.dataset.latexProcessed) return;
@@ -2527,7 +2355,7 @@
     function revertLatex() {
       // 查找所有已渲染的公式元素
       const renderedElements = reactApp.querySelectorAll('.latex-rendered');
-      
+
       renderedElements.forEach(el => {
         const original = el.dataset.latexOriginal;
         if (original) {
@@ -2559,14 +2387,14 @@
       // 加载 KaTeX 并开始监听
       try {
         await loadKaTeX();
-        
+
         // 创建 observer 监听新内容
         latexObserver = new MutationObserver(() => {
           clearTimeout(window.latexThrottleTimer);
           window.latexThrottleTimer = setTimeout(scanAndRenderLatex, 300);
         });
         latexObserver.observe(reactApp, { childList: true, subtree: true });
-        
+
         // 立即扫描当前内容
         scanAndRenderLatex();
       } catch (e) {
@@ -2616,10 +2444,6 @@
         if (sizeEl) sizeEl.value = currentSettings.fontsizes[c.id].size;
       });
 
-      autoRetryMasterToggle.checked = currentSettings.autoRetryEnabled;
-      retryCountInput.value = currentSettings.retryCount;
-      retryDelayInput.value = currentSettings.retryDelay;
-
       // 2. 自动操作初始化
       if (autoAcceptMasterToggle) {
         autoAcceptMasterToggle.checked = currentSettings.autoAcceptEnabled;
@@ -2635,7 +2459,6 @@
       applyFontsizeSettings();
       applyCopySettings();
       applyHotkeySettings();
-      applyAutoRetrySettings();
       applyAutoAcceptSettings();
       updateLanguage();
 
@@ -2650,7 +2473,7 @@
       // 4. 系统设置初始化
       const autoUpdateToggle = document.getElementById('auto-update-toggle');
       const manualUpdateBtn = document.getElementById('manual-update-btn');
-      
+
       if (autoUpdateToggle) {
         autoUpdateToggle.checked = currentSettings.autoUpdateEnabled;
         autoUpdateToggle.addEventListener('change', () => {
@@ -2658,7 +2481,7 @@
           saveSettings(currentSettings);
         });
       }
-      
+
       if (manualUpdateBtn) {
         manualUpdateBtn.addEventListener('click', manualCheckUpdate);
       }
