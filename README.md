@@ -8,7 +8,7 @@
     <a href="./README_ZH.md">中文</a>
   </p>
   <p>
-    <img src="https://img.shields.io/badge/version-0.1.5-brightgreen" alt="Version">
+    <img src="https://img.shields.io/badge/version-0.1.6-brightgreen" alt="Version">
     <img src="https://img.shields.io/badge/dependencies-zero-green" alt="Zero Dependencies">
     <img src="https://img.shields.io/badge/file-single%20HTML-blue" alt="Single File">
     <img src="https://img.shields.io/badge/target-Antigravity-purple" alt="Antigravity">
@@ -56,7 +56,7 @@ You can freely customize this HTML file to build your own features. Following ou
 | 🔤 **Font Size Control** | 0.1.4 | Customize font sizes for different content types with sync-all option |
 | 📋 **Copy Buttons** | 0.1.1 | One-click copy for any message type (user, AI, thinking) |
 | ⌨️ **Hotkey Override** | 0.1.1 | Change the send shortcut (Enter → Cmd+Enter, Ctrl+Enter, etc.) |
-| 🔄 **Auto Retry** | 0.1.2 | Automatically click the Retry button when AI agent errors occur (configurable count & delay) |
+| 🔄 **Auto Retry** | 0.1.2 | Automatically click the Retry button when AI agent errors occur (configurable count & delay) v0.1.6 Merged into Auto Accept  |
 | 🤖 **Auto Accept** | 0.1.3 | Auto-click Accept/Run/Apply/Execute/Confirm/Allow buttons with configurable patterns |
 | 🛡️ **Safety Rules** | 0.1.3 | Block dangerous commands from auto-execution with customizable blacklist |
 | 📐 **LaTeX Rendering** | 0.1.5 | Auto-render LaTeX math formulas ($...$, $$...$$) in AI responses using KaTeX |
@@ -154,7 +154,7 @@ A huge thank you to all our amazing contributors! 💖
 | Contributor | Contribution | Date |
 |-------------|--------------|------|
 | [@moshouhot](https://github.com/moshouhot) | 🤖 Auto Accept + 🛡️ Safety Rules - Configurable button auto-click with dangerous command filtering | 2026-01-24 |
-| [@chengcodex](https://github.com/chengcodex) | 🔄 Auto Retry - Smart error detection and auto-retry with XPath optimization | 2026-01-23 |
+| [@chengcodex](https://github.com/chengcodex) | 🔄 Auto Retry - Smart error detection and auto-retry with XPath optimization (merged into Auto Accept in v0.1.6) | 2026-01-23 |
 
 ---
 
