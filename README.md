@@ -8,7 +8,7 @@
     <a href="./README_ZH.md">中文</a>
   </p>
   <p>
-    <img src="https://img.shields.io/badge/version-0.1.6-brightgreen" alt="Version">
+    <img src="https://img.shields.io/badge/version-0.1.7-brightgreen" alt="Version">
     <img src="https://img.shields.io/badge/dependencies-zero-green" alt="Zero Dependencies">
     <img src="https://img.shields.io/badge/file-single%20HTML-blue" alt="Single File">
     <img src="https://img.shields.io/badge/target-Antigravity-purple" alt="Antigravity">
@@ -52,6 +52,7 @@ You can freely customize this HTML file to build your own features. Following ou
 
 | Feature | Version | Description |
 |---------|---------|-------------|
+| 🌐 **AI Translator** | 0.1.7 | Inline AI translation of chat messages & input, powered by DeepSeek/OpenRouter via local bridge |
 | 🎨 **Custom Colors** | 0.1.1 | Change text colors for user messages, AI responses, code blocks, thinking process, and more |
 | 🔤 **Font Size Control** | 0.1.4 | Customize font sizes for different content types with sync-all option |
 | 📋 **Copy Buttons** | 0.1.1 | One-click copy for any message type (user, AI, thinking) |
@@ -61,7 +62,7 @@ You can freely customize this HTML file to build your own features. Following ou
 | 🛡️ **Safety Rules** | 0.1.3 | Block dangerous commands from auto-execution with customizable blacklist |
 | 📐 **LaTeX Rendering** | 0.1.5 | Auto-render LaTeX math formulas ($...$, $$...$$) in AI responses using KaTeX |
 | 🔔 **Version Check** | 0.1.4 | Auto/manual check for updates with in-app notification |
-| 🌐 **i18n Ready** | 0.1.1 | Built-in English/Chinese support, easily extendable to other languages |
+| 🌐 **i18n Ready** | 0.1.1 | Built-in English/Chinese/Spanish support, easily extendable to other languages |
 
 ### For Developers
 

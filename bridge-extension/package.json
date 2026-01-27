@@ -1,0 +1,32 @@
+{
+  "name": "antigravity-bridge",
+  "displayName": "Antigravity Bridge",
+  "description": "API Bridge for Antigravity Better Panel",
+  "version": "0.1.2",
+  "publisher": "antigravity-better",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/016/Antigravity-Better"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "antigravityBridge.forceStart",
+        "title": "Force Start Antigravity Bridge"
+      }
+    ]
+  },
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./extension.js",
+  "categories": [
+    "Other"
+  ],
+  "capabilities": {
+    "chatter": false
+  }
+}
