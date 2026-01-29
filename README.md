@@ -8,7 +8,7 @@
     <a href="./README_ZH.md">中文</a>
   </p>
   <p>
-    <img src="https://img.shields.io/badge/version-0.1.6-brightgreen" alt="Version">
+    <img src="https://img.shields.io/badge/version-0.1.7-brightgreen" alt="Version">
     <img src="https://img.shields.io/badge/dependencies-zero-green" alt="Zero Dependencies">
     <img src="https://img.shields.io/badge/file-single%20HTML-blue" alt="Single File">
     <img src="https://img.shields.io/badge/target-Antigravity-purple" alt="Antigravity">
@@ -54,7 +54,7 @@ You can freely customize this HTML file to build your own features. Following ou
 |---------|---------|-------------|
 | 🎨 **Custom Colors** | 0.1.1 | Change text colors for user messages, AI responses, code blocks, thinking process, and more |
 | 🔤 **Font Size Control** | 0.1.4 | Customize font sizes for different content types with sync-all option |
-| 📋 **Copy Buttons** | 0.1.1 | One-click copy for any message type (user, AI, thinking) |
+| 📋 **Copy Buttons** | 0.1.7 | One-click copy for any message type (user, AI, thinking). 0.1.7: Fixed button overlap issue for single-line input |
 | ⌨️ **Hotkey Override** | 0.1.1 | Change the send shortcut (Enter → Cmd+Enter, Ctrl+Enter, etc.) |
 | 🔄 **Auto Retry** | 0.1.2 | Automatically click the Retry button when AI agent errors occur (configurable count & delay) v0.1.6 Merged into Auto Accept  |
 | 🤖 **Auto Accept** | 0.1.3 | Auto-click Accept/Run/Apply/Execute/Confirm/Allow buttons with configurable patterns |

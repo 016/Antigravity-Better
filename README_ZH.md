@@ -8,7 +8,7 @@
     <strong>中文</strong>
   </p>
   <p>
-    <img src="https://img.shields.io/badge/version-0.1.6-brightgreen" alt="Version">
+    <img src="https://img.shields.io/badge/version-0.1.7-brightgreen" alt="Version">
     <img src="https://img.shields.io/badge/dependencies-zero-green" alt="Zero Dependencies">
     <img src="https://img.shields.io/badge/file-single%20HTML-blue" alt="Single File">
     <img src="https://img.shields.io/badge/target-Antigravity-purple" alt="Antigravity">
@@ -54,7 +54,7 @@
 |------|------|------|
 | 🎨 **自定义颜色** | 0.1.1 | 修改用户消息、AI 回复、代码块、思考过程等的文字颜色 |
 | 🔤 **字体大小** | 0.1.4 | 为不同内容类型自定义字体大小，支持一键同步 |
-| 📋 **一键复制** | 0.1.1 | 为任意消息类型（用户、AI、思考）添加复制按钮 |
+| 📋 **一键复制** | 0.1.7 | 为任意消息类型（用户、AI、思考）添加复制按钮。0.1.7: 修复单行输入时按钮重叠问题 |
 | ⌨️ **快捷键覆盖** | 0.1.1 | 修改发送快捷键（Enter → Cmd+Enter、Ctrl+Enter 等） |
 | 🔄 **自动重试** | 0.1.2 | 当 AI Agent 运行出错时，自动点击重试按钮（可配置次数和延迟） v0.1.6 已合并到自动操作 |
 | 🤖 **自动操作** | 0.1.3 | 自动点击 Accept/Run/Apply/Execute/Confirm/Allow 按钮，按钮类型可配置 |
