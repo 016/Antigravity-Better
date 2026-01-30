@@ -85,7 +85,7 @@ You can freely customize this HTML file to build your own features. Following ou
 
 2. **Backup & Replace**
    ```bash
-# Navigate to the installation directory
+   # Navigate to the installation directory
    ## Mac os
    cd /Applications/Antigravity.app/Contents/Resources/app/extensions/antigravity/
    ## Windows
