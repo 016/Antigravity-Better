@@ -24,6 +24,19 @@
       --text-sub: #999;
     }
 
+    /* ===== Animation Keyframes ===== */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
     /* ===== 悬浮按钮样式 ===== */
     #settings-toggle-btn {
       position: fixed;
@@ -898,6 +911,156 @@
     .update-btn:hover {
       background: #22c55e;
     }
+
+    /* Translator Styles */
+    .translator-input {
+      width: 100%;
+      padding: 8px;
+      background: #2d2d2d;
+      border: 1px solid var(--border-color);
+      color: #ccc;
+      border-radius: 4px;
+      margin-bottom: 8px;
+      margin-top: 8px;
+    }
+
+    .bridge-status {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-left: 5px;
+      background: #555;
+    }
+
+    .bridge-status.connected {
+      background: #4ADE80;
+      box-shadow: 0 0 5px #4ADE80;
+    }
+
+    .bridge-status.error {
+      background: #EF4444;
+    }
+
+    .translate-btn {
+      position: absolute !important;
+      bottom: 2px !important;
+      right: 85px !important;
+      /* Shifted left to avoid overlap */
+      background: transparent;
+      box-sizing: border-box;
+      /* Fix layout */
+      border: 1px solid transparent;
+      /* Reserve space for border */
+      color: var(--accent-color);
+      cursor: pointer;
+      opacity: 0.8;
+      /* transition: all 0.2s;  REMOVED for static feel */
+      padding: 3px 5px;
+      /* Reduced by 1px to compensate for border */
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      /* Space between icon and text */
+      z-index: 9999 !important;
+      /* Higher z-index to stay on top */
+      font-size: 11px;
+      /* Match typical toolbar status text */
+      font-family: var(--font-family);
+      border-radius: 4px;
+      /* Prevent layout thrashing and composite separately */
+      will-change: transform;
+      transform: translateZ(0);
+      pointer-events: auto !important;
+      /* Ensure clickability */
+    }
+
+    .translate-btn:hover {
+      /* REMOVED background and filter for no-animation style */
+      background: transparent;
+      color: var(--accent-color);
+      opacity: 1;
+    }
+
+    /* Input Translator */
+    .input-wrapper-relative {
+      position: relative !important;
+    }
+
+    .input-translate-btn {
+      box-sizing: border-box;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid transparent;
+      /* Always present transparent border */
+      color: var(--text-secondary);
+      border-radius: 6px;
+      padding: 2px 8px;
+      font-size: 11px;
+      cursor: pointer;
+      z-index: 1000;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: background 0.1s, color 0.1s;
+      /* Faster transition */
+      white-space: nowrap;
+      height: 24px;
+      /* Fixed height */
+      margin-left: 4px;
+      margin-right: 4px;
+      opacity: 0.7;
+      /* Prevent layout thrashing */
+      transform: translateZ(0);
+      backface-visibility: hidden;
+    }
+
+    .input-translate-btn:hover {
+      opacity: 1;
+      background: var(--accent-color);
+      color: #fff;
+      border: 1px solid transparent;
+      /* Keep border transparent */
+    }
+
+    .input-translate-btn.input-translate-btn-absolute {
+      position: absolute;
+      bottom: 6px;
+      right: 6px;
+      margin: 0;
+    }
+
+    .input-translate-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .translate-btn:hover {
+      opacity: 1;
+      bottom: -21px;
+    }
+
+    .translation-result {
+      margin-top: 8px;
+      padding: 10px;
+      background: rgba(102, 126, 234, 0.08);
+      border-left: 3px solid var(--accent-color);
+      font-size: 0.95em;
+      color: var(--text-main);
+      white-space: pre-wrap;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(5px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
   </style>
 </head>
 
@@ -1325,6 +1488,117 @@
               </div>
             </div>
           </div>
+
+          <!-- Accordion: AI Translator -->
+          <div class="accordion-item">
+            <div class="accordion-header">
+              <span class="accordion-title" data-i18n="translator_title">🌐 AI Translator</span>
+              <span class="accordion-icon">▼</span>
+            </div>
+            <div class="accordion-body">
+              <div class="accordion-inner">
+                <div class="main-toggle">
+                  <span class="main-toggle-label" data-i18n="translator_enable">Enable Translator</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="translator-master-toggle" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+
+                <div class="setting-desc">
+                  <span data-i18n="translator_desc">Provide your OpenRouter Key to enable translation.</span>
+                  <br><span data-i18n="translator_bridge">Bridge Status</span>: <span id="bridge-status-indicator"
+                    class="bridge-status" title="Connecting..."></span>
+                </div>
+
+                <div style="margin-top: 10px;">
+                  <label class="setting-name">
+                    <span data-i18n="translator_api_key">OpenRouter API Key (Stored securely)</span>
+                    <span id="key-existence-status"
+                      style="font-size: 10px; color: #4ADE80; font-weight: normal; margin-left: 8px; display: none;"
+                      data-i18n="translator_key_configured">(✓ Key Configured)</span>
+                  </label>
+                  <div style="display: flex; gap: 6px; align-items: center;">
+                    <input type="password" id="translator-key" class="translator-input" placeholder="sk-or-..."
+                      style="flex: 1;">
+                    <button type="button" id="toggle-key-visibility" class="btn-action"
+                      style="padding: 6px 10px; font-size: 14px;" title="Show/Hide Key">👁</button>
+                  </div>
+                  <button id="save-key-btn" class="btn-action primary" data-i18n="translator_save_key"
+                    style="margin-top: 6px;">Save Key</button>
+                  <div id="key-save-status" class="save-status"></div>
+                </div>
+
+                <div style="margin-top: 15px;">
+                  <label class="setting-name" data-i18n="translator_model">Model</label>
+                  <select id="translator-model" class="select-input" style="width: 100%;">
+                    <optgroup label="🆓 Free Models" data-i18n-label="translator_free_models">
+                      <option value="tngtech/deepseek-r1t2-chimera:free">DeepSeek R1T2 Chimera</option>
+                      <option value="z-ai/glm-4.5-air:free">GLM 4.5 Air</option>
+                      <option value="deepseek/deepseek-r1-0528:free">DeepSeek R1 0528</option>
+                      <option value="nvidia/nemotron-3-nano-30b-a3b:free">Nemotron 3 Nano 30B</option>
+                      <option value="allenai/molmo-2-8b:free">Molmo 2 8B</option>
+                    </optgroup>
+                    <optgroup label="💰 Budget (~$0.10-0.25/1M tokens)" data-i18n-label="translator_budget_models">
+                      <option value="google/gemma-3-4b-it">Gemma 3 4B IT</option>
+                      <option value="meta-llama/llama-3.1-8b-instruct">Llama 3.1 8B Instruct</option>
+                      <option value="openai/gpt-oss-20b">GPT-OSS 20B</option>
+                    </optgroup>
+                    <optgroup label="💵 Standard (~$0.25-1.00/1M tokens)" data-i18n-label="translator_standard_models">
+                      <option value="mistralai/mistral-small-24b-instruct-2501">Mistral Small 24B</option>
+                      <option value="anthropic/claude-3-haiku">Claude 3 Haiku</option>
+                      <option value="openai/gpt-4o-mini">GPT-4o Mini</option>
+                      <option value="google/gemini-2.5-flash-lite">Gemini 2.5 Flash Lite</option>
+                    </optgroup>
+                    <optgroup label="💎 Premium (~$1.00+/1M tokens)" data-i18n-label="translator_premium_models">
+                      <option value="deepseek/deepseek-v3.2">DeepSeek V3.2</option>
+                      <option value="x-ai/grok-4.1-fast">Grok 4.1 Fast</option>
+                    </optgroup>
+                    <optgroup label="⚙️ Custom" data-i18n-label="translator_custom_models">
+                      <option value="__custom__" data-i18n="translator_use_custom">Use Custom Model</option>
+                    </optgroup>
+                  </select>
+                  <div id="custom-model-container" style="margin-top: 8px; display: none;">
+                    <input type="text" id="translator-custom-model" class="translator-input"
+                      placeholder="e.g. openai/gpt-4o" style="width: 100%; box-sizing: border-box;">
+                    <div class="setting-desc" style="margin-top: 4px; font-size: 11px;"
+                      data-i18n="translator_custom_hint">
+                      Enter any valid OpenRouter model ID
+                    </div>
+                  </div>
+                </div>
+
+                <div style="margin-top: 10px;">
+                  <label class="setting-name" data-i18n="translator_user_lang">Your Language (Input)</label>
+                  <select id="translator-user-lang" class="select-input" style="width: 100%;">
+                    <option value="Spanish">Spanish</option>
+                    <option value="English">English</option>
+                    <option value="Chinese">Chinese (Simplified)</option>
+                    <option value="Japanese">Japanese</option>
+                    <option value="French">French</option>
+                    <option value="German">German</option>
+                    <option value="Russian">Russian</option>
+                    <option value="Korean">Korean</option>
+                  </select>
+                </div>
+
+                <div style="margin-top: 10px;">
+                  <label class="setting-name" data-i18n="translator_ai_lang">AI Language (Output)</label>
+                  <select id="translator-ai-lang" class="select-input" style="width: 100%;">
+                    <option value="English">English</option>
+                    <option value="Spanish">Spanish</option>
+                    <option value="Chinese">Chinese (Simplified)</option>
+                    <option value="Japanese">Japanese</option>
+                    <option value="French">French</option>
+                    <option value="German">German</option>
+                    <option value="Russian">Russian</option>
+                    <option value="Korean">Korean</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
 
         <!-- Tab: System -->
@@ -1418,7 +1692,33 @@
         latex_desc: '自动渲染 AI 回复中的 LaTeX 数学公式',
         latex_loading: '加载 KaTeX 库... cdn.jsdelivr.net',
         latex_ready: '✓ KaTeX 已就绪',
-        latex_failed: '✗ KaTeX 加载失败'
+        latex_failed: '✗ KaTeX 加载失败',
+        // Translator
+        translator_title: '🌐 AI 翻译器',
+        translator_enable: '启用翻译器',
+        translator_desc: '提供您的 OpenRouter 密钥以启用翻译功能。',
+        translator_bridge: 'Bridge 状态',
+        translator_api_key: 'OpenRouter API 密钥（安全存储）',
+        translator_key_configured: '(✓ 密钥已配置)',
+        translator_save_key: '保存密钥',
+        translator_model: '模型',
+        translator_user_lang: '您的语言（输入）',
+        translator_ai_lang: 'AI 语言（输出）',
+        translator_select_text: '请选择要翻译的文本！',
+        translator_bridge_error: 'Bridge 未连接！',
+        translator_error: '翻译错误',
+        translator_failed: '翻译失败',
+        translator_copied: '插入失败，已复制到剪贴板。',
+        translator_key_saved: '✓ 密钥已保存',
+        translator_key_error: '保存密钥失败',
+        translator_free_models: '🆓 免费模型',
+        translator_budget_models: '💰 经济型',
+        translator_standard_models: '💵 标准型',
+        translator_premium_models: '💎 高级型',
+        translator_translating: '翻译中...',
+        translator_custom_models: '⚙️ 自定义',
+        translator_use_custom: '使用自定义模型',
+        translator_custom_hint: '输入任何有效的 OpenRouter 模型 ID'
       },
       en: {
         tab_appearance: '🎨 Appearance',
@@ -1466,13 +1766,54 @@
         latex_desc: 'Auto-render LaTeX math formulas in AI responses',
         latex_loading: 'Loading KaTeX... cdn.jsdelivr.net',
         latex_ready: '✓ KaTeX Ready',
-        latex_failed: '✗ KaTeX Load Failed'
+        latex_failed: '✗ KaTeX Load Failed',
+        // Translator
+        translator_title: '🌐 AI Translator',
+        translator_enable: 'Enable Translator',
+        translator_desc: 'Provide your OpenRouter Key to enable translation.',
+        translator_bridge: 'Bridge Status',
+        translator_api_key: 'OpenRouter API Key (Stored securely)',
+        translator_key_configured: '(✓ Key Configured)',
+        translator_save_key: 'Save Key',
+        translator_model: 'Model',
+        translator_user_lang: 'Your Language (Input)',
+        translator_ai_lang: 'AI Language (Output)',
+        translator_select_text: 'Please select some text to translate!',
+        translator_bridge_error: 'Bridge not connected!',
+        translator_error: 'Translation Error',
+        translator_failed: 'Translation Failed',
+        translator_copied: 'Insert failed. Copied to clipboard.',
+        translator_key_saved: '✓ Key Saved',
+        translator_key_error: 'Failed to save key',
+        translator_free_models: '🆓 Free Models',
+        translator_budget_models: '💰 Budget',
+        translator_standard_models: '💵 Standard',
+        translator_premium_models: '💎 Premium',
+        translator_translating: 'Translating...',
+        translator_custom_models: '⚙️ Custom',
+        translator_use_custom: 'Use Custom Model',
+        translator_custom_hint: 'Enter any valid OpenRouter model ID'
       }
     };
 
     /* ===== 版本检测配置 ===== */
     const APP_VERSION = '0.1.7';
     const VERSION_API = 'https://hub.lib00.com/api/v1/antigravity-better/version';
+
+    /* ===== Translator Constants ===== */
+    const DEFAULT_TRANSLATOR_MODEL = 'tngtech/deepseek-r1t2-chimera:free';
+
+    // Helper: Get currently selected translator model (handles custom model)
+    function getSelectedModel() {
+      const modelSelect = document.getElementById('translator-model');
+      let model = modelSelect?.value || DEFAULT_TRANSLATOR_MODEL;
+      if (model === '__custom__') {
+        const customInput = document.getElementById('translator-custom-model');
+        model = customInput?.value?.trim() || DEFAULT_TRANSLATOR_MODEL;
+      }
+      return model;
+    }
+
 
     // 语义化版本比较：remote > local 返回 true
     function isNewerVersion(remote, local) {
@@ -1627,7 +1968,13 @@
       // 系统设置
       autoUpdateEnabled: true,
       // LaTeX 渲染设置
-      latexEnabled: false
+      latexEnabled: false,
+      // Translator 设置
+      translatorEnabled: true,
+      translatorModel: 'tngtech/deepseek-r1t2-chimera:free',
+      translatorUserLang: 'Spanish',
+      translatorAiLang: 'English',
+      translatorCustomModel: ''
     };
 
     function loadSettings() {
@@ -1651,7 +1998,12 @@
             bannedCommands: parsed.bannedCommands ?? [...DEFAULT_BANNED_COMMANDS],
             autoAcceptStats: { ...defaultSettings.autoAcceptStats, ...parsed.autoAcceptStats },
             autoUpdateEnabled: parsed.autoUpdateEnabled ?? defaultSettings.autoUpdateEnabled,
-            latexEnabled: parsed.latexEnabled ?? defaultSettings.latexEnabled
+            latexEnabled: parsed.latexEnabled ?? defaultSettings.latexEnabled,
+            translatorEnabled: parsed.translatorEnabled ?? defaultSettings.translatorEnabled,
+            translatorModel: parsed.translatorModel ?? defaultSettings.translatorModel,
+            translatorUserLang: parsed.translatorUserLang ?? defaultSettings.translatorUserLang,
+            translatorAiLang: parsed.translatorAiLang ?? defaultSettings.translatorAiLang,
+            translatorCustomModel: parsed.translatorCustomModel ?? defaultSettings.translatorCustomModel
           };
         }
         return { ...defaultSettings };
@@ -1705,7 +2057,16 @@
         const key = el.getAttribute('data-i18n');
         if (dict[key]) el.textContent = dict[key];
       });
-      langSwitch.textContent = lang === 'zh' ? '🌐 English' : '🌐 中文';
+      // Also translate optgroup labels
+      document.querySelectorAll('[data-i18n-label]').forEach(el => {
+        const key = el.getAttribute('data-i18n-label');
+        if (dict[key]) el.setAttribute('label', dict[key]);
+      });
+      // SVG flags that render in any environment
+      const usFlag = `<svg viewBox="0 0 7410 3900" style="width:16px;height:11px;flex-shrink:0;border-radius:2px;box-shadow:0 0 2px rgba(0,0,0,0.3)"><rect fill="#b22234" width="7410" height="3900"/><path d="M0,450H7410m0,600H0m0,600H7410m0,600H0m0,600H7410m0,600H0" stroke="#fff" stroke-width="300"/><rect fill="#3c3b6e" width="2964" height="2100"/></svg>`;
+      const cnFlag = `<svg viewBox="0 0 30 20" style="width:16px;height:11px;flex-shrink:0;border-radius:2px;box-shadow:0 0 2px rgba(0,0,0,0.3)"><rect fill="#de2910" width="30" height="20"/><g fill="#ffde00"><polygon points="5,4 5.59,5.81 7.47,5.81 5.94,6.95 6.53,8.76 5,7.62 3.47,8.76 4.06,6.95 2.53,5.81 4.41,5.81"/><polygon points="10,1.5 10.3,2.43 11.27,2.43 10.48,3.01 10.79,3.94 10,3.35 9.21,3.94 9.52,3.01 8.73,2.43 9.7,2.43"/><polygon points="12,4 12.3,4.93 13.27,4.93 12.48,5.51 12.79,6.44 12,5.85 11.21,6.44 11.52,5.51 10.73,4.93 11.7,4.93"/><polygon points="12,7 12.3,7.93 13.27,7.93 12.48,8.51 12.79,9.44 12,8.85 11.21,9.44 11.52,8.51 10.73,7.93 11.7,7.93"/><polygon points="10,9.5 10.3,10.43 11.27,10.43 10.48,11.01 10.79,11.94 10,11.35 9.21,11.94 9.52,11.01 8.73,10.43 9.7,10.43"/></g></svg>`;
+      const flagText = lang === 'zh' ? usFlag + '<span style="margin-left:6px">English</span>' : cnFlag + '<span style="margin-left:6px">中文</span>';
+      langSwitch.innerHTML = `<span style="display:inline-flex;align-items:center">${flagText}</span>`;
     }
 
     langSwitch.addEventListener('click', () => {
@@ -2411,6 +2772,472 @@
       });
     }
 
+    /* ===== F. AI Translator Logic ===== */
+    const BRIDGE_URL = 'http://127.0.0.1:54321';
+    let bridgeConnected = false;
+
+    // Bridge Communication
+    async function callBridge(endpoint, data) {
+      try {
+        const ctrl = new AbortController();
+        const timeoutId = setTimeout(() => ctrl.abort(), 5000);
+        const res = await fetch(`${BRIDGE_URL}${endpoint}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+          signal: ctrl.signal
+        });
+        clearTimeout(timeoutId);
+        if (!res.ok) throw new Error(res.statusText);
+        return await res.json();
+      } catch (e) {
+        console.warn('Bridge Call Failed:', e);
+        return null;
+      }
+    }
+
+    async function checkBridgeStatus() {
+      const indicator = document.getElementById('bridge-status-indicator');
+      const keyStatus = document.getElementById('key-existence-status');
+      if (!indicator) return;
+      try {
+        const res = await fetch(`${BRIDGE_URL}/status`);
+        if (res.ok) {
+          const data = await res.json();
+          bridgeConnected = true;
+          indicator.className = 'bridge-status connected';
+          indicator.title = 'Connected to Antigravity Bridge';
+
+          if (keyStatus) {
+            keyStatus.style.display = data.hasKey ? 'inline' : 'none';
+          }
+        } else {
+          throw new Error('Status not ok');
+        }
+      } catch (e) {
+        bridgeConnected = false;
+        indicator.className = 'bridge-status error';
+        indicator.title = 'Bridge Disconnected';
+      }
+    }
+
+    // Save Key Logic
+    const saveKeyBtn = document.getElementById('save-key-btn');
+    if (saveKeyBtn) {
+      saveKeyBtn.addEventListener('click', async () => {
+        const keyInput = document.getElementById('translator-key');
+        const statusEl = document.getElementById('key-save-status');
+        if (!keyInput.value) return;
+
+        statusEl.textContent = 'Saving...';
+        const result = await callBridge('/save-key', { apiKey: keyInput.value });
+
+        if (result && result.success) {
+          statusEl.textContent = '✓ Saved to Secure Storage';
+          keyInput.value = ''; // Clear for security
+          checkBridgeStatus(); // Refresh existence status
+          setTimeout(() => statusEl.textContent = '', 3000);
+        } else {
+          statusEl.textContent = '✗ Save Failed (Check Bridge)';
+        }
+      });
+    }
+
+    // Translate Logic
+    const TRANSLATE_ICON = '<svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M12.87 15.07l-2.54-2.51.03-.03A17.52 17.52 0 0014.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/></svg>';
+
+    function createTranslateButton(textBlock) {
+      // Find suitable container to append button - assuming parent is relative or we make it so
+      const parent = textBlock.parentElement;
+      if (!parent) return null;
+
+      const btn = document.createElement('div');
+      btn.className = 'translate-btn';
+      btn.innerHTML = `${TRANSLATE_ICON} Translate`;
+      btn.title = 'Translate AI Response';
+
+      // KEY FIX: Prevent hover events from bubbling to parent
+      // This is crucial to stop the parent from re-rendering and moving the button
+      btn.addEventListener('mouseover', (e) => e.stopPropagation());
+      btn.addEventListener('mouseenter', (e) => e.stopPropagation());
+      btn.addEventListener('mouseleave', (e) => e.stopPropagation());
+      btn.addEventListener('mouseout', (e) => e.stopPropagation());
+      btn.addEventListener('mousedown', (e) => e.preventDefault()); // Prevent focus loss
+
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        if (!bridgeConnected) {
+          alert('Bridge not connected! Please start the Bridge Extension.');
+          return;
+        }
+
+        const originalText = textBlock.innerText; // use innerText to get visual text
+
+        // Remove existing result if any
+        let existingResult = parent.querySelector('.translation-result');
+        if (existingResult) existingResult.remove();
+
+        const dict = TRANSLATIONS[currentSettings.lang] || TRANSLATIONS.en;
+        const resultDiv = document.createElement('div');
+        resultDiv.className = 'translation-result';
+        resultDiv.textContent = dict.translator_translating || 'Translating...';
+        parent.appendChild(resultDiv);
+
+        // Call Bridge
+        // Message Translation: AI (Output) -> User (Input)
+        const response = await callBridge('/translate', {
+          text: originalText,
+          sourceLang: document.getElementById('translator-ai-lang').value || 'English',
+          targetLang: document.getElementById('translator-user-lang').value || 'Spanish',
+          model: getSelectedModel()
+        });
+
+        if (response && response.translation) {
+          resultDiv.textContent = response.translation;
+        } else {
+          resultDiv.textContent = dict.translator_failed || 'Translation failed';
+        }
+      });
+
+      return btn;
+    }
+
+    function injectTranslateButtons() {
+      const toggle = document.getElementById('translator-master-toggle');
+      if (!toggle || !toggle.checked) return;
+
+      // Target AI Responses (prose) and User Messages
+      // Use :not(.opacity-70) to avoid 'thinking' blocks if desired, or include them
+      const blocks = document.querySelectorAll('.prose:not(.opacity-70), .bg-gray-500\\/15 .whitespace-pre-wrap');
+
+      blocks.forEach(block => {
+        const parent = block.parentElement;
+        if (!parent || parent.querySelector('.translate-btn')) return;
+
+        // Ensure relative positioning for absolute button
+        if (window.getComputedStyle(parent).position === 'static') {
+          parent.style.position = 'relative';
+        }
+
+        const btn = createTranslateButton(block);
+        if (btn) parent.appendChild(btn);
+      });
+
+      // Inject Input Translator
+      injectInputTranslator();
+    }
+
+    function injectInputTranslator() {
+      // Strategy 1: Find Textareas
+      let mainInput = null;
+      const inputs = [
+        ...document.querySelectorAll('textarea'),
+        ...document.querySelectorAll('div[contenteditable="true"]'),
+        ...document.querySelectorAll('[role="textbox"]')
+      ];
+
+      inputs.forEach(t => {
+        // Exclude our own settings inputs
+        if (t.id === 'banned-commands-input' || t.id === 'translator-key') return;
+
+        // Exclude hidden inputs
+        if (t.offsetHeight === 0) return;
+
+        // Heuristics to find the REAL input
+        const style = window.getComputedStyle(t);
+        const isVisible = style.display !== 'none' && style.visibility !== 'hidden';
+        if (!isVisible) return;
+
+        // Check for specific traits of the chat input
+        // 1. Placeholder often contains "Ask", "Type", "Chat"
+        const placeholder = t.getAttribute('placeholder') || t.getAttribute('aria-placeholder') || '';
+        // 2. Class often contains "input" or "editor"
+        const className = t.className || '';
+
+        // Accept if it looks like the main input
+        if (placeholder || className.includes('input') || className.includes('editor') || t.tagName === 'TEXTAREA') {
+          // Prefer the one that is likely the chat input (often larger or last one)
+          mainInput = t;
+        }
+      });
+
+      // 0. CLEANUP REMOVED: Do not blindly remove buttons here to avoid flicker loops!
+
+      if (!mainInput) return;
+
+      // Find the "Footer Toolbar"
+      // Usually it's in the same wrapper, or a sibling of the input's container
+      let toolbar = null;
+      let parent = mainInput.parentElement;
+
+      // Look up to 3 levels up for a container that looks like a toolbar
+      // Strategy: Look for siblings of the input (or input wrapper)
+      const potentialToolbars = [];
+      const siblings = Array.from(parent.children).filter(c => c !== mainInput);
+      potentialToolbars.push(...siblings);
+
+      // Also check siblings of parent if input is deeply nested
+      if (parent.parentElement) {
+        const uncles = Array.from(parent.parentElement.children).filter(c => c !== parent);
+        potentialToolbars.push(...uncles);
+      }
+      // Check Great-Uncles (Wrapper -> InputArea -> Footer)
+      if (parent.parentElement && parent.parentElement.parentElement) {
+        const greatUncles = Array.from(parent.parentElement.parentElement.children).filter(c => c !== parent.parentElement);
+        potentialToolbars.push(...greatUncles);
+      }
+
+      // PRIORITY STRATEGY: Look for model selector buttons first
+      // Find buttons with model names and use their parent as toolbar
+      const allButtons = document.querySelectorAll('button, [role="button"]');
+      for (const btn of allButtons) {
+        const text = btn.innerText || btn.textContent || '';
+        if (text.includes('Gemini') || text.includes('Claude') || text.includes('GPT') || text.includes('Planning')) {
+          toolbar = btn.parentElement;
+          break;
+        }
+      }
+
+      // Filter for the best candidate
+      for (const el of potentialToolbars) {
+        if (el.offsetHeight > 0 && el.offsetHeight < 60) {
+          const html = el.innerHTML;
+          const text = el.innerText;
+          // Improved heuristic: Bottom bars often contain specific icons or keywords
+          if (
+            text.includes('Gemini') ||
+            text.includes('Claude') ||
+            text.includes('GPT') ||
+            text.includes('Model') ||
+            text.includes('Planning') ||
+            html.includes('model-selector') ||
+            html.includes('aria-haspopup="listbox"') ||
+            (el.children.length >= 2 && el.querySelector('button'))
+          ) {
+            toolbar = el;
+            break;
+          }
+        }
+      }
+
+      // If we found a toolbar, use it. Otherwise, use parent but specific styling.
+      const targetContainer = toolbar || parent;
+
+      // KEY FIX: Idempotency Check
+      // If the correct container ALREADY has our unique button, DO NOTHING.
+      // This prevents the destroy-recreate loop that causes flickering.
+      if (targetContainer.querySelector('#input-translate-btn-unique')) {
+        return;
+      }
+
+      // Clean up buttons elsewhere (e.g. if we moved to a new better container)
+      const oldBtns = document.querySelectorAll('.input-translate-btn');
+      oldBtns.forEach(b => b.remove());
+
+      // If we are injecting into parent (fallback), ensure relative
+      let isAbsolute = false;
+      if (targetContainer === parent) {
+        parent.classList.add('input-wrapper-relative');
+        isAbsolute = true;
+      }
+
+      const btn = document.createElement('button');
+      btn.id = 'input-translate-btn-unique'; // Unique ID
+      btn.className = isAbsolute ? 'input-translate-btn input-translate-btn-absolute' : 'input-translate-btn';
+      btn.innerHTML = `${TRANSLATE_ICON} Translate Selection`;
+      btn.title = 'Select text to translate';
+
+      // Prevent focus loss when clicking button
+      btn.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        e.stopPropagation(); // FIX: Isolate the event to prevent interference
+      });
+
+      // KEY FIX: Prevent hover events from bubbling to parent
+      // This stops React/Parent from re-rendering (and killing our button) when we hover
+      ['mouseover', 'mouseenter', 'mouseleave', 'mouseout'].forEach(evt => {
+        btn.addEventListener(evt, (e) => e.stopPropagation());
+      });
+
+      btn.addEventListener('click', (e) => handleTranslateClick(e, btn));
+
+      // NOTE: Focus tracking moved to global "Focus Tracker" section (single listener)
+
+      // Insert logic: Simply append to end of toolbar
+      targetContainer.appendChild(btn);
+    }
+
+    // Non-blocking error display that preserves focus - supports i18n
+    function showTranslatorMessage(messageOrKey, isError = true, useI18n = true) {
+      // Get localized message if key exists in dictionary
+      let message = messageOrKey;
+      if (useI18n && typeof TRANSLATIONS !== 'undefined' && typeof currentSettings !== 'undefined') {
+        const dict = TRANSLATIONS[currentSettings.lang] || TRANSLATIONS.en;
+        if (dict[messageOrKey]) {
+          message = dict[messageOrKey];
+        }
+      }
+
+      // Use existing toast system if available, or create a temporary one
+      const existingToast = document.querySelector('.copy-toast');
+      if (existingToast) {
+        existingToast.textContent = message;
+        existingToast.style.background = isError ? '#ff4444' : '#4CAF50';
+        existingToast.classList.add('show');
+        setTimeout(() => existingToast.classList.remove('show'), 3000);
+      } else {
+        // Fallback: Create inline notification
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+          position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+          background: ${isError ? '#ff4444' : '#4CAF50'}; color: white;
+          padding: 10px 20px; border-radius: 8px; z-index: 99999;
+          font-size: 13px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+          animation: fadeIn 0.2s ease;
+        `;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+      }
+    }
+
+    async function handleTranslateClick(e, btn) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      // Rate limiting: prevent spam clicks
+      if (btn.disabled) return;
+      btn.disabled = true;
+      btn.style.opacity = '0.5';
+
+      const targetInput = window.lastFocusedInput;
+
+      // Get i18n dictionary
+      const dict = TRANSLATIONS[currentSettings.lang] || TRANSLATIONS.en;
+
+      // Helper to safely restore focus
+      const restoreFocus = () => {
+        if (targetInput) {
+          setTimeout(() => {
+            try { targetInput.focus(); } catch (e) { }
+          }, 50); // Small delay to ensure DOM is stable
+        }
+      };
+
+      let originalBtnText = btn.innerHTML; // Capture initial text
+
+      try {
+        if (!bridgeConnected) {
+          showTranslatorMessage('translator_bridge_error');
+          return;
+        }
+
+        // Double check selection specifically
+        const selection = window.getSelection();
+        let text = selection.toString();
+
+        // If textarea, get text via properties
+        if (targetInput && targetInput.tagName === 'TEXTAREA') {
+          text = targetInput.value.substring(targetInput.selectionStart, targetInput.selectionEnd);
+        }
+
+        if (!text || !text.trim()) {
+          showTranslatorMessage('translator_select_text');
+          return;
+        }
+
+        btn.textContent = dict.translator_translating || 'Translating...';
+
+        const response = await callBridge('/translate', {
+          text: text,
+          sourceLang: document.getElementById('translator-user-lang').value || 'Spanish',
+          targetLang: document.getElementById('translator-ai-lang').value || 'English',
+          model: getSelectedModel()
+        });
+
+        if (response && response.translation) {
+          if (targetInput && targetInput.tagName === 'TEXTAREA') {
+            // Textarea replacement
+            const start = targetInput.selectionStart;
+            const end = targetInput.selectionEnd;
+            targetInput.setRangeText(response.translation, start, end, 'select');
+            targetInput.dispatchEvent(new Event('input', { bubbles: true }));
+          } else {
+            // ContentEditable replacement (uses Selection API directly)
+            if (!document.execCommand('insertText', false, response.translation)) {
+              showTranslatorMessage('translator_copied', false);
+              navigator.clipboard.writeText(response.translation);
+            }
+          }
+        } else {
+          showTranslatorMessage('translator_failed', true, true);
+        }
+      } catch (err) {
+        console.error('[Translator] Error:', err);
+        showTranslatorMessage('translator_error', true, true);
+      } finally {
+        // ALWAYS restore button text and re-enable
+        btn.innerHTML = originalBtnText;
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        // ALWAYS restore focus with delay
+        restoreFocus();
+      }
+    }
+
+    function applyTranslatorSettings() {
+      // Clean up old observer
+      if (window.translatorObserver) {
+        window.translatorObserver.disconnect();
+        window.translatorObserver = null;
+      }
+
+      const toggle = document.getElementById('translator-master-toggle');
+      if (toggle && toggle.checked) {
+        window.translatorObserver = new MutationObserver(() => {
+          // Debounce
+          clearTimeout(window.transThrottle);
+          window.transThrottle = setTimeout(injectTranslateButtons, 500);
+        });
+        window.translatorObserver.observe(document.getElementById('react-app'), { childList: true, subtree: true });
+
+        injectTranslateButtons();
+        checkBridgeStatus();
+
+        // Clear previous interval if any
+        if (window.bridgeInterval) clearInterval(window.bridgeInterval);
+        window.bridgeInterval = setInterval(checkBridgeStatus, 10000);
+
+        // Heartbeat for Input Translator (Reactive fallback)
+        if (window.inputTransHeartbeat) clearInterval(window.inputTransHeartbeat);
+        window.inputTransHeartbeat = setInterval(injectInputTranslator, 2000);
+      } else {
+        if (window.bridgeInterval) clearInterval(window.bridgeInterval);
+        if (window.inputTransHeartbeat) clearInterval(window.inputTransHeartbeat);
+        document.querySelectorAll('.translate-btn').forEach(b => b.remove());
+        document.querySelectorAll('.translation-result').forEach(b => b.remove());
+        document.querySelectorAll('.input-translate-btn').forEach(b => b.remove());
+      }
+    }
+
+    /* ===== Focus Tracker ===== */
+    window.lastFocusedInput = null;
+    document.addEventListener('focusin', (e) => {
+      const t = e.target;
+      // Track if it's an editable element (textarea, input text, or contenteditable)
+      if (
+        t.tagName === 'TEXTAREA' ||
+        (t.tagName === 'INPUT' && t.type === 'text') ||
+        t.getAttribute('contenteditable') === 'true' ||
+        t.getAttribute('role') === 'textbox'
+      ) {
+        // Ignore our own settings
+        if (t.id !== 'translator-key' && t.id !== 'translator-custom-model' && t.id !== 'banned-commands-input') {
+          window.lastFocusedInput = t;
+        }
+      }
+    });
+
     /* ===== 初始化 ===== */
     function initUI() {
       // 0. 显示当前版本号
@@ -2490,6 +3317,94 @@
       if (currentSettings.autoUpdateEnabled) {
         setTimeout(checkForUpdate, 10000);
       }
+
+      // 6. Translator 初始化
+      const transToggle = document.getElementById('translator-master-toggle');
+      const transModel = document.getElementById('translator-model');
+      const transUserLang = document.getElementById('translator-user-lang');
+      const transAiLang = document.getElementById('translator-ai-lang');
+
+      if (transToggle) {
+        transToggle.checked = currentSettings.translatorEnabled;
+        transToggle.addEventListener('change', () => {
+          currentSettings.translatorEnabled = transToggle.checked;
+          saveSettings(currentSettings);
+          applyTranslatorSettings();
+        });
+      }
+
+      // Restore saved model/language values
+      const customModelContainer = document.getElementById('custom-model-container');
+      const customModelInput = document.getElementById('translator-custom-model');
+
+      // Helper to show/hide custom model input
+      function updateCustomModelVisibility() {
+        if (transModel && customModelContainer) {
+          const isCustom = transModel.value === '__custom__';
+          customModelContainer.style.display = isCustom ? 'block' : 'none';
+        }
+      }
+
+      if (transModel) {
+        // If saved model is custom, select __custom__ and restore custom value
+        if (currentSettings.translatorModel === '__custom__' ||
+          (currentSettings.translatorCustomModel && !Array.from(transModel.options).find(o => o.value === currentSettings.translatorModel))) {
+          transModel.value = '__custom__';
+          if (customModelInput) {
+            customModelInput.value = currentSettings.translatorCustomModel || '';
+          }
+        } else {
+          transModel.value = currentSettings.translatorModel;
+        }
+        updateCustomModelVisibility();
+
+        transModel.addEventListener('change', () => {
+          currentSettings.translatorModel = transModel.value;
+          saveSettings(currentSettings);
+          updateCustomModelVisibility();
+        });
+      }
+
+      // Custom model input persistence
+      if (customModelInput) {
+        customModelInput.value = currentSettings.translatorCustomModel || '';
+        customModelInput.addEventListener('input', () => {
+          currentSettings.translatorCustomModel = customModelInput.value.trim();
+          saveSettings(currentSettings);
+        });
+      }
+
+      if (transUserLang) {
+        transUserLang.value = currentSettings.translatorUserLang;
+        transUserLang.addEventListener('change', () => {
+          currentSettings.translatorUserLang = transUserLang.value;
+          saveSettings(currentSettings);
+        });
+      }
+      if (transAiLang) {
+        transAiLang.value = currentSettings.translatorAiLang;
+        transAiLang.addEventListener('change', () => {
+          currentSettings.translatorAiLang = transAiLang.value;
+          saveSettings(currentSettings);
+        });
+      }
+
+      // API Key visibility toggle
+      const toggleKeyBtn = document.getElementById('toggle-key-visibility');
+      const keyInput = document.getElementById('translator-key');
+      if (toggleKeyBtn && keyInput) {
+        toggleKeyBtn.addEventListener('click', () => {
+          if (keyInput.type === 'password') {
+            keyInput.type = 'text';
+            toggleKeyBtn.textContent = '🙈';
+          } else {
+            keyInput.type = 'password';
+            toggleKeyBtn.textContent = '👁';
+          }
+        });
+      }
+
+      applyTranslatorSettings();
     }
 
     if (document.readyState !== 'loading') initUI();
