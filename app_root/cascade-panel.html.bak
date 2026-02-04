@@ -11,12 +11,6 @@
       --color-code-block: #A78BFA;
       --color-action-status: #4ADE80;
       --color-thinking: #9CA3AF;
-      /* 字体大小变量 */
-      --fontsize-user-message: 14px;
-      --fontsize-ai-response: 14px;
-      --fontsize-code-block: 13px;
-      --fontsize-action-status: 13px;
-      --fontsize-thinking: 13px;
       --bg-modal: #1e1e1e;
       --border-color: #3c3c3c;
       --accent-color: #667eea;
@@ -482,52 +476,11 @@
       color: var(--color-thinking) !important;
     }
 
-    /* ===== 字体大小覆盖样式 ===== */
-    /* 用户消息字体大小 */
-    #react-app.fontsize-user-message .bg-gray-500\/15 .whitespace-pre-wrap,
-    #react-app.fontsize-user-message .bg-gray-500\/15 [style*="word-break"] {
-      font-size: var(--fontsize-user-message) !important;
-    }
-
-    /* AI回复字体大小 */
-    #react-app.fontsize-ai-response .prose:not(.opacity-70) p,
-    #react-app.fontsize-ai-response .prose:not(.opacity-70) li,
-    #react-app.fontsize-ai-response .prose:not(.opacity-70) h2,
-    #react-app.fontsize-ai-response .prose:not(.opacity-70) h3,
-    #react-app.fontsize-ai-response .prose:not(.opacity-70) strong,
-    #react-app.fontsize-ai-response .prose:not(.opacity-70) ul,
-    #react-app.fontsize-ai-response .prose:not(.opacity-70) ol,
-    #react-app.fontsize-ai-response .prose:not(.opacity-70) table,
-    #react-app.fontsize-ai-response .prose:not(.opacity-70) th,
-    #react-app.fontsize-ai-response .prose:not(.opacity-70) td {
-      font-size: var(--fontsize-ai-response) !important;
-    }
-
-    /* 代码块字体大小 */
-    #react-app.fontsize-code-block pre,
-    #react-app.fontsize-code-block pre code,
-    #react-app.fontsize-code-block .code-block,
-    #react-app.fontsize-code-block .code-line {
-      font-size: var(--fontsize-code-block) !important;
-    }
-
-    /* 操作状态字体大小 */
-    #react-app.fontsize-action-status .shrink-0:is(:contains('Analyzed'), :contains('Created'), :contains('Edited')),
-    #react-app.fontsize-action-status [class*="animate-fade-in"] .truncate {
-      font-size: var(--fontsize-action-status) !important;
-    }
-
-    /* 思考过程字体大小 */
-    #react-app.fontsize-thinking .opacity-70.prose,
-    #react-app.fontsize-thinking .opacity-70.prose * {
-      font-size: var(--fontsize-thinking) !important;
-    }
-
     /* ===== 复制按钮样式 ===== */
     .copy-btn {
       position: absolute;
       top: 6px;
-      right: 26px;
+      right: 6px;
       width: 26px;
       height: 26px;
       background: rgba(60, 60, 60, 0.9);
@@ -761,142 +714,11 @@
       color: #4ADE80;
     }
 
-    /* ===== LaTeX 公式渲染样式 ===== */
-    /* 块级公式居中 */
-    .latex-block {
-      display: block;
-      text-align: center;
-      margin: 1em 0;
-      overflow-x: auto;
-    }
-
-    /* 错误提示样式 */
-    .latex-error {
-      color: #f87171;
-      font-size: 12px;
-      background: rgba(248, 113, 113, 0.1);
-      padding: 2px 6px;
-      border-radius: 3px;
-      font-family: monospace;
-    }
-
     .setting-desc {
       font-size: 11px;
       color: var(--text-sub);
       margin-bottom: 12px;
       line-height: 1.5;
-    }
-
-    /* 字体大小输入框 */
-    .fontsize-input {
-      width: 50px;
-      background: #2d2d2d;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      padding: 4px 6px;
-      color: #ccc;
-      font-size: 12px;
-      text-align: center;
-      outline: none;
-    }
-
-    .fontsize-input:focus {
-      border-color: var(--accent-color);
-    }
-
-    /* 同步按钮 */
-    .sync-btn {
-      background: rgba(102, 126, 234, 0.2);
-      border: 1px solid var(--accent-color);
-      border-radius: 4px;
-      color: var(--accent-color);
-      font-size: 11px;
-      padding: 3px 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-      margin-left: 6px;
-    }
-
-    .sync-btn:hover {
-      background: var(--accent-color);
-      color: #fff;
-    }
-
-    /* 版本号标签 */
-    .version-tag {
-      font-size: 10px;
-      color: var(--text-sub);
-      background: rgba(255, 255, 255, 0.1);
-      padding: 2px 6px;
-      border-radius: 4px;
-      margin-left: 8px;
-      font-weight: normal;
-    }
-
-    /* 更新提示条 */
-    .update-banner {
-      display: none;
-      background: linear-gradient(90deg, rgba(74, 222, 128, 0.15), rgba(102, 126, 234, 0.15));
-      border: 1px solid rgba(74, 222, 128, 0.3);
-      border-radius: 6px;
-      padding: 8px 12px;
-      margin-top: 10px;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      animation: fadeIn 0.3s ease;
-    }
-
-    .update-banner.show {
-      display: flex;
-    }
-
-    .update-text {
-      font-size: 12px;
-      color: #4ADE80;
-    }
-
-    .update-text span {
-      font-weight: 600;
-    }
-
-    .update-version {
-      background: rgba(74, 222, 128, 0.3);
-      padding: 1px 6px;
-      border-radius: 4px;
-      margin-left: 4px;
-    }
-
-    .update-close {
-      background: none;
-      border: none;
-      color: rgba(74, 222, 128, 0.6);
-      font-size: 16px;
-      cursor: pointer;
-      padding: 0 4px;
-      line-height: 1;
-      transition: color 0.2s;
-    }
-
-    .update-close:hover {
-      color: #4ADE80;
-    }
-
-    .update-btn {
-      background: #4ADE80;
-      color: #1e1e1e;
-      border: none;
-      border-radius: 4px;
-      padding: 4px 10px;
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-      text-decoration: none;
-      transition: all 0.2s;
-    }
-
-    .update-btn:hover {
-      background: #22c55e;
     }
   </style>
 </head>
@@ -923,20 +745,10 @@
       <!-- Header -->
       <div class="modal-header">
         <div class="header-left">
-          <span class="brand-name">Antigravity Better<span class="version-tag" id="current-version"></span></span>
+          <span class="brand-name">Antigravity Better</span>
           <div class="brand-links">
             <a href="https://dpit.lib00.com" target="_blank" class="brand-link">🌐 dpit.lib00.com</a>
             <a href="https://github.com/016/Antigravity-Better" target="_blank" class="brand-link">📦 GitHub</a>
-          </div>
-          <!-- 更新提示条 -->
-          <div class="update-banner" id="update-banner">
-            <span class="update-text">🎉 <span data-i18n="update_available">新版本可用</span> <span id="new-version"
-                class="update-version"></span></span>
-            <span>
-              <a href="https://github.com/016/Antigravity-Better/releases" target="_blank" class="update-btn"
-                data-i18n="btn_download">下载更新</a>
-              <button class="update-close" id="update-close-btn" title="Close">&times;</button>
-            </span>
           </div>
         </div>
         <div class="header-right">
@@ -949,7 +761,6 @@
       <div class="tab-nav">
         <button class="tab-btn active" data-tab="appearance" data-i18n="tab_appearance">🎨 外观</button>
         <button class="tab-btn" data-tab="features" data-i18n="tab_features">🛠️ 功能</button>
-        <button class="tab-btn" data-tab="system" data-i18n="tab_system">⚙️ 系统</button>
       </div>
 
       <!-- Content -->
@@ -1043,124 +854,6 @@
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Accordion: Font Size -->
-          <div class="accordion-item">
-            <div class="accordion-header">
-              <span class="accordion-title" data-i18n="fontsize_title">🔤 字体大小</span>
-              <span class="accordion-icon">▼</span>
-            </div>
-            <div class="accordion-body">
-              <div class="accordion-inner">
-                <div class="main-toggle">
-                  <span class="main-toggle-label" data-i18n="enable_custom_fontsize">启用自定义字体大小</span>
-                  <label class="toggle-switch">
-                    <input type="checkbox" id="fontsize-master-toggle">
-                    <span class="toggle-slider"></span>
-                  </label>
-                </div>
-
-                <div id="fontsize-settings">
-                  <div class="setting-item">
-                    <div class="setting-left">
-                      <span class="setting-icon">📝</span>
-                      <span class="setting-name" data-i18n="lbl_user_msg">用户消息</span>
-                    </div>
-                    <div class="setting-right">
-                      <label class="toggle-switch">
-                        <input type="checkbox" id="toggle-fontsize-user-message" checked>
-                        <span class="toggle-slider"></span>
-                      </label>
-                      <input type="number" id="fontsize-user-message" class="fontsize-input" value="14" min="10"
-                        max="24"> px
-                      <button id="fontsize-sync-btn" class="sync-btn" data-i18n="btn_sync">同步全部</button>
-                    </div>
-                  </div>
-
-                  <div class="setting-item">
-                    <div class="setting-left">
-                      <span class="setting-icon">🤖</span>
-                      <span class="setting-name" data-i18n="lbl_ai_resp">AI回复</span>
-                    </div>
-                    <div class="setting-right">
-                      <label class="toggle-switch">
-                        <input type="checkbox" id="toggle-fontsize-ai-response" checked>
-                        <span class="toggle-slider"></span>
-                      </label>
-                      <input type="number" id="fontsize-ai-response" class="fontsize-input" value="14" min="10"
-                        max="24"> px
-                    </div>
-                  </div>
-
-                  <div class="setting-item">
-                    <div class="setting-left">
-                      <span class="setting-icon">💻</span>
-                      <span class="setting-name" data-i18n="lbl_code">代码块</span>
-                    </div>
-                    <div class="setting-right">
-                      <label class="toggle-switch">
-                        <input type="checkbox" id="toggle-fontsize-code-block" checked>
-                        <span class="toggle-slider"></span>
-                      </label>
-                      <input type="number" id="fontsize-code-block" class="fontsize-input" value="13" min="10" max="24">
-                      px
-                    </div>
-                  </div>
-
-                  <div class="setting-item">
-                    <div class="setting-left">
-                      <span class="setting-icon">✅</span>
-                      <span class="setting-name" data-i18n="lbl_status">操作状态</span>
-                    </div>
-                    <div class="setting-right">
-                      <label class="toggle-switch">
-                        <input type="checkbox" id="toggle-fontsize-action-status">
-                        <span class="toggle-slider"></span>
-                      </label>
-                      <input type="number" id="fontsize-action-status" class="fontsize-input" value="13" min="10"
-                        max="24"> px
-                    </div>
-                  </div>
-
-                  <div class="setting-item">
-                    <div class="setting-left">
-                      <span class="setting-icon">💭</span>
-                      <span class="setting-name" data-i18n="lbl_thinking">思考过程</span>
-                    </div>
-                    <div class="setting-right">
-                      <label class="toggle-switch">
-                        <input type="checkbox" id="toggle-fontsize-thinking">
-                        <span class="toggle-slider"></span>
-                      </label>
-                      <input type="number" id="fontsize-thinking" class="fontsize-input" value="13" min="10" max="24">
-                      px
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Accordion: LaTeX -->
-          <div class="accordion-item">
-            <div class="accordion-header">
-              <span class="accordion-title" data-i18n="latex_title">📐 LaTeX 公式</span>
-              <span class="accordion-icon">▼</span>
-            </div>
-            <div class="accordion-body">
-              <div class="accordion-inner">
-                <div class="main-toggle">
-                  <span class="main-toggle-label" data-i18n="enable_latex">启用 LaTeX 渲染</span>
-                  <label class="toggle-switch">
-                    <input type="checkbox" id="latex-master-toggle">
-                    <span class="toggle-slider"></span>
-                  </label>
-                </div>
-                <div class="setting-desc" data-i18n="latex_desc">自动渲染 AI 回复中的 LaTeX 数学公式</div>
-                <div id="latex-status" class="save-status"></div>
               </div>
             </div>
           </div>
@@ -1262,6 +955,47 @@
             </div>
           </div>
 
+          <!-- Accordion: Auto Retry -->
+          <div class="accordion-item">
+            <div class="accordion-header">
+              <span class="accordion-title" data-i18n="auto_retry_title">🔄 自动重试</span>
+              <span class="accordion-icon">▼</span>
+            </div>
+            <div class="accordion-body">
+              <div class="accordion-inner">
+                <div class="main-toggle">
+                  <span class="main-toggle-label" data-i18n="enable_auto_retry">启用自动重试</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="auto-retry-master-toggle">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+
+                <div id="auto-retry-settings">
+                  <div class="setting-item">
+                    <div class="setting-left">
+                      <span class="setting-icon">🔢</span>
+                      <span class="setting-name" data-i18n="lbl_retry_count">重试次数</span>
+                    </div>
+                    <div class="setting-right">
+                      <input type="number" id="retry-count-input" class="select-input" min="1" max="5"
+                        style="width: 60px; min-width: 60px;">
+                    </div>
+                  </div>
+                  <div class="setting-item">
+                    <div class="setting-left">
+                      <span class="setting-icon">⏱️</span>
+                      <span class="setting-name" data-i18n="lbl_retry_delay">延迟时间 (秒)</span>
+                    </div>
+                    <div class="setting-right">
+                      <input type="number" id="retry-delay-input" class="select-input" min="1" max="10"
+                        style="width: 60px; min-width: 60px;">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
           <!-- Accordion: Auto Accept -->
           <div class="accordion-item">
@@ -1326,45 +1060,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Tab: System -->
-        <div class="tab-content" id="tab-system">
-          <!-- Accordion: Version Update -->
-          <div class="accordion-item expanded">
-            <div class="accordion-header">
-              <span class="accordion-title" data-i18n="version_title">🔄 版本更新</span>
-              <span class="accordion-icon">▼</span>
-            </div>
-            <div class="accordion-body">
-              <div class="accordion-inner">
-                <div class="setting-item">
-                  <div class="setting-left">
-                    <span class="setting-icon">🔄</span>
-                    <span class="setting-name" data-i18n="lbl_auto_update">启动时自动检测</span>
-                  </div>
-                  <div class="setting-right">
-                    <label class="toggle-switch">
-                      <input type="checkbox" id="auto-update-toggle" checked>
-                      <span class="toggle-slider"></span>
-                    </label>
-                  </div>
-                </div>
-
-                <div class="setting-item">
-                  <div class="setting-left">
-                    <span class="setting-icon">👉</span>
-                    <span class="setting-name" data-i18n="lbl_manual_update">手动检测更新</span>
-                  </div>
-                  <div class="setting-right">
-                    <button id="manual-update-btn" class="btn-action primary" data-i18n="btn_check_update">立即检测</button>
-                  </div>
-                </div>
-
-                <div id="update-status" class="save-status"></div>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -1382,16 +1077,17 @@
         lbl_code: '代码块',
         lbl_status: '操作状态',
         lbl_thinking: '思考过程',
-        fontsize_title: '🔤 字体大小',
-        enable_custom_fontsize: '启用自定义字体大小',
-        btn_sync: '同步全部',
-        update_available: '新版本可用',
-        btn_download: '下载更新',
         copy_title: '📋 一键复制',
         enable_copy: '启用复制按钮',
         hotkey_title: '⌨️ 快捷键设置',
         enable_hotkey: '自定义发送快捷键',
         lbl_send_hotkey: '发送快捷键',
+        auto_retry_title: '🔄 自动重试',
+        enable_auto_retry: '启用自动重试',
+        lbl_retry_count: '重试次数',
+        lbl_retry_delay: '延迟时间 (秒)',
+        retry_toast_msg: '正在自动重试 ({n}/{max})...',
+        retry_toast_done: '重试触发成功',
         auto_accept_title: '🤖 自动操作',
         enable_auto_accept: '启用自动操作',
         auto_accept_desc: '选择要自动点击的按钮类型',
@@ -1403,22 +1099,7 @@
         btn_save: '保存',
         btn_reset: '重置',
         banned_saved: '✓ 安全规则已保存',
-        banned_reset: '✓ 已重置为默认值',
-        tab_system: '⚙️ 系统',
-        version_title: '🔄 版本更新',
-        lbl_auto_update: '启动时自动检测',
-        lbl_manual_update: '手动检测更新',
-        btn_check_update: '立即检测',
-        update_checking: '正在检测...',
-        update_latest: '✓ 已是最新版本',
-        update_found: '✓ 发现新版本',
-        update_failed: '✗ 检测失败',
-        latex_title: '📐 LaTeX 公式',
-        enable_latex: '启用 LaTeX 渲染',
-        latex_desc: '自动渲染 AI 回复中的 LaTeX 数学公式',
-        latex_loading: '加载 KaTeX 库... cdn.jsdelivr.net',
-        latex_ready: '✓ KaTeX 已就绪',
-        latex_failed: '✗ KaTeX 加载失败'
+        banned_reset: '✓ 已重置为默认值'
       },
       en: {
         tab_appearance: '🎨 Appearance',
@@ -1430,16 +1111,17 @@
         lbl_code: 'Code Block',
         lbl_status: 'Action Status',
         lbl_thinking: 'Thinking Process',
-        fontsize_title: '🔤 Font Size',
-        enable_custom_fontsize: 'Enable Custom Font Size',
-        btn_sync: 'Sync All',
-        update_available: 'New version available',
-        btn_download: 'Download',
         copy_title: '📋 One-Click Copy',
         enable_copy: 'Enable Copy Buttons',
         hotkey_title: '⌨️ Shortcuts',
         enable_hotkey: 'Custom Send Hotkey',
         lbl_send_hotkey: 'Send Hotkey',
+        auto_retry_title: '🔄 Auto Retry',
+        enable_auto_retry: 'Enable Auto Retry',
+        lbl_retry_count: 'Retry Count',
+        lbl_retry_delay: 'Delay (s)',
+        retry_toast_msg: 'Auto retrying ({n}/{max})...',
+        retry_toast_done: 'Retry triggered',
         auto_accept_title: '🤖 Auto Accept',
         enable_auto_accept: 'Enable Auto Accept',
         auto_accept_desc: 'Select button types to auto-click',
@@ -1451,99 +1133,9 @@
         btn_save: 'Save',
         btn_reset: 'Reset',
         banned_saved: '✓ Safety rules saved',
-        banned_reset: '✓ Reset to defaults',
-        tab_system: '⚙️ System',
-        version_title: '🔄 Version Update',
-        lbl_auto_update: 'Auto check on startup',
-        lbl_manual_update: 'Manual check',
-        btn_check_update: 'Check Now',
-        update_checking: 'Checking...',
-        update_latest: '✓ Already latest',
-        update_found: '✓ New version found',
-        update_failed: '✗ Check failed',
-        latex_title: '📐 LaTeX Formulas',
-        enable_latex: 'Enable LaTeX Rendering',
-        latex_desc: 'Auto-render LaTeX math formulas in AI responses',
-        latex_loading: 'Loading KaTeX... cdn.jsdelivr.net',
-        latex_ready: '✓ KaTeX Ready',
-        latex_failed: '✗ KaTeX Load Failed'
+        banned_reset: '✓ Reset to defaults'
       }
     };
-
-    /* ===== 版本检测配置 ===== */
-    const APP_VERSION = '0.1.7';
-    const VERSION_API = 'https://hub.lib00.com/api/v1/antigravity-better/version';
-
-    // 语义化版本比较：remote > local 返回 true
-    function isNewerVersion(remote, local) {
-      const r = remote.replace(/^v/i, '').split('.').map(Number);
-      const l = local.replace(/^v/i, '').split('.').map(Number);
-      for (let i = 0; i < Math.max(r.length, l.length); i++) {
-        if ((r[i] || 0) > (l[i] || 0)) return true;
-        if ((r[i] || 0) < (l[i] || 0)) return false;
-      }
-      return false;
-    }
-
-    // 显示更新提示
-    function showUpdateBanner(newVersion, downloadUrl) {
-      const banner = document.getElementById('update-banner');
-      const versionSpan = document.getElementById('new-version');
-      const downloadBtn = banner ? banner.querySelector('.update-btn') : null;
-      if (banner && versionSpan) {
-        versionSpan.textContent = 'v' + newVersion;
-        if (downloadUrl && downloadBtn) downloadBtn.href = downloadUrl;
-        banner.classList.add('show');
-      }
-    }
-
-    // 隐藏更新提示
-    function hideUpdateBanner() {
-      const banner = document.getElementById('update-banner');
-      if (banner) banner.classList.remove('show');
-    }
-
-    // 绑定关闭按钮事件
-    document.getElementById('update-close-btn').addEventListener('click', hideUpdateBanner);
-
-    // 检测更新 (返回: 'found' | 'latest' | 'error')
-    async function checkForUpdate() {
-      try {
-        const response = await fetch(VERSION_API, { cache: 'no-store' });
-        if (!response.ok) return 'error';
-        const json = await response.json();
-        const data = json.data || json; // 支持 { data: {...} } 或直接 {...}
-        const remoteVersion = data.version;
-        if (remoteVersion && isNewerVersion(remoteVersion, APP_VERSION)) {
-          showUpdateBanner(remoteVersion, data.url);
-          return 'found';
-        }
-        return 'latest';
-      } catch (e) {
-        console.log('[VersionCheck] Failed:', e.message);
-        return 'error';
-      }
-    }
-
-    // 手动检测更新 (带 UI 反馈)
-    async function manualCheckUpdate() {
-      const statusEl = document.getElementById('update-status');
-      const btn = document.getElementById('manual-update-btn');
-      const dict = TRANSLATIONS[currentSettings.lang];
-
-      if (statusEl) statusEl.textContent = dict.update_checking;
-      if (btn) btn.disabled = true;
-
-      const result = await checkForUpdate();
-
-      if (statusEl) {
-        if (result === 'found') statusEl.textContent = dict.update_found;
-        else if (result === 'latest') statusEl.textContent = dict.update_latest;
-        else statusEl.textContent = dict.update_failed;
-        setTimeout(() => { statusEl.textContent = ''; }, 3000);
-      }
-      if (btn) btn.disabled = false;
-    }
 
     /* ===== 既存配置逻辑 ===== */
     const STORAGE_KEY = 'cascade-panel-settings';
@@ -1555,15 +1147,6 @@
       { id: 'code-block', cssVar: '--color-code-block', cssClass: 'color-code-block', default: '#A78BFA', enabled: true },
       { id: 'action-status', cssVar: '--color-action-status', cssClass: 'color-action-status', default: '#4ADE80', enabled: false },
       { id: 'thinking', cssVar: '--color-thinking', cssClass: 'color-thinking', default: '#9CA3AF', enabled: false },
-    ];
-
-    // 字体大小配置
-    const FONTSIZE_CONFIGS = [
-      { id: 'user-message', cssVar: '--fontsize-user-message', cssClass: 'fontsize-user-message', default: 14, enabled: true },
-      { id: 'ai-response', cssVar: '--fontsize-ai-response', cssClass: 'fontsize-ai-response', default: 14, enabled: true },
-      { id: 'code-block', cssVar: '--fontsize-code-block', cssClass: 'fontsize-code-block', default: 13, enabled: true },
-      { id: 'action-status', cssVar: '--fontsize-action-status', cssClass: 'fontsize-action-status', default: 13, enabled: false },
-      { id: 'thinking', cssVar: '--fontsize-thinking', cssClass: 'fontsize-thinking', default: 13, enabled: false },
     ];
 
     // 复制配置
@@ -1611,23 +1194,19 @@
       lang: 'zh',
       masterEnabled: false,
       colors: COLOR_CONFIGS.reduce((acc, c) => { acc[c.id] = { color: c.default, enabled: c.enabled }; return acc; }, {}),
-      // 字体大小设置
-      fontsizeMasterEnabled: false,
-      fontsizes: FONTSIZE_CONFIGS.reduce((acc, c) => { acc[c.id] = { size: c.default, enabled: c.enabled }; return acc; }, {}),
       copyEnabled: false,
       copy: COPY_CONFIGS.reduce((acc, c) => { acc[c.id] = { enabled: true }; return acc; }, {}),
       hotkeyEnabled: false,
       sendHotkey: 'cmd+enter',
+      autoRetryEnabled: false,
+      retryCount: 1,
+      retryDelay: 2,
       // 自动操作配置
       autoAcceptEnabled: false,
       autoAcceptPatterns: AUTO_ACCEPT_CONFIGS.reduce((acc, c) => { acc[c.id] = c.defaultEnabled; return acc; }, {}),
       bannedCommands: [...DEFAULT_BANNED_COMMANDS],
       // 统计数据
-      autoAcceptStats: { clicks: 0, blocked: 0, verified: 0 },
-      // 系统设置
-      autoUpdateEnabled: true,
-      // LaTeX 渲染设置
-      latexEnabled: false
+      autoAcceptStats: { clicks: 0, blocked: 0, verified: 0 }
     };
 
     function loadSettings() {
@@ -1639,19 +1218,18 @@
             lang: parsed.lang ?? defaultSettings.lang,
             masterEnabled: parsed.masterEnabled ?? defaultSettings.masterEnabled,
             colors: { ...defaultSettings.colors, ...parsed.colors },
-            fontsizeMasterEnabled: parsed.fontsizeMasterEnabled ?? defaultSettings.fontsizeMasterEnabled,
-            fontsizes: { ...defaultSettings.fontsizes, ...parsed.fontsizes },
             copyEnabled: parsed.copyEnabled ?? defaultSettings.copyEnabled,
             copy: { ...defaultSettings.copy, ...parsed.copy },
             hotkeyEnabled: parsed.hotkeyEnabled ?? defaultSettings.hotkeyEnabled,
             sendHotkey: parsed.sendHotkey ?? defaultSettings.sendHotkey,
+            autoRetryEnabled: parsed.autoRetryEnabled ?? defaultSettings.autoRetryEnabled,
+            retryCount: parsed.retryCount ?? defaultSettings.retryCount,
+            retryDelay: parsed.retryDelay ?? defaultSettings.retryDelay,
             // 自动操作配置
             autoAcceptEnabled: parsed.autoAcceptEnabled ?? defaultSettings.autoAcceptEnabled,
             autoAcceptPatterns: { ...defaultSettings.autoAcceptPatterns, ...parsed.autoAcceptPatterns },
             bannedCommands: parsed.bannedCommands ?? [...DEFAULT_BANNED_COMMANDS],
-            autoAcceptStats: { ...defaultSettings.autoAcceptStats, ...parsed.autoAcceptStats },
-            autoUpdateEnabled: parsed.autoUpdateEnabled ?? defaultSettings.autoUpdateEnabled,
-            latexEnabled: parsed.latexEnabled ?? defaultSettings.latexEnabled
+            autoAcceptStats: { ...defaultSettings.autoAcceptStats, ...parsed.autoAcceptStats }
           };
         }
         return { ...defaultSettings };
@@ -1675,7 +1253,11 @@
     const masterToggle = document.getElementById('master-toggle');
     const copyMasterToggle = document.getElementById('copy-master-toggle');
     const hotkeyMasterToggle = document.getElementById('hotkey-master-toggle');
-    const fontsizeMasterToggle = document.getElementById('fontsize-master-toggle');
+    const autoRetryMasterToggle = document.getElementById('auto-retry-master-toggle');
+    const retryCountInput = document.getElementById('retry-count-input');
+    const retryDelayInput = document.getElementById('retry-delay-input');
+    const retryToast = document.getElementById('retry-toast');
+    const retryToastText = document.getElementById('retry-toast-text');
     const sendHotkeySelect = document.getElementById('send-hotkey-select');
     const reactApp = document.getElementById('react-app');
 
@@ -1689,10 +1271,6 @@
     const statClicksEl = document.getElementById('stat-clicks');
     const statBlockedEl = document.getElementById('stat-blocked');
     const statVerifiedEl = document.getElementById('stat-verified');
-
-    // LaTeX 控件引用
-    const latexMasterToggle = document.getElementById('latex-master-toggle');
-    const latexStatusEl = document.getElementById('latex-status');
 
     /* ===== 交互逻辑 ===== */
     let currentSettings = loadSettings();
@@ -1785,58 +1363,6 @@
           applyColorSettings();
         });
       }
-    });
-
-    // A2. 字体大小功能
-    function applyFontsizeSettings() {
-      FONTSIZE_CONFIGS.forEach(config => {
-        const fontSetting = currentSettings.fontsizes[config.id];
-        document.documentElement.style.setProperty(config.cssVar, fontSetting.size + 'px');
-        if (currentSettings.fontsizeMasterEnabled && fontSetting.enabled) {
-          reactApp.classList.add(config.cssClass);
-        } else {
-          reactApp.classList.remove(config.cssClass);
-        }
-      });
-    }
-
-    fontsizeMasterToggle.addEventListener('change', () => {
-      currentSettings.fontsizeMasterEnabled = fontsizeMasterToggle.checked;
-      saveSettings(currentSettings);
-      applyFontsizeSettings();
-    });
-
-    FONTSIZE_CONFIGS.forEach(config => {
-      const toggleEl = document.getElementById(`toggle-fontsize-${config.id}`);
-      const sizeEl = document.getElementById(`fontsize-${config.id}`);
-
-      if (toggleEl) {
-        toggleEl.addEventListener('change', () => {
-          currentSettings.fontsizes[config.id].enabled = toggleEl.checked;
-          saveSettings(currentSettings);
-          applyFontsizeSettings();
-        });
-      }
-      if (sizeEl) {
-        sizeEl.addEventListener('input', () => {
-          const val = parseInt(sizeEl.value) || config.default;
-          currentSettings.fontsizes[config.id].size = Math.max(10, Math.min(24, val));
-          saveSettings(currentSettings);
-          applyFontsizeSettings();
-        });
-      }
-    });
-
-    // 一键同步字体大小按钮
-    document.getElementById('fontsize-sync-btn').addEventListener('click', () => {
-      const baseSize = currentSettings.fontsizes['user-message'].size;
-      FONTSIZE_CONFIGS.forEach(config => {
-        currentSettings.fontsizes[config.id].size = baseSize;
-        const sizeEl = document.getElementById(`fontsize-${config.id}`);
-        if (sizeEl) sizeEl.value = baseSize;
-      });
-      saveSettings(currentSettings);
-      applyFontsizeSettings();
     });
 
     // B. 复制功能
@@ -1949,6 +1475,8 @@
           e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
           const sendBtn = document.querySelector(SEND_BTN_SELECTOR);
           if (sendBtn) {
+            // [新增] 点击发送时重置重试计数
+            currentRetryCount = 0;
             sendBtn.click();
           }
         } else if (e.key === 'Enter') {
@@ -1980,6 +1508,119 @@
       if (currentSettings.hotkeyEnabled) applyHotkeySettings();
     });
 
+    // D. 自动重试功能
+    let autoRetryObserver = null;
+    let currentRetryCount = 0;
+    let isRetrying = false;
+    const ERROR_KEYWORDS = ['Agent terminated due to error', 'Try again', 'Try Again'];
+
+    function showRetryToast(msg, isSuccess = false) {
+      if (!retryToast) return;
+      retryToastText.textContent = msg;
+      retryToast.classList.add('show');
+      if (isSuccess) retryToast.classList.add('success');
+      else retryToast.classList.remove('success');
+    }
+
+    function hideRetryToast() {
+      if (!retryToast) return;
+      retryToast.classList.remove('show');
+    }
+
+    function handleAutoRetryLogic() {
+      if (!currentSettings.autoRetryEnabled || isRetrying) return;
+
+      // 1. 使用 XPath 高效查找错误关键词（避免全量 DOM 扫描）
+      // 查找包含 ERROR_KEYWORDS 中任意一个的文本节点，且不是 script/style 标签
+      const keywordChecks = ERROR_KEYWORDS.map(k => `contains(text(), '${k}')`).join(' or ');
+      const xpathSafe = `//*[not(self::script) and not(self::style) and (${keywordChecks})]`;
+
+      let hasError = false;
+      try {
+        const result = document.evaluate(xpathSafe, reactApp, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+        hasError = !!result.singleNodeValue;
+      } catch (e) { }
+
+      if (hasError) {
+        // 2. 查找重试按钮
+        const btnXpath = ".//button[contains(text(), 'Retry') or contains(text(), 'retry') or contains(text(), '重试')]";
+        let retryBtn = null;
+        try {
+          const btnResult = document.evaluate(btnXpath, reactApp, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+          retryBtn = btnResult.singleNodeValue;
+        } catch (e) { }
+
+        if (retryBtn && currentRetryCount < currentSettings.retryCount) {
+          isRetrying = true;
+          currentRetryCount++;
+
+          const toastMsg = TRANSLATIONS[currentSettings.lang].retry_toast_msg
+            .replace('{n}', currentRetryCount)
+            .replace('{max}', currentSettings.retryCount);
+          showRetryToast(toastMsg);
+
+          setTimeout(() => {
+            // 安全检查：点击前确认按钮仍然存在且连接在 DOM 中
+            if (retryBtn && retryBtn.isConnected) {
+              retryBtn.click();
+              showRetryToast(TRANSLATIONS[currentSettings.lang].retry_toast_done, true);
+            } else {
+              hideRetryToast(); // 按钮消失了，取消提示
+            }
+
+            setTimeout(() => {
+              isRetrying = false;
+              hideRetryToast();
+            }, 1500);
+          }, currentSettings.retryDelay * 1000);
+        }
+      } else {
+        // 3. 成功检测优化：如果之前有错误，且现在检测到 AI 回复，则重置
+        if (currentRetryCount > 0 && !isRetrying) {
+          const hasAIPrompt = reactApp.querySelector('.prose:not(.opacity-70)');
+          if (hasAIPrompt) {
+            currentRetryCount = 0;
+          }
+        }
+      }
+    }
+
+    // 重置重试计数的简单启发式：当输入框获得焦点或内容变化时
+    reactApp.addEventListener('input', (e) => {
+      if (e.target.closest(INPUT_SELECTOR)) {
+        if (currentRetryCount > 0) {
+          currentRetryCount = 0;
+        }
+      }
+    });
+
+    function applyAutoRetrySettings() {
+      if (autoRetryObserver) { autoRetryObserver.disconnect(); autoRetryObserver = null; }
+      if (currentSettings.autoRetryEnabled) {
+        autoRetryObserver = new MutationObserver(() => {
+          clearTimeout(window.retryThrottleTimer);
+          window.retryThrottleTimer = setTimeout(handleAutoRetryLogic, 500);
+        });
+        autoRetryObserver.observe(reactApp, { childList: true, subtree: true });
+        handleAutoRetryLogic();
+      }
+    }
+
+    autoRetryMasterToggle.addEventListener('change', () => {
+      currentSettings.autoRetryEnabled = autoRetryMasterToggle.checked;
+      saveSettings(currentSettings);
+      applyAutoRetrySettings();
+    });
+
+    retryCountInput.addEventListener('change', () => {
+      currentSettings.retryCount = parseInt(retryCountInput.value) || 1;
+      saveSettings(currentSettings);
+    });
+
+    retryDelayInput.addEventListener('change', () => {
+      currentSettings.retryDelay = parseInt(retryDelayInput.value) || 2;
+      saveSettings(currentSettings);
+    });
 
     /* ===== E. 自动操作功能 ===== */
     let autoAcceptObserver = null;
@@ -2040,8 +1681,8 @@
 
       if (patterns.length === 0) return false;
 
-      // 排除词
-      const rejects = ['skip', 'reject', 'cancel', 'close', 'refine', 'dismiss','always'];
+      // 排除词 (包含 'always' 避免误点 "Always Run" 等下拉按钮)
+      const rejects = ['skip', 'reject', 'cancel', 'close', 'refine', 'dismiss', 'always'];
       if (rejects.some(r => text.includes(r))) return false;
 
       // 匹配启用的模式
@@ -2208,215 +1849,8 @@
       });
     }
 
-    /* ===== LaTeX 渲染功能 ===== */
-    let katexLoaded = false;
-    let katexLoading = false;
-    let latexObserver = null;
-
-    // KaTeX CDN 资源
-    const KATEX_CSS = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css';
-    const KATEX_JS = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js';
-
-    // 动态加载 KaTeX (仅在启用时加载)
-    function loadKaTeX() {
-      return new Promise((resolve, reject) => {
-        if (katexLoaded) { resolve(); return; }
-        if (katexLoading) {
-          // 等待加载完成
-          const check = setInterval(() => {
-            if (katexLoaded) { clearInterval(check); resolve(); }
-          }, 100);
-          return;
-        }
-
-        katexLoading = true;
-        const dict = TRANSLATIONS[currentSettings.lang];
-        if (latexStatusEl) latexStatusEl.textContent = dict.latex_loading;
-
-        // 加载 CSS
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = KATEX_CSS;
-        document.head.appendChild(link);
-
-        // 加载 JS
-        const script = document.createElement('script');
-        script.src = KATEX_JS;
-        script.onload = () => {
-          katexLoaded = true;
-          katexLoading = false;
-          if (latexStatusEl) latexStatusEl.textContent = dict.latex_ready;
-          setTimeout(() => { if (latexStatusEl) latexStatusEl.textContent = ''; }, 2000);
-          resolve();
-        };
-        script.onerror = () => {
-          katexLoading = false;
-          if (latexStatusEl) latexStatusEl.textContent = dict.latex_failed;
-          reject(new Error('KaTeX load failed'));
-        };
-        document.head.appendChild(script);
-      });
-    }
-
-    // 渲染单个公式
-    function renderLatex(formula, displayMode = false) {
-      if (!window.katex) return null;
-      try {
-        return window.katex.renderToString(formula, {
-          throwOnError: false,
-          displayMode: displayMode
-        });
-      } catch (e) {
-        return `<span class="latex-error">[LaTeX Error: ${e.message}]</span>`;
-      }
-    }
-
-    // 处理文本节点中的 LaTeX 公式
-    function processLatexInText(textNode) {
-      const text = textNode.textContent;
-      // 块级公式: $$...$$
-      // 行内公式: $...$ (但排除 $$ 和单独的 $)
-      const pattern = /(\$\$[\s\S]+?\$\$|\$(?!\$)(?:[^$\n]|\n(?!\n))+?\$(?!\$))/g;
-
-      if (!pattern.test(text)) return false;
-      pattern.lastIndex = 0;
-
-      const fragment = document.createDocumentFragment();
-      let lastIndex = 0;
-      let match;
-
-      while ((match = pattern.exec(text)) !== null) {
-        // 添加公式前的普通文本
-        if (match.index > lastIndex) {
-          fragment.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
-        }
-
-        const fullMatch = match[0];
-        const isBlock = fullMatch.startsWith('$$');
-        const formula = isBlock ? fullMatch.slice(2, -2).trim() : fullMatch.slice(1, -1).trim();
-        const rendered = renderLatex(formula, isBlock);
-
-        if (rendered) {
-          const wrapper = document.createElement(isBlock ? 'div' : 'span');
-          wrapper.className = isBlock ? 'latex-block latex-rendered' : 'latex-rendered';
-          // 保存原始公式用于还原
-          wrapper.dataset.latexOriginal = fullMatch;
-          wrapper.innerHTML = rendered;
-          fragment.appendChild(wrapper);
-        } else {
-          fragment.appendChild(document.createTextNode(fullMatch));
-        }
-
-        lastIndex = match.index + fullMatch.length;
-      }
-
-      // 添加剩余文本
-      if (lastIndex < text.length) {
-        fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
-      }
-
-      textNode.parentNode.replaceChild(fragment, textNode);
-      return true;
-    }
-
-    // 扫描并渲染 LaTeX 公式
-    function scanAndRenderLatex() {
-      if (!currentSettings.latexEnabled || !katexLoaded) return;
-
-      // 只处理 AI 回复区域 (.prose)
-      const proseElements = reactApp.querySelectorAll('.prose:not(.opacity-70)');
-
-      proseElements.forEach(prose => {
-        // 跳过已处理的
-        if (prose.dataset.latexProcessed) return;
-
-        // 获取所有文本节点
-        const walker = document.createTreeWalker(prose, NodeFilter.SHOW_TEXT, null, false);
-        const textNodes = [];
-        let node;
-        while (node = walker.nextNode()) {
-          // 跳过 code/pre/script/style 中的内容
-          const parent = node.parentNode;
-          if (parent && /^(code|pre|script|style)$/i.test(parent.tagName)) continue;
-          if (node.textContent.includes('$')) textNodes.push(node);
-        }
-
-        // 处理文本节点 (倒序避免索引问题)
-        let hasLatex = false;
-        for (let i = textNodes.length - 1; i >= 0; i--) {
-          if (processLatexInText(textNodes[i])) hasLatex = true;
-        }
-
-        if (hasLatex) prose.dataset.latexProcessed = 'true';
-      });
-    }
-
-    // 还原所有已渲染的 LaTeX 公式为原始文本
-    function revertLatex() {
-      // 查找所有已渲染的公式元素
-      const renderedElements = reactApp.querySelectorAll('.latex-rendered');
-
-      renderedElements.forEach(el => {
-        const original = el.dataset.latexOriginal;
-        if (original) {
-          const textNode = document.createTextNode(original);
-          el.parentNode.replaceChild(textNode, el);
-        }
-      });
-
-      // 清除处理标记
-      reactApp.querySelectorAll('[data-latex-processed]').forEach(el => {
-        delete el.dataset.latexProcessed;
-      });
-    }
-
-    // 应用 LaTeX 设置
-    async function applyLatexSettings() {
-      // 销毁现有 observer
-      if (latexObserver) {
-        latexObserver.disconnect();
-        latexObserver = null;
-      }
-
-      if (!currentSettings.latexEnabled) {
-        // 禁用时立即还原公式
-        revertLatex();
-        return;
-      }
-
-      // 加载 KaTeX 并开始监听
-      try {
-        await loadKaTeX();
-
-        // 创建 observer 监听新内容
-        latexObserver = new MutationObserver(() => {
-          clearTimeout(window.latexThrottleTimer);
-          window.latexThrottleTimer = setTimeout(scanAndRenderLatex, 300);
-        });
-        latexObserver.observe(reactApp, { childList: true, subtree: true });
-
-        // 立即扫描当前内容
-        scanAndRenderLatex();
-      } catch (e) {
-        console.warn('[LaTeX] Init failed:', e.message);
-      }
-    }
-
-    // LaTeX 开关事件
-    if (latexMasterToggle) {
-      latexMasterToggle.addEventListener('change', () => {
-        currentSettings.latexEnabled = latexMasterToggle.checked;
-        saveSettings(currentSettings);
-        applyLatexSettings();
-      });
-    }
-
     /* ===== 初始化 ===== */
     function initUI() {
-      // 0. 显示当前版本号
-      const versionEl = document.getElementById('current-version');
-      if (versionEl) versionEl.textContent = 'v' + APP_VERSION;
-
       // 1. 设置控件状态
       masterToggle.checked = currentSettings.masterEnabled;
       copyMasterToggle.checked = currentSettings.copyEnabled;
@@ -2435,14 +1869,9 @@
         if (t) t.checked = currentSettings.copy[c.id]?.enabled ?? true;
       });
 
-      // 字体大小控件初始化
-      fontsizeMasterToggle.checked = currentSettings.fontsizeMasterEnabled;
-      FONTSIZE_CONFIGS.forEach(c => {
-        const t = document.getElementById(`toggle-fontsize-${c.id}`);
-        const sizeEl = document.getElementById(`fontsize-${c.id}`);
-        if (t) t.checked = currentSettings.fontsizes[c.id].enabled;
-        if (sizeEl) sizeEl.value = currentSettings.fontsizes[c.id].size;
-      });
+      autoRetryMasterToggle.checked = currentSettings.autoRetryEnabled;
+      retryCountInput.value = currentSettings.retryCount;
+      retryDelayInput.value = currentSettings.retryDelay;
 
       // 2. 自动操作初始化
       if (autoAcceptMasterToggle) {
@@ -2456,40 +1885,11 @@
 
       // 3. 应用功能
       applyColorSettings();
-      applyFontsizeSettings();
       applyCopySettings();
       applyHotkeySettings();
+      applyAutoRetrySettings();
       applyAutoAcceptSettings();
       updateLanguage();
-
-      // LaTeX 初始化
-      if (latexMasterToggle) {
-        latexMasterToggle.checked = currentSettings.latexEnabled;
-      }
-      if (currentSettings.latexEnabled) {
-        applyLatexSettings();
-      }
-
-      // 4. 系统设置初始化
-      const autoUpdateToggle = document.getElementById('auto-update-toggle');
-      const manualUpdateBtn = document.getElementById('manual-update-btn');
-
-      if (autoUpdateToggle) {
-        autoUpdateToggle.checked = currentSettings.autoUpdateEnabled;
-        autoUpdateToggle.addEventListener('change', () => {
-          currentSettings.autoUpdateEnabled = autoUpdateToggle.checked;
-          saveSettings(currentSettings);
-        });
-      }
-
-      if (manualUpdateBtn) {
-        manualUpdateBtn.addEventListener('click', manualCheckUpdate);
-      }
-
-      // 5. 启动时版本检测（如果启用）
-      if (currentSettings.autoUpdateEnabled) {
-        setTimeout(checkForUpdate, 10000);
-      }
     }
 
     if (document.readyState !== 'loading') initUI();
