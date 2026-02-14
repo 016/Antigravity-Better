@@ -3,6 +3,45 @@
 
 <head>
   <meta charset="UTF-8">
+  <script>
+  // === AG-Better: 前置假设验证（临时脚本，验证后移除） ===
+  (function() {
+    console.log('[AG-Probe] acquireVsCodeApi exists?', typeof window.acquireVsCodeApi);
+    console.log('[AG-Probe] acquireVsCodeApi already called?', window.acquireVsCodeApi?.toString?.().includes('can only be invoked once'));
+
+    // 尝试拦截
+    if (typeof window.acquireVsCodeApi === 'function') {
+      const orig = window.acquireVsCodeApi;
+      let intercepted = false;
+      window.acquireVsCodeApi = function() {
+        intercepted = true;
+        console.log('[AG-Probe] acquireVsCodeApi intercepted! Call stack:', new Error().stack);
+        const api = orig.call(this);
+        console.log('[AG-Probe] API object keys:', Object.keys(api));
+        console.log('[AG-Probe] getState():', JSON.stringify(api.getState?.()).substring(0, 500));
+        window._agProbeApi = api;
+        return api;
+      };
+      // 5秒后检查是否被调用过
+      setTimeout(() => {
+        console.log('[AG-Probe] Was intercepted within 5s?', intercepted);
+        if (!intercepted) {
+          console.warn('[AG-Probe] acquireVsCodeApi was NOT called. API may have been acquired before our script.');
+          // 备选方案：尝试直接调用
+          try {
+            const api = orig.call(window);
+            console.log('[AG-Probe] Direct call succeeded?', !!api);
+            window._agProbeApi = api;
+          } catch(e) {
+            console.error('[AG-Probe] Direct call failed (already called once):', e.message);
+          }
+        }
+      }, 5000);
+    } else {
+      console.error('[AG-Probe] acquireVsCodeApi not found on window!');
+    }
+  })();
+  </script>
   <style>
     /* ===== 自定义颜色变量 ===== */
     :root {
