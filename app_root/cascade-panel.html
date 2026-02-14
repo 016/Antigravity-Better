@@ -4,116 +4,182 @@
 <head>
   <meta charset="UTF-8">
   <script>
-  // === AG-Probe T1.4: 深度 gRPC 响应体解码 ===
+  // === AG-Better: React Fiber Bridge for Cascade Tab Switching ===
+  // Accesses Cascade's React component tree to read conversation list and switch conversations.
+  // This is the proven approach discovered via CDP deep testing (T1.0-T1.4).
   (function() {
-    var log = [];
-    var MAX = 500;
+    'use strict';
+    try {
+      if (localStorage.getItem('ag-better-bridge-enabled') === 'false') return;
 
-    function add(tag, info) {
-      if (log.length >= MAX) log.shift();
-      log.push('[' + tag + '] ' + info);
-    }
+      const FIBER_POLL_INTERVAL = 3000;
+      const MAX_FIBER_DEPTH = 500;
+      let _fiberSuffix = null;
+      let _cascadeContext = null;
+      let _lastConversations = [];
+      let _currentCascadeId = null;
 
-    // 从 Uint8Array 提取可读字符串
-    function extractStrings(bytes) {
-      var parts = [], cur = '';
-      for (var i = 0; i < bytes.length; i++) {
-        var b = bytes[i];
-        if (b >= 32 && b < 127) cur += String.fromCharCode(b);
-        else { if (cur.length >= 3) parts.push(cur); cur = ''; }
-      }
-      if (cur.length >= 3) parts.push(cur);
-      return parts;
-    }
-
-    // 提取 UUID
-    function extractUUIDs(bytes) {
-      var str = extractStrings(bytes).join('|');
-      return str.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/g) || [];
-    }
-
-    // 重点端点
-    var DEEP = ['ListPages','SendUserCascadeMessage','StreamCascadeSummariesReactiveUpdates',
-      'StreamCascadeReactiveUpdates','StreamCascadePanelReactiveUpdates',
-      'UpdateConversationAnnotations','StartChatClientRequestStream',
-      'GetUserStatus','GetWorkspaceInfos','GetAllRules','GetAllWorkflows',
-      'GetMcpServerStates','GetProfileData','LogEvent','GetStaticExperimentStatus',
-      'ShouldEnableUnleash'];
-
-    function matchEndpoint(url) {
-      for (var i = 0; i < DEEP.length; i++) if (url.indexOf(DEEP[i]) !== -1) return DEEP[i];
-      return null;
-    }
-
-    // 拦截 fetch（请求体 + 响应体）
-    var origFetch = window.fetch;
-    window.fetch = function(input, opts) {
-      var url = typeof input === 'string' ? input : (input && input.url || String(input));
-      var ep = matchEndpoint(url);
-      var short = url.replace(/https:\/\/127\.0\.0\.1:\d+\//, '');
-
-      // 请求体解码
-      if (opts && opts.body && ep) {
-        try {
-          var rb = opts.body instanceof Uint8Array ? opts.body : new Uint8Array(opts.body);
-          var rs = extractStrings(rb);
-          var ru = extractUUIDs(rb);
-          add('REQ', ep + (ru.length ? ' uuid=' + ru[0] : '') + ' [' + rs.join('|') + ']');
-        } catch(e) { add('REQ', ep + ' (body parse err)'); }
-      } else {
-        add('REQ', short);
-      }
-
-      return origFetch.apply(this, arguments).then(function(resp) {
-        if (!ep) return resp;
-
-        // 响应体解码：克隆读取
-        var clone = resp.clone();
-        clone.arrayBuffer().then(function(buf) {
-          var bytes = new Uint8Array(buf);
-          var strs = extractStrings(bytes);
-          var uuids = extractUUIDs(bytes);
-          add('RESP', ep + ' status=' + resp.status + ' size=' + bytes.length + 'B uuids=[' + uuids.join(', ') + ']');
-          if (strs.length > 0) {
-            var joined = strs.join(' | ');
-            if (joined.length > 2000) joined = joined.substring(0, 2000) + '...(truncated)';
-            add('DATA', ep + ': ' + joined);
+      // Find React fiber suffix (e.g., 'iz359v3fbbm')
+      function findFiberSuffix() {
+        if (_fiberSuffix) return _fiberSuffix;
+        const all = document.querySelectorAll('*');
+        for (let i = 0; i < all.length; i++) {
+          const keys = Object.keys(all[i]);
+          for (let k = 0; k < keys.length; k++) {
+            if (keys[k].startsWith('__reactContainer$')) {
+              _fiberSuffix = keys[k].replace('__reactContainer$', '');
+              return _fiberSuffix;
+            }
           }
-        }).catch(function(e) { add('RESP-ERR', ep + ': ' + e.message); });
-
-        return resp;
-      });
-    };
-
-    // postMessage 保留
-    if (window.parent !== window) {
-      var origPM = window.parent.postMessage.bind(window.parent);
-      window.parent.postMessage = function(data, origin) {
-        add('PM-OUT', (typeof data === 'object' ? JSON.stringify(data).substring(0, 150) : String(data).substring(0, 150)));
-        return origPM(data, origin || '*');
-      };
-    }
-    window.addEventListener('message', function(e) {
-      add('PM-IN', (typeof e.data === 'object' ? JSON.stringify(e.data).substring(0, 150) : String(e.data).substring(0, 150)));
-    }, true);
-
-    // 渲染
-    function render() {
-      var el = document.getElementById('ag-probe-results');
-      if (!el) {
-        el = document.createElement('div');
-        el.id = 'ag-probe-results';
-        el.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:999999;background:#1a1a2e;color:#0f0;font:10px/1.3 monospace;padding:6px 10px;border-top:3px solid #0f0;max-height:40vh;overflow:auto;white-space:pre-wrap;user-select:text;';
-        (document.body || document.documentElement).appendChild(el);
+        }
+        return null;
       }
-      el.textContent = '=== AG-Probe T1.4: Deep gRPC (' + log.length + ') ===\n'
-        + 'Do: 1) send msg  2) switch conversation  3) copy this\n\n'
-        + log.join('\n');
-      window._agProbeLog = log.slice();
-    }
 
-    setInterval(render, 2000);
-    setTimeout(render, 800);
+      // Get React container from #react-app
+      function getReactContainer() {
+        const suffix = findFiberSuffix();
+        if (!suffix) return null;
+        const reactApp = document.getElementById('react-app');
+        if (!reactApp) return null;
+        return reactApp['__reactContainer$' + suffix] || null;
+      }
+
+      // Traverse fiber tree to find cascade context provider
+      function findCascadeContext() {
+        const container = getReactContainer();
+        if (!container) return null;
+
+        const visited = new WeakSet();
+        const queue = [container];
+        let count = 0;
+
+        while (queue.length > 0 && count < MAX_FIBER_DEPTH) {
+          const f = queue.shift();
+          if (!f || visited.has(f)) continue;
+          visited.add(f);
+          count++;
+
+          if (f.memoizedProps && f.memoizedProps.value && typeof f.memoizedProps.value === 'object') {
+            const val = f.memoizedProps.value;
+            if (val.events && val.state && val.layout && val.events.setCascadeConversationState) {
+              _cascadeContext = val;
+              return val;
+            }
+          }
+          if (f.child) queue.push(f.child);
+          if (f.sibling) queue.push(f.sibling);
+        }
+        return null;
+      }
+
+      // Find ILe component to get conversation list with summaries
+      function findConversationList() {
+        const container = getReactContainer();
+        if (!container) return [];
+
+        const visited = new WeakSet();
+        const queue = [container];
+        let count = 0;
+        let ileComponent = null;
+
+        while (queue.length > 0 && count < MAX_FIBER_DEPTH) {
+          const f = queue.shift();
+          if (!f || visited.has(f)) continue;
+          visited.add(f);
+          count++;
+
+          const typeName = f.type ? (f.type.name || '') : '';
+          if (typeName === 'ILe') { ileComponent = f; break; }
+          if (f.child) queue.push(f.child);
+          if (f.sibling) queue.push(f.sibling);
+        }
+
+        if (!ileComponent) return [];
+
+        // Get cascadeIds from props
+        const cascadeIds = ileComponent.memoizedProps?.cascadeIds || [];
+
+        // Get summaries from state[4]
+        let summaries = {};
+        let state = ileComponent.memoizedState;
+        let sIdx = 0;
+        while (state && sIdx < 10) {
+          if (sIdx === 4 && state.memoizedState && typeof state.memoizedState === 'object') {
+            summaries = state.memoizedState;
+          }
+          state = state.next;
+          sIdx++;
+        }
+
+        // Build conversation list
+        const conversations = cascadeIds.map(id => {
+          const info = summaries[id] || {};
+          return {
+            cascadeId: id,
+            summary: info.summary || '',
+            lastModifiedTime: info.lastModifiedTime || '',
+            status: info.status || '',
+            stepCount: info.stepCount || 0
+          };
+        });
+
+        _lastConversations = conversations;
+        return conversations;
+      }
+
+      // Get current cascade ID
+      function getCurrentCascadeId() {
+        const ctx = findCascadeContext();
+        if (ctx && ctx.state && ctx.state.cascadeState) {
+          _currentCascadeId = ctx.state.cascadeState.cascadeId || null;
+          return _currentCascadeId;
+        }
+        return _currentCascadeId;
+      }
+
+      // Switch to a conversation by cascadeId
+      function switchConversation(cascadeId) {
+        const ctx = findCascadeContext();
+        if (!ctx || !ctx.events || !ctx.events.setCascadeConversationState) {
+          return false;
+        }
+        try {
+          ctx.events.setCascadeConversationState({ cascadeId: cascadeId });
+          _currentCascadeId = cascadeId;
+          return true;
+        } catch (e) {
+          return false;
+        }
+      }
+
+      // Start new conversation (clear cascade ID)
+      function startNewConversation() {
+        const ctx = findCascadeContext();
+        if (!ctx || !ctx.events || !ctx.events.clearCascadeId) {
+          return false;
+        }
+        try {
+          ctx.events.clearCascadeId();
+          _currentCascadeId = null;
+          return true;
+        } catch (e) {
+          return false;
+        }
+      }
+
+      // Expose bridge API on window for TabManager to use
+      window._agBridge = {
+        findCascadeContext: findCascadeContext,
+        findConversationList: findConversationList,
+        getCurrentCascadeId: getCurrentCascadeId,
+        switchConversation: switchConversation,
+        startNewConversation: startNewConversation,
+        isReady: function() { return !!findCascadeContext(); }
+      };
+
+    } catch (e) {
+      // Bridge init failed - tab switching will be unavailable but IDE works fine
+    }
   })();
   </script>
   <style>
@@ -135,6 +201,100 @@
       --accent-color: #667eea;
       --text-main: #fff;
       --text-sub: #999;
+    }
+
+    /* ===== Tab Bar 样式 ===== */
+    .ag-tab-bar-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: var(--bg-modal);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      z-index: 1000;
+      padding: 0 4px;
+      height: 36px;
+      overflow: hidden;
+    }
+    .ag-add-tab-btn {
+      flex: 0 0 32px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      color: var(--text-sub);
+      cursor: pointer;
+      border-radius: 4px;
+      margin-right: 4px;
+      transition: all 0.2s;
+    }
+    .ag-add-tab-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
+    }
+    .ag-tabs-scroll {
+      flex: 1;
+      display: flex;
+      gap: 4px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding: 4px 0;
+    }
+    .ag-tabs-scroll::-webkit-scrollbar { display: none; }
+    .ag-tab-item {
+      flex: 0 0 auto;
+      height: 28px;
+      padding: 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid transparent;
+      border-radius: 4px;
+      color: var(--text-sub);
+      font-size: 11px;
+      cursor: pointer;
+      white-space: nowrap;
+      max-width: 160px;
+      transition: all 0.2s;
+    }
+    .ag-tab-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
+    }
+    .ag-tab-item.active {
+      background: rgba(102, 126, 234, 0.12);
+      border-color: rgba(102, 126, 234, 0.4);
+      color: var(--accent-color);
+    }
+    .ag-tab-item span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .ag-tab-close {
+      font-size: 14px;
+      opacity: 0.4;
+      margin-right: -4px;
+      transition: opacity 0.2s;
+    }
+    .ag-tab-close:hover { opacity: 1; }
+    .ag-tab-item[data-stale] { opacity: 0.5; }
+    .ag-tab-item[data-stale] span:first-child { font-style: italic; color: #888; }
+    @keyframes ag-tab-shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-3px); }
+      40% { transform: translateX(3px); }
+      60% { transform: translateX(-2px); }
+      80% { transform: translateX(2px); }
+    }
+    .ag-tab-item.shake { animation: ag-tab-shake 0.4s ease-in-out; }
+    body.ag-tab-bar-active .react-app-container {
+      margin-top: 36px;
+      height: calc(100% - 36px) !important;
     }
 
     /* ===== 悬浮按钮样式 ===== */
@@ -1440,6 +1600,42 @@
           </div>
         </div>
 
+          <!-- Accordion: Tab Bar -->
+          <div class="accordion-item expanded">
+            <div class="accordion-header">
+              <span class="accordion-title" data-i18n="tab_bar_title">📑 横向 Tab 栏</span>
+              <span class="accordion-icon">▼</span>
+            </div>
+            <div class="accordion-body">
+              <div class="accordion-inner">
+                <div class="main-toggle">
+                  <span class="main-toggle-label" data-i18n="enable_tab_bar">启用 Tab 栏</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="tab-bar-master-toggle" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                <div class="setting-desc" data-i18n="tab_bar_desc">在顶部显示横向标签栏，快速切换多个对话</div>
+
+                <div class="setting-item">
+                  <div class="setting-info">
+                    <span class="setting-name" data-i18n="tab_bar_max_tabs">最大 Tab 数量</span>
+                  </div>
+                  <div class="setting-control">
+                    <select class="select-input" id="tab-bar-max-tabs">
+                      <option value="5">5</option>
+                      <option value="8">8</option>
+                      <option value="10" selected>10</option>
+                      <option value="15">15</option>
+                      <option value="20">20</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Tab: System -->
         <div class="tab-content" id="tab-system">
           <!-- Accordion: Version Update -->
@@ -1531,7 +1727,11 @@
         latex_desc: '自动渲染 AI 回复中的 LaTeX 数学公式',
         latex_loading: '加载 KaTeX 库... cdn.jsdelivr.net',
         latex_ready: '✓ KaTeX 已就绪',
-        latex_failed: '✗ KaTeX 加载失败'
+        latex_failed: '✗ KaTeX 加载失败',
+        tab_bar_title: '📑 横向 Tab 栏',
+        enable_tab_bar: '启用 Tab 栏',
+        tab_bar_desc: '在顶部显示横向标签栏，快速切换多个对话',
+        tab_bar_max_tabs: '最大 Tab 数量'
       },
       en: {
         tab_appearance: '🎨 Appearance',
@@ -1579,7 +1779,11 @@
         latex_desc: 'Auto-render LaTeX math formulas in AI responses',
         latex_loading: 'Loading KaTeX... cdn.jsdelivr.net',
         latex_ready: '✓ KaTeX Ready',
-        latex_failed: '✗ KaTeX Load Failed'
+        latex_failed: '✗ KaTeX Load Failed',
+        tab_bar_title: '📑 Tab Bar',
+        enable_tab_bar: 'Enable Tab Bar',
+        tab_bar_desc: 'Show horizontal tab bar at top for quick conversation switching',
+        tab_bar_max_tabs: 'Max Tabs'
       }
     };
 
@@ -1740,7 +1944,10 @@
       // 系统设置
       autoUpdateEnabled: true,
       // LaTeX 渲染设置
-      latexEnabled: false
+      latexEnabled: false,
+      // Tab Bar 设置
+      tabBarEnabled: true,
+      tabBarMaxTabs: 10
     };
 
     function loadSettings() {
@@ -1764,7 +1971,9 @@
             bannedCommands: parsed.bannedCommands ?? [...DEFAULT_BANNED_COMMANDS],
             autoAcceptStats: { ...defaultSettings.autoAcceptStats, ...parsed.autoAcceptStats },
             autoUpdateEnabled: parsed.autoUpdateEnabled ?? defaultSettings.autoUpdateEnabled,
-            latexEnabled: parsed.latexEnabled ?? defaultSettings.latexEnabled
+            latexEnabled: parsed.latexEnabled ?? defaultSettings.latexEnabled,
+            tabBarEnabled: parsed.tabBarEnabled ?? defaultSettings.tabBarEnabled,
+            tabBarMaxTabs: parsed.tabBarMaxTabs ?? defaultSettings.tabBarMaxTabs
           };
         }
         return { ...defaultSettings };
@@ -2524,6 +2733,499 @@
       });
     }
 
+    /* ===== HistoryTabManager ===== */
+    const TAB_STORAGE_KEY = 'ag-better-tab-state';
+    const LOG_LEVELS = { error: 0, warn: 1, info: 2, debug: 3 };
+
+    class HistoryTabManager {
+      constructor(maxTabs) {
+        this._switchId = 0;
+        this._state = 'idle'; // idle | switching | verifying | success | failed | cancelled
+        this._tabs = [];
+        this._activeTabId = null;
+        this._maxTabs = maxTabs || 10;
+        this._nextId = 1;
+        this._container = null;
+        this._scrollArea = null;
+        this._bridgeReady = false;
+        this._pollTimer = null;
+        this._syncTimer = null;
+        this._logLevel = LOG_LEVELS[localStorage.getItem('ag-better-log-level') || 'error'] ?? 0;
+        this._destroyed = false;
+      }
+
+      // --- Logging ---
+      _log(level, ...args) {
+        if (LOG_LEVELS[level] > this._logLevel) return;
+        const prefix = '[AG-TabBar]';
+        if (level === 'error') console.error(prefix, ...args);
+        else if (level === 'warn') console.warn(prefix, ...args);
+        else if (level === 'info') console.info(prefix, ...args);
+        else console.log(prefix, ...args);
+      }
+
+      // --- Initialization ---
+      init() {
+        this._createTabBarDOM();
+        this._loadPersistedTabs();
+        this._waitForBridge();
+        document.body.classList.add('ag-tab-bar-active');
+        this._log('info', 'Tab bar initialized');
+      }
+
+      _createTabBarDOM() {
+        this._container = document.createElement('div');
+        this._container.className = 'ag-tab-bar-container';
+
+        // Add tab button
+        const addBtn = document.createElement('button');
+        addBtn.className = 'ag-add-tab-btn';
+        addBtn.innerHTML = '+';
+        addBtn.title = 'New conversation';
+        addBtn.addEventListener('click', () => this._onAddTab());
+        this._container.appendChild(addBtn);
+
+        // Scroll area for tabs
+        this._scrollArea = document.createElement('div');
+        this._scrollArea.className = 'ag-tabs-scroll';
+        this._container.appendChild(this._scrollArea);
+
+        document.body.prepend(this._container);
+      }
+
+      _waitForBridge() {
+        const check = () => {
+          if (this._destroyed) return;
+          if (window._agBridge && window._agBridge.isReady()) {
+            this._bridgeReady = true;
+            this._log('info', 'Bridge ready');
+            this._onBridgeReady();
+          } else {
+            this._pollTimer = setTimeout(check, 2000);
+          }
+        };
+        check();
+      }
+
+      _onBridgeReady() {
+        // Sync with current conversation
+        const currentId = window._agBridge.getCurrentCascadeId();
+        this._log('debug', 'Current cascade ID:', currentId);
+
+        if (this._tabs.length === 0) {
+          // No persisted tabs - create one for current conversation
+          const title = this._getTitleForCascadeId(currentId) || 'Current Chat';
+          this._addTabInternal(title, currentId);
+        } else {
+          // Persisted tabs exist - find or create tab for current conversation
+          const existingTab = currentId ? this._tabs.find(t => t.cascadeId === currentId) : null;
+          if (existingTab) {
+            this._activeTabId = existingTab.id;
+          } else if (currentId) {
+            // Current conversation not in tabs - add it
+            const title = this._getTitleForCascadeId(currentId) || 'Current Chat';
+            this._addTabInternal(title, currentId);
+          } else if (this._tabs.length > 0) {
+            // No current conversation - activate first tab
+            this._activeTabId = this._tabs[0].id;
+          }
+        }
+
+        this._renderTabs();
+        this._saveTabs();
+
+        // Start periodic sync to detect external conversation changes
+        this._startSync();
+      }
+
+      _startSync() {
+        if (this._syncTimer) clearInterval(this._syncTimer);
+        this._syncTimer = setInterval(() => {
+          if (this._destroyed || !this._bridgeReady || this._state === 'switching') return;
+          const currentId = window._agBridge.getCurrentCascadeId();
+          if (!currentId) return;
+
+          const activeTab = this._tabs.find(t => t.id === this._activeTabId);
+          if (activeTab && activeTab.cascadeId === currentId) return;
+
+          // Current conversation changed externally
+          const existingTab = this._tabs.find(t => t.cascadeId === currentId);
+          if (existingTab) {
+            this._activeTabId = existingTab.id;
+            this._renderTabs();
+            this._saveTabs();
+            this._log('debug', 'Synced to externally switched conversation');
+          } else {
+            // New conversation opened externally - add tab
+            const title = this._getTitleForCascadeId(currentId) || 'New Chat';
+            this._addTabInternal(title, currentId);
+            this._renderTabs();
+            this._saveTabs();
+            this._log('debug', 'Added tab for externally opened conversation');
+          }
+        }, 3000);
+      }
+
+      _getTitleForCascadeId(cascadeId) {
+        if (!cascadeId || !window._agBridge) return null;
+        try {
+          const convos = window._agBridge.findConversationList();
+          const match = convos.find(c => c.cascadeId === cascadeId);
+          if (match && match.summary) {
+            return match.summary.substring(0, 40);
+          }
+        } catch (e) {
+          this._log('warn', 'Failed to get title:', e.message);
+        }
+        return null;
+      }
+
+      // --- Persistence ---
+      _loadPersistedTabs() {
+        try {
+          const raw = localStorage.getItem(TAB_STORAGE_KEY);
+          if (!raw) return;
+          const data = JSON.parse(raw);
+          if (data.version !== 1) return;
+          this._tabs = (data.tabs || []).map(t => ({
+            id: t.id,
+            title: t.title || 'Chat',
+            cascadeId: t.cascadeId || null,
+            timestamp: t.timestamp || Date.now(),
+            stale: false
+          }));
+          this._activeTabId = data.activeTabId || null;
+          this._nextId = data.nextId || (this._tabs.length + 1);
+          this._log('info', 'Loaded', this._tabs.length, 'persisted tabs');
+        } catch (e) {
+          this._log('warn', 'Failed to load persisted tabs:', e.message);
+          this._tabs = [];
+        }
+      }
+
+      _saveTabs() {
+        try {
+          const data = {
+            version: 1,
+            tabs: this._tabs.map(t => ({
+              id: t.id,
+              title: t.title,
+              cascadeId: t.cascadeId,
+              timestamp: t.timestamp
+            })),
+            activeTabId: this._activeTabId,
+            nextId: this._nextId
+          };
+          localStorage.setItem(TAB_STORAGE_KEY, JSON.stringify(data));
+        } catch (e) {
+          this._log('error', 'Failed to save tabs:', e.message);
+        }
+      }
+
+      // --- Tab Operations ---
+      _addTabInternal(title, cascadeId) {
+        // Enforce maxTabs - remove oldest if needed
+        while (this._tabs.length >= this._maxTabs) {
+          const oldest = this._tabs[0];
+          if (oldest.id === this._activeTabId && this._tabs.length > 1) {
+            this._tabs.splice(1, 1); // remove second oldest
+          } else {
+            this._tabs.shift();
+          }
+        }
+
+        const tab = {
+          id: 'tab_' + this._nextId++,
+          title: title || 'New Chat',
+          cascadeId: cascadeId || null,
+          timestamp: Date.now(),
+          stale: false
+        };
+        this._tabs.push(tab);
+        this._activeTabId = tab.id;
+        return tab;
+      }
+
+      _onAddTab() {
+        if (!this._bridgeReady) {
+          this._log('warn', 'Bridge not ready, cannot add tab');
+          return;
+        }
+
+        // Capture current conversation's cascadeId on active tab before creating new
+        const activeTab = this._tabs.find(t => t.id === this._activeTabId);
+        if (activeTab && !activeTab.cascadeId) {
+          const currentId = window._agBridge.getCurrentCascadeId();
+          if (currentId) {
+            activeTab.cascadeId = currentId;
+            const title = this._getTitleForCascadeId(currentId);
+            if (title) activeTab.title = title;
+          }
+        }
+
+        // Start new conversation via bridge
+        const success = window._agBridge.startNewConversation();
+        if (!success) {
+          this._log('error', 'Failed to start new conversation');
+          return;
+        }
+
+        // Create new tab
+        this._addTabInternal('New Chat', null);
+        this._renderTabs();
+        this._saveTabs();
+        this._log('info', 'Added new tab');
+      }
+
+      _onCloseTab(tabId) {
+        const idx = this._tabs.findIndex(t => t.id === tabId);
+        if (idx === -1) return;
+
+        // Don't close the last tab
+        if (this._tabs.length <= 1) return;
+
+        const wasActive = this._activeTabId === tabId;
+        this._tabs.splice(idx, 1);
+
+        if (wasActive) {
+          // Switch to adjacent tab
+          const newIdx = Math.min(idx, this._tabs.length - 1);
+          const newTab = this._tabs[newIdx];
+          this._activeTabId = newTab.id;
+          if (newTab.cascadeId && this._bridgeReady) {
+            this._doSwitch(newTab);
+          }
+        }
+
+        this._renderTabs();
+        this._saveTabs();
+        this._log('info', 'Closed tab', tabId);
+      }
+
+      _onClickTab(tabId) {
+        if (tabId === this._activeTabId) return;
+        const tab = this._tabs.find(t => t.id === tabId);
+        if (!tab) return;
+
+        if (!this._bridgeReady) {
+          this._log('warn', 'Bridge not ready');
+          this._shakeTab(tabId);
+          return;
+        }
+
+        // Capture current cascadeId on previously active tab
+        const prevTab = this._tabs.find(t => t.id === this._activeTabId);
+        if (prevTab && !prevTab.cascadeId) {
+          const currentId = window._agBridge.getCurrentCascadeId();
+          if (currentId) {
+            prevTab.cascadeId = currentId;
+            const title = this._getTitleForCascadeId(currentId);
+            if (title) prevTab.title = title;
+          }
+        }
+
+        if (!tab.cascadeId) {
+          // No cascadeId - start new conversation
+          this._activeTabId = tabId;
+          window._agBridge.startNewConversation();
+          this._renderTabs();
+          this._saveTabs();
+          return;
+        }
+
+        this._doSwitch(tab);
+      }
+
+      // --- Switch with debounce and state machine ---
+      _doSwitch(tab) {
+        const switchId = ++this._switchId;
+        this._state = 'switching';
+        this._activeTabId = tab.id;
+        this._renderTabs();
+        this._log('debug', 'Switching to', tab.cascadeId, 'switchId:', switchId);
+
+        // Debounce: if another switch happens, this one is cancelled
+        setTimeout(() => {
+          if (this._switchId !== switchId) {
+            this._state = 'cancelled';
+            this._log('debug', 'Switch cancelled, switchId:', switchId);
+            return;
+          }
+
+          // Attempt switch via bridge
+          const success = window._agBridge.switchConversation(tab.cascadeId);
+
+          if (this._switchId !== switchId) {
+            this._state = 'cancelled';
+            return;
+          }
+
+          if (success) {
+            this._state = 'verifying';
+
+            // Verify switch after short delay
+            setTimeout(() => {
+              if (this._switchId !== switchId) {
+                this._state = 'cancelled';
+                return;
+              }
+
+              const currentId = window._agBridge.getCurrentCascadeId();
+              if (currentId === tab.cascadeId) {
+                this._state = 'success';
+                tab.stale = false;
+                this._log('info', 'Switch verified:', tab.cascadeId);
+              } else {
+                this._state = 'failed';
+                this._log('warn', 'Switch verification failed, expected:', tab.cascadeId, 'got:', currentId);
+                tab.stale = true;
+                this._shakeTab(tab.id);
+              }
+              this._renderTabs();
+              this._saveTabs();
+              this._state = 'idle';
+            }, 800);
+          } else {
+            this._state = 'failed';
+            tab.stale = true;
+            this._shakeTab(tab.id);
+            this._renderTabs();
+            this._saveTabs();
+            this._log('error', 'Switch failed for:', tab.cascadeId);
+            this._state = 'idle';
+          }
+        }, 50); // small debounce window
+      }
+
+      _shakeTab(tabId) {
+        const el = this._scrollArea?.querySelector(`[data-tab-id="${tabId}"]`);
+        if (el) {
+          el.classList.add('shake');
+          setTimeout(() => el.classList.remove('shake'), 500);
+        }
+      }
+
+      // --- Rendering ---
+      _renderTabs() {
+        if (!this._scrollArea) return;
+        this._scrollArea.innerHTML = '';
+
+        this._tabs.forEach(tab => {
+          const el = document.createElement('div');
+          el.className = 'ag-tab-item' + (tab.id === this._activeTabId ? ' active' : '');
+          el.dataset.tabId = tab.id;
+          if (tab.stale) el.dataset.stale = 'true';
+
+          const titleSpan = document.createElement('span');
+          titleSpan.textContent = tab.stale ? tab.title + ' [!]' : tab.title;
+          el.appendChild(titleSpan);
+
+          // Close button (only if more than 1 tab)
+          if (this._tabs.length > 1) {
+            const closeSpan = document.createElement('span');
+            closeSpan.className = 'ag-tab-close';
+            closeSpan.textContent = '\u00d7';
+            closeSpan.addEventListener('click', (e) => {
+              e.stopPropagation();
+              this._onCloseTab(tab.id);
+            });
+            el.appendChild(closeSpan);
+          }
+
+          el.addEventListener('click', () => this._onClickTab(tab.id));
+          this._scrollArea.appendChild(el);
+        });
+
+        // Scroll active tab into view
+        const activeEl = this._scrollArea.querySelector('.active');
+        if (activeEl) {
+          activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+        }
+      }
+
+      // --- Title Updates ---
+      updateTabTitles() {
+        if (!this._bridgeReady) return;
+        try {
+          const convos = window._agBridge.findConversationList();
+          let changed = false;
+          this._tabs.forEach(tab => {
+            if (!tab.cascadeId) return;
+            const match = convos.find(c => c.cascadeId === tab.cascadeId);
+            if (match && match.summary) {
+              const newTitle = match.summary.substring(0, 40);
+              if (newTitle !== tab.title) {
+                tab.title = newTitle;
+                changed = true;
+              }
+              if (tab.stale) {
+                tab.stale = false;
+                changed = true;
+              }
+            }
+          });
+          if (changed) {
+            this._renderTabs();
+            this._saveTabs();
+          }
+        } catch (e) {
+          this._log('warn', 'Title update failed:', e.message);
+        }
+      }
+
+      // --- Settings Update ---
+      setMaxTabs(maxTabs) {
+        this._maxTabs = maxTabs;
+        while (this._tabs.length > this._maxTabs) {
+          const tab = this._tabs[0];
+          if (tab.id === this._activeTabId && this._tabs.length > 1) {
+            this._tabs.splice(1, 1);
+          } else {
+            this._tabs.shift();
+          }
+        }
+        this._renderTabs();
+        this._saveTabs();
+      }
+
+      // --- Destroy ---
+      destroy() {
+        this._destroyed = true;
+        if (this._pollTimer) clearTimeout(this._pollTimer);
+        if (this._syncTimer) clearInterval(this._syncTimer);
+        if (this._container && this._container.parentNode) {
+          this._container.parentNode.removeChild(this._container);
+        }
+        document.body.classList.remove('ag-tab-bar-active');
+        this._log('info', 'Tab bar destroyed');
+      }
+    }
+
+    // Global reference
+    let _tabManager = null;
+
+    function initTabBar() {
+      if (_tabManager) {
+        _tabManager.destroy();
+        _tabManager = null;
+      }
+      if (!currentSettings.tabBarEnabled) return;
+      _tabManager = new HistoryTabManager(currentSettings.tabBarMaxTabs);
+      _tabManager.init();
+
+      // Periodically update tab titles
+      setInterval(() => {
+        if (_tabManager) _tabManager.updateTabTitles();
+      }, 10000);
+    }
+
+    function destroyTabBar() {
+      if (_tabManager) {
+        _tabManager.destroy();
+        _tabManager = null;
+      }
+    }
+
     /* ===== 初始化 ===== */
     function initUI() {
       // 0. 显示当前版本号
@@ -2599,7 +3301,38 @@
         manualUpdateBtn.addEventListener('click', manualCheckUpdate);
       }
 
-      // 5. 启动时版本检测（如果启用）
+      // 5. Tab Bar 初始化
+      const tabBarToggle = document.getElementById('tab-bar-master-toggle');
+      const tabBarMaxTabsSelect = document.getElementById('tab-bar-max-tabs');
+
+      if (tabBarToggle) {
+        tabBarToggle.checked = currentSettings.tabBarEnabled;
+        tabBarToggle.addEventListener('change', () => {
+          currentSettings.tabBarEnabled = tabBarToggle.checked;
+          saveSettings(currentSettings);
+          if (currentSettings.tabBarEnabled) {
+            initTabBar();
+          } else {
+            destroyTabBar();
+          }
+        });
+      }
+
+      if (tabBarMaxTabsSelect) {
+        tabBarMaxTabsSelect.value = String(currentSettings.tabBarMaxTabs);
+        tabBarMaxTabsSelect.addEventListener('change', () => {
+          currentSettings.tabBarMaxTabs = parseInt(tabBarMaxTabsSelect.value, 10) || 10;
+          saveSettings(currentSettings);
+          if (_tabManager) _tabManager.setMaxTabs(currentSettings.tabBarMaxTabs);
+        });
+      }
+
+      // Initialize tab bar if enabled
+      if (currentSettings.tabBarEnabled) {
+        initTabBar();
+      }
+
+      // 6. 启动时版本检测（如果启用）
       if (currentSettings.autoUpdateEnabled) {
         setTimeout(checkForUpdate, 10000);
       }
