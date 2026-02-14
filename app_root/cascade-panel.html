@@ -72,15 +72,15 @@
         return null;
       }
 
-      // Find ILe component to get conversation list with summaries
+      // Find conversation list component (uses prop shape matching, not component name)
       function findConversationList() {
         const container = getReactContainer();
-        if (!container) return [];
+        if (!container) return _lastConversations;
 
         const visited = new WeakSet();
         const queue = [container];
         let count = 0;
-        let ileComponent = null;
+        let listComponent = null;
 
         while (queue.length > 0 && count < MAX_FIBER_DEPTH) {
           const f = queue.shift();
@@ -88,24 +88,39 @@
           visited.add(f);
           count++;
 
-          const typeName = f.type ? (f.type.name || '') : '';
-          if (typeName === 'ILe') { ileComponent = f; break; }
+          // Match by prop shape: component with cascadeIds array prop
+          if (f.memoizedProps && Array.isArray(f.memoizedProps.cascadeIds) && f.memoizedProps.cascadeIds.length > 0) {
+            listComponent = f;
+            break;
+          }
           if (f.child) queue.push(f.child);
           if (f.sibling) queue.push(f.sibling);
         }
 
-        if (!ileComponent) return [];
+        // If not mounted (e.g., viewing a conversation), return cached data
+        if (!listComponent) return _lastConversations;
 
         // Get cascadeIds from props
-        const cascadeIds = ileComponent.memoizedProps?.cascadeIds || [];
+        const cascadeIds = listComponent.memoizedProps.cascadeIds;
 
-        // Get summaries from state[4]
+        // Search state chain for summaries object (keyed by UUID)
         let summaries = {};
-        let state = ileComponent.memoizedState;
+        let state = listComponent.memoizedState;
         let sIdx = 0;
-        while (state && sIdx < 10) {
-          if (sIdx === 4 && state.memoizedState && typeof state.memoizedState === 'object') {
-            summaries = state.memoizedState;
+        while (state && sIdx < 15) {
+          if (state.memoizedState && typeof state.memoizedState === 'object' && !Array.isArray(state.memoizedState)) {
+            const ms = state.memoizedState;
+            // Check if this is the summaries map (has .summaries key or is directly UUID-keyed)
+            if (ms.summaries && typeof ms.summaries === 'object') {
+              summaries = ms.summaries;
+              break;
+            }
+            // Check if keys look like UUIDs
+            const keys = Object.keys(ms);
+            if (keys.length > 0 && /^[0-9a-f]{8}-/.test(keys[0])) {
+              summaries = ms;
+              break;
+            }
           }
           state = state.next;
           sIdx++;
@@ -3201,8 +3216,9 @@
       }
     }
 
-    // Global reference
+    // Global reference (exposed on window for debugging)
     let _tabManager = null;
+    Object.defineProperty(window, '_tabManager', { get: () => _tabManager, configurable: true });
 
     function initTabBar() {
       if (_tabManager) {
