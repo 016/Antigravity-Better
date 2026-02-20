@@ -1,0 +1,103 @@
+<!-- Copyright (C) Microsoft Corporation. All rights reserved. -->
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8" />
+	<meta http-equiv="Content-Security-Policy" content="
+				default-src
+					'none'
+				;
+				img-src
+					'self'
+					data:
+					blob:
+					vscode-remote-resource:
+					vscode-managed-remote-resource:
+					https:
+				;
+				media-src
+					'self'
+					data:
+					https://127.0.0.1:*
+					blob:
+					https://www.gstatic.com/
+				;
+				frame-src
+					'self'
+					vscode-webview:
+					data:
+				;
+				script-src
+					'self'
+					'unsafe-eval'
+					'unsafe-inline'
+					blob:
+				;
+				style-src
+					'self'
+					'unsafe-inline'
+				;
+				connect-src
+					'self'
+					data:
+					http://127.0.0.1:*
+					http://jetski-unleash.corp.goog/
+					http://antigravity-unleash.goog/
+					https:
+					ws:
+				;
+				font-src
+					'self'
+					vscode-remote-resource:
+					vscode-managed-remote-resource:
+					https://*.vscode-unpkg.net
+				;
+				require-trusted-types-for
+					'script'
+				;
+				trusted-types
+					amdLoader
+					cellRendererEditorText
+					collapsedCellPreview
+					defaultWorkerFactory
+					diffEditorWidget
+					diffReview
+					domLineBreaksComputer
+					dompurify
+					dompurifyMermaid
+					editorGhostText
+					editorViewLayer
+					mermaid
+					notebookRenderer
+					stickyScrollViewLayer
+					tokenizeToString
+					notebookChatEditController
+					richScreenReaderContent
+					renderCodeBlock
+				;
+		" />
+
+	<!-- Workbench CSS -->
+	<link rel="stylesheet" href="../../../workbench/workbench.desktop.main.css">
+
+	<style>
+		.antigravity-agent-side-panel {
+			/* color: red; */
+		}
+	</style>
+</head>
+
+<body aria-label="">
+
+
+
+</body>
+
+<!-- Startup (do not modify order of script tags!) -->
+<script src="./workbench.js" type="module"></script>
+<script>
+	console.log('Antigravity Custom JS Loaded (Inlined)');
+</script>
+
+</html>
