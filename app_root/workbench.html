@@ -75,6 +75,7 @@
 					notebookChatEditController
 					richScreenReaderContent
 					renderCodeBlock
+					antigravityBetter
 				;
 		" />
 
@@ -82,8 +83,312 @@
 	<link rel="stylesheet" href="../../../workbench/workbench.desktop.main.css">
 
 	<style>
-		.antigravity-agent-side-panel {
-			/* color: red; */
+		/* ===== Antigravity Better v0.2.1 - 最小验证版本 ===== */
+
+		/* --- 自定义颜色变量 --- */
+		:root {
+			--color-user-message: #60A5FA;
+			--color-ai-response: #E0E0E0;
+			--color-code-block: #A78BFA;
+			--color-action-status: #4ADE80;
+			--color-thinking: #9CA3AF;
+			--bg-modal: #1e1e1e;
+			--border-color: #3c3c3c;
+			--accent-color: #667eea;
+			--text-main: #fff;
+			--text-sub: #999;
+		}
+
+		/* --- 悬浮按钮 (定位在 AI 面板内) --- */
+		/* 注: .antigravity-agent-side-panel 已有 position:absolute, 无需额外设置 */
+		#ab-settings-btn {
+			position: absolute;
+			right: 0;
+			top: 66%;
+			transform: translateY(-50%);
+			width: 28px;
+			height: 48px;
+			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+			border: none;
+			border-radius: 8px 0 0 8px;
+			cursor: pointer;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			box-shadow: -2px 2px 8px rgba(0, 0, 0, 0.3);
+			z-index: 9999;
+			transition: all 0.3s ease;
+		}
+		#ab-settings-btn:hover {
+			width: 36px;
+			background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+		}
+		#ab-settings-btn svg {
+			width: 18px;
+			height: 18px;
+			fill: white;
+			transition: transform 0.3s ease;
+		}
+		#ab-settings-btn:hover svg {
+			transform: rotate(90deg);
+		}
+
+		/* --- 弹窗遮罩层 (定位在 AI 面板内) --- */
+		#ab-overlay {
+			position: absolute;
+			top: 0; left: 0; right: 0; bottom: 0;
+			background: rgba(0, 0, 0, 0.5);
+			z-index: 10000;
+			display: none;
+			opacity: 0;
+			transition: opacity 0.3s ease;
+			align-items: center;
+			justify-content: center;
+		}
+		#ab-overlay.show { display: flex; }
+		#ab-overlay.visible { opacity: 1; }
+
+		/* --- 设置弹窗 --- */
+		#ab-modal {
+			background: var(--bg-modal);
+			border-radius: 12px;
+			width: 400px;
+			max-width: 90%;
+			max-height: 85%;
+			display: flex;
+			flex-direction: column;
+			box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+			border: 1px solid var(--border-color);
+			transform: scale(0.9);
+			transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+			overflow: hidden;
+		}
+		#ab-overlay.visible #ab-modal { transform: scale(1); }
+
+		/* 弹窗 Header */
+		.ab-header {
+			padding: 16px 20px;
+			border-bottom: 1px solid var(--border-color);
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			background: rgba(255, 255, 255, 0.02);
+		}
+		.ab-brand {
+			color: var(--text-main);
+			font-size: 16px;
+			font-weight: 700;
+			background: linear-gradient(90deg, #fff, #a5b4fc);
+			-webkit-background-clip: text;
+			background-clip: text;
+			-webkit-text-fill-color: transparent;
+		}
+		.ab-version {
+			font-size: 10px;
+			color: var(--text-sub);
+			background: rgba(255, 255, 255, 0.1);
+			padding: 2px 6px;
+			border-radius: 4px;
+			margin-left: 8px;
+			font-weight: normal;
+			-webkit-text-fill-color: var(--text-sub);
+		}
+		.ab-close {
+			background: none;
+			border: none;
+			color: var(--text-sub);
+			font-size: 20px;
+			cursor: pointer;
+			padding: 0;
+			line-height: 1;
+			transition: color 0.2s;
+		}
+		.ab-close:hover { color: var(--text-main); }
+
+		/* 内容区 */
+		.ab-body {
+			flex: 1;
+			overflow-y: auto;
+			padding: 16px 20px;
+		}
+
+		/* 设置项 */
+		.ab-setting {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			padding: 8px 0;
+			border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+		}
+		.ab-setting:last-child { border-bottom: none; }
+		.ab-setting-name {
+			color: #ccc;
+			font-size: 13px;
+			display: flex;
+			align-items: center;
+			gap: 8px;
+		}
+		.ab-setting-right {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+		}
+
+		/* 主开关高亮 */
+		.ab-main-toggle {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			padding: 10px 12px;
+			background: rgba(102, 126, 234, 0.1);
+			border: 1px solid rgba(102, 126, 234, 0.2);
+			border-radius: 8px;
+			margin-bottom: 12px;
+		}
+		.ab-main-toggle-label {
+			color: var(--text-main);
+			font-size: 13px;
+			font-weight: 500;
+		}
+
+		/* Toggle Switch */
+		.ab-toggle {
+			position: relative;
+			width: 32px;
+			height: 18px;
+		}
+		.ab-toggle input {
+			opacity: 0;
+			width: 0;
+			height: 0;
+		}
+		.ab-toggle-slider {
+			position: absolute;
+			cursor: pointer;
+			top: 0; left: 0; right: 0; bottom: 0;
+			background-color: #3c3c3c;
+			transition: 0.3s;
+			border-radius: 20px;
+		}
+		.ab-toggle-slider:before {
+			position: absolute;
+			content: "";
+			height: 12px;
+			width: 12px;
+			left: 3px;
+			bottom: 3px;
+			background-color: white;
+			transition: 0.3s;
+			border-radius: 50%;
+		}
+		.ab-toggle input:checked + .ab-toggle-slider {
+			background: var(--accent-color);
+		}
+		.ab-toggle input:checked + .ab-toggle-slider:before {
+			transform: translateX(14px);
+		}
+
+		/* Color Input */
+		.ab-color-input {
+			width: 24px;
+			height: 24px;
+			border: 1px solid var(--border-color);
+			border-radius: 4px;
+			cursor: pointer;
+			padding: 0;
+			background: none;
+		}
+		.ab-color-input::-webkit-color-swatch-wrapper { padding: 2px; }
+		.ab-color-input::-webkit-color-swatch { border-radius: 2px; border: none; }
+
+		/* 区块标题 */
+		.ab-section-title {
+			font-size: 13px;
+			font-weight: 600;
+			color: var(--text-main);
+			margin: 16px 0 8px;
+			display: flex;
+			align-items: center;
+			gap: 6px;
+		}
+		.ab-section-title:first-child { margin-top: 0; }
+
+		/* Toast 提示 */
+		#ab-toast {
+			position: fixed;
+			top: 50px;
+			left: 50%;
+			transform: translateX(-50%);
+			background: rgba(0, 0, 0, 0.85);
+			color: white;
+			padding: 10px 20px;
+			border-radius: 20px;
+			font-size: 13px;
+			z-index: 20000;
+			display: none;
+			opacity: 0;
+			transition: opacity 0.3s ease, top 0.3s ease;
+			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+			border: 1px solid rgba(255, 255, 255, 0.1);
+		}
+		#ab-toast.show { display: block; opacity: 1; top: 60px; }
+
+		/* 验证状态面板 */
+		.ab-verify-panel {
+			margin-top: 16px;
+			padding: 12px;
+			background: rgba(0, 0, 0, 0.2);
+			border-radius: 8px;
+			font-size: 12px;
+		}
+		.ab-verify-item {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			padding: 4px 0;
+			color: #ccc;
+		}
+		.ab-verify-pass { color: #4ADE80; }
+		.ab-verify-fail { color: #f87171; }
+
+		/* ===== 颜色覆盖样式 ===== */
+		/* V0.2: .prose → .leading-relaxed.select-text */
+		/* V0.2: #react-app → body + .antigravity-agent-side-panel */
+
+		/* 用户消息 */
+		body.color-user-message .antigravity-agent-side-panel .bg-gray-500\/15 .whitespace-pre-wrap,
+		body.color-user-message .antigravity-agent-side-panel .bg-gray-500\/15 [style*="word-break"] {
+			color: var(--color-user-message) !important;
+		}
+
+		/* AI回复 (排除思考区域) */
+		body.color-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) p,
+		body.color-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) li,
+		body.color-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) h1,
+		body.color-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) h2,
+		body.color-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) h3,
+		body.color-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) h4,
+		body.color-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) strong,
+		body.color-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) ul,
+		body.color-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) ol,
+		body.color-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) table,
+		body.color-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) th,
+		body.color-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) td {
+			color: var(--color-ai-response) !important;
+		}
+
+		/* 代码块（.leading-relaxed 内的 pre/code + 行内 code） */
+		body.color-code-block .antigravity-agent-side-panel .leading-relaxed pre,
+		body.color-code-block .antigravity-agent-side-panel .leading-relaxed pre code,
+		body.color-code-block .antigravity-agent-side-panel .leading-relaxed pre span,
+		body.color-code-block .antigravity-agent-side-panel .leading-relaxed code.whitespace-pre-wrap {
+			color: var(--color-code-block) !important;
+		}
+
+		/* 思考过程 */
+		body.color-thinking .antigravity-agent-side-panel .leading-relaxed.select-text.opacity-70,
+		body.color-thinking .antigravity-agent-side-panel .leading-relaxed.select-text.opacity-70 * {
+			color: var(--color-thinking) !important;
 		}
 	</style>
 </head>
@@ -97,7 +402,356 @@
 <!-- Startup (do not modify order of script tags!) -->
 <script src="./workbench.js" type="module"></script>
 <script>
-	console.log('Antigravity Custom JS Loaded (Inlined)');
+(function () {
+	'use strict';
+
+	/* ===== Antigravity Better v0.2.1 - 最小验证版本 ===== */
+	/* 目的：验证以下关键技术点 */
+	/* 1. Trusted Types 兼容 - 动态 DOM 创建 */
+	/* 2. CSS 选择器适配 - body.xxx .antigravity-agent-side-panel */
+	/* 3. MutationObserver - 监听 AI 面板出现 */
+	/* 4. localStorage 数据持久化 */
+	/* 5. 设置面板 UI 渲染 */
+
+	console.log('[AB] Antigravity Better v0.2.1 (Minimal Verification) Loading...');
+
+	// ===== Trusted Types Policy =====
+	// workbench.html 要求 trusted-types，我们在 CSP 中注册了 'antigravityBetter'
+	let abPolicy = null;
+	if (window.trustedTypes && trustedTypes.createPolicy) {
+		try {
+			abPolicy = trustedTypes.createPolicy('antigravityBetter', {
+				createHTML: (input) => input
+			});
+			console.log('[AB] ✅ Trusted Types Policy 创建成功');
+		} catch (e) {
+			console.warn('[AB] ⚠️ Trusted Types Policy 创建失败:', e.message);
+		}
+	}
+
+	// 安全设置 innerHTML 的辅助函数
+	function safeSetHTML(el, html) {
+		if (abPolicy) {
+			el.innerHTML = abPolicy.createHTML(html);
+		} else {
+			el.innerHTML = html;
+		}
+	}
+
+	// ===== 配置 =====
+	const APP_VERSION = '0.2.1-beta';
+	const STORAGE_KEY = 'antigravity-better-settings';
+
+	const COLOR_CONFIGS = [
+		{ id: 'user-message', cssVar: '--color-user-message', cssClass: 'color-user-message', default: '#60A5FA', enabled: true, icon: '📝', labelZh: '用户消息', labelEn: 'User Message' },
+		{ id: 'ai-response', cssVar: '--color-ai-response', cssClass: 'color-ai-response', default: '#E0E0E0', enabled: true, icon: '🤖', labelZh: 'AI回复', labelEn: 'AI Response' },
+		{ id: 'code-block', cssVar: '--color-code-block', cssClass: 'color-code-block', default: '#A78BFA', enabled: true, icon: '💻', labelZh: '代码块', labelEn: 'Code Block' },
+		{ id: 'thinking', cssVar: '--color-thinking', cssClass: 'color-thinking', default: '#9CA3AF', enabled: false, icon: '💭', labelZh: '思考过程', labelEn: 'Thinking' },
+	];
+
+	const defaultSettings = {
+		lang: 'zh',
+		masterEnabled: false,
+		colors: COLOR_CONFIGS.reduce((acc, c) => { acc[c.id] = { color: c.default, enabled: c.enabled }; return acc; }, {}),
+	};
+
+	// ===== 存储 =====
+	function loadSettings() {
+		try {
+			const saved = localStorage.getItem(STORAGE_KEY);
+			if (saved) {
+				const parsed = JSON.parse(saved);
+				return {
+					lang: parsed.lang ?? defaultSettings.lang,
+					masterEnabled: parsed.masterEnabled ?? defaultSettings.masterEnabled,
+					colors: { ...defaultSettings.colors, ...parsed.colors },
+				};
+			}
+		} catch (e) { /* ignore */ }
+		return { ...defaultSettings };
+	}
+
+	function saveSettings(s) {
+		try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch (e) { /* ignore */ }
+	}
+
+	let currentSettings = loadSettings();
+
+	// ===== 验证结果 =====
+	const verifyResults = {};
+
+	// ===== 应用颜色设置 =====
+	function applyColorSettings() {
+		COLOR_CONFIGS.forEach(config => {
+			const colorSetting = currentSettings.colors[config.id];
+			document.documentElement.style.setProperty(config.cssVar, colorSetting.color);
+			if (currentSettings.masterEnabled && colorSetting.enabled) {
+				document.body.classList.add(config.cssClass);
+			} else {
+				document.body.classList.remove(config.cssClass);
+			}
+		});
+	}
+
+	// ===== 动态创建设置面板 UI =====
+	function createSettingsUI(panelEl) {
+		// 避免重复创建
+		if (panelEl.querySelector('#ab-settings-btn')) return;
+
+		// --- 悬浮按钮 ---
+		const btn = document.createElement('button');
+		btn.id = 'ab-settings-btn';
+		btn.title = 'Antigravity Better Settings';
+		const svgNS = 'http://www.w3.org/2000/svg';
+		const svg = document.createElementNS(svgNS, 'svg');
+		svg.setAttribute('viewBox', '0 0 24 24');
+		const path = document.createElementNS(svgNS, 'path');
+		path.setAttribute('d', 'M19.14,12.94c0.04-0.31,0.06-0.63,0.06-0.94c0-0.31-0.02-0.63-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.37,4.8,11.69,4.8,12s0.02,0.63,0.06,0.94l-2.03,1.58c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z');
+		svg.appendChild(path);
+		btn.appendChild(svg);
+		panelEl.appendChild(btn);
+		verifyResults['DOM创建'] = '✅';
+		console.log('[AB] ✅ 悬浮按钮创建成功 (挂载到 AI 面板)');
+
+		// --- 遮罩层 ---
+		const overlay = document.createElement('div');
+		overlay.id = 'ab-overlay';
+
+		// --- 弹窗 ---
+		const modal = document.createElement('div');
+		modal.id = 'ab-modal';
+
+		// Header
+		const header = document.createElement('div');
+		header.className = 'ab-header';
+		const brandSpan = document.createElement('span');
+		brandSpan.className = 'ab-brand';
+		brandSpan.textContent = 'Antigravity Better';
+		const versionSpan = document.createElement('span');
+		versionSpan.className = 'ab-version';
+		versionSpan.textContent = 'v' + APP_VERSION;
+		brandSpan.appendChild(versionSpan);
+		const closeBtn = document.createElement('button');
+		closeBtn.className = 'ab-close';
+		closeBtn.textContent = '×';
+		header.appendChild(brandSpan);
+		header.appendChild(closeBtn);
+		modal.appendChild(header);
+
+		// Body
+		const body = document.createElement('div');
+		body.className = 'ab-body';
+
+		// 颜色区块标题
+		const colorTitle = document.createElement('div');
+		colorTitle.className = 'ab-section-title';
+		colorTitle.textContent = '🎨 颜色自定义';
+		body.appendChild(colorTitle);
+
+		// 主开关
+		const mainToggle = createMainToggle('启用自定义颜色', 'Enable Custom Colors', currentSettings.masterEnabled, (checked) => {
+			currentSettings.masterEnabled = checked;
+			saveSettings(currentSettings);
+			applyColorSettings();
+		});
+		body.appendChild(mainToggle);
+
+		// 颜色设置项
+		COLOR_CONFIGS.forEach(config => {
+			const colorSetting = currentSettings.colors[config.id];
+			const item = document.createElement('div');
+			item.className = 'ab-setting';
+
+			const nameDiv = document.createElement('div');
+			nameDiv.className = 'ab-setting-name';
+			nameDiv.textContent = config.icon + ' ' + (currentSettings.lang === 'zh' ? config.labelZh : config.labelEn);
+
+			const rightDiv = document.createElement('div');
+			rightDiv.className = 'ab-setting-right';
+
+			const toggle = createToggle(colorSetting.enabled, (checked) => {
+				currentSettings.colors[config.id].enabled = checked;
+				saveSettings(currentSettings);
+				applyColorSettings();
+			});
+			rightDiv.appendChild(toggle);
+
+			const colorInput = document.createElement('input');
+			colorInput.type = 'color';
+			colorInput.className = 'ab-color-input';
+			colorInput.value = colorSetting.color;
+			colorInput.addEventListener('input', () => {
+				currentSettings.colors[config.id].color = colorInput.value;
+				saveSettings(currentSettings);
+				applyColorSettings();
+			});
+			rightDiv.appendChild(colorInput);
+
+			item.appendChild(nameDiv);
+			item.appendChild(rightDiv);
+			body.appendChild(item);
+		});
+
+		// 验证面板
+		const verifyTitle = document.createElement('div');
+		verifyTitle.className = 'ab-section-title';
+		verifyTitle.textContent = '🔍 技术验证结果';
+		verifyTitle.style.marginTop = '20px';
+		body.appendChild(verifyTitle);
+
+		const verifyPanel = document.createElement('div');
+		verifyPanel.className = 'ab-verify-panel';
+		verifyPanel.id = 'ab-verify-panel';
+		body.appendChild(verifyPanel);
+
+		modal.appendChild(body);
+		overlay.appendChild(modal);
+		panelEl.appendChild(overlay);
+
+		// --- 事件绑定 ---
+		btn.addEventListener('click', () => {
+			overlay.classList.add('show');
+			requestAnimationFrame(() => overlay.classList.add('visible'));
+			updateVerifyPanel();
+		});
+		closeBtn.addEventListener('click', closeModal);
+		overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+
+		function closeModal() {
+			overlay.classList.remove('visible');
+			setTimeout(() => overlay.classList.remove('show'), 300);
+		}
+
+		console.log('[AB] ✅ 设置面板创建成功');
+	}
+
+	// 创建 Toggle 开关
+	function createToggle(checked, onChange) {
+		const label = document.createElement('label');
+		label.className = 'ab-toggle';
+		const input = document.createElement('input');
+		input.type = 'checkbox';
+		input.checked = checked;
+		input.addEventListener('change', () => onChange(input.checked));
+		const slider = document.createElement('span');
+		slider.className = 'ab-toggle-slider';
+		label.appendChild(input);
+		label.appendChild(slider);
+		return label;
+	}
+
+	// 创建主开关
+	function createMainToggle(zhLabel, enLabel, checked, onChange) {
+		const wrapper = document.createElement('div');
+		wrapper.className = 'ab-main-toggle';
+		const label = document.createElement('span');
+		label.className = 'ab-main-toggle-label';
+		label.textContent = currentSettings.lang === 'zh' ? zhLabel : enLabel;
+		const toggle = createToggle(checked, onChange);
+		wrapper.appendChild(label);
+		wrapper.appendChild(toggle);
+		return wrapper;
+	}
+
+	// 更新验证面板
+	function updateVerifyPanel() {
+		const panel = document.getElementById('ab-verify-panel');
+		if (!panel) return;
+		while (panel.firstChild) panel.removeChild(panel.firstChild);
+
+		const checks = [
+			{ name: 'Trusted Types Policy', result: abPolicy ? '✅ 已创建' : '⚠️ 未创建（非必须）' },
+			{ name: 'DOM 动态创建', result: verifyResults['DOM创建'] || '❌ 失败' },
+			{ name: 'localStorage 读写', result: testLocalStorage() },
+			{ name: 'CSS 变量注入', result: testCSSVariable() },
+			{ name: 'AI 面板检测', result: verifyResults['AI面板'] || '❌ 未找到' },
+			{ name: 'SafeHTML (innerHTML)', result: testSafeHTML() },
+			{ name: '面板内定位', result: '✅ 已挂载到 AI 面板' },
+		];
+
+		checks.forEach(check => {
+			const item = document.createElement('div');
+			item.className = 'ab-verify-item';
+			const isPass = check.result.startsWith('✅');
+			item.classList.add(isPass ? 'ab-verify-pass' : 'ab-verify-fail');
+			item.textContent = check.result + ' ' + check.name;
+			panel.appendChild(item);
+		});
+	}
+
+	// ===== 验证函数 =====
+	function testLocalStorage() {
+		try {
+			localStorage.setItem('ab-test', 'ok');
+			const val = localStorage.getItem('ab-test');
+			localStorage.removeItem('ab-test');
+			return val === 'ok' ? '✅' : '❌';
+		} catch (e) {
+			return '❌ ' + e.message;
+		}
+	}
+
+	function testCSSVariable() {
+		const val = getComputedStyle(document.documentElement).getPropertyValue('--color-user-message').trim();
+		return val ? '✅' : '❌ 变量未生效';
+	}
+
+	function testSafeHTML() {
+		try {
+			const testEl = document.createElement('span');
+			safeSetHTML(testEl, '<b>test</b>');
+			const result = testEl.querySelector('b') ? '✅' : '❌';
+			return result;
+		} catch (e) {
+			return '❌ ' + e.message;
+		}
+	}
+
+	// ===== 等待 AI 面板出现 → 初始化 UI =====
+	function onPanelReady(panelEl) {
+		console.log('[AB] ✅ AI 面板已检测到');
+		verifyResults['AI面板'] = '✅';
+		createSettingsUI(panelEl);
+		applyColorSettings();
+	}
+
+	function waitForAgentPanel() {
+		const panel = document.querySelector('.antigravity-agent-side-panel');
+		if (panel) {
+			onPanelReady(panel);
+			return;
+		}
+
+		const observer = new MutationObserver((mutations, obs) => {
+			const panel = document.querySelector('.antigravity-agent-side-panel');
+			if (panel) {
+				obs.disconnect();
+				onPanelReady(panel);
+			}
+		});
+		observer.observe(document.body, { childList: true, subtree: true });
+		console.log('[AB] ⏳ 等待 AI 面板出现...');
+	}
+
+	// ===== 初始化 =====
+	function init() {
+		console.log('[AB] 开始初始化...');
+		try {
+			applyColorSettings();
+			waitForAgentPanel();
+			console.log('[AB] ✅ 初始化完成，等待 AI 面板...');
+		} catch (e) {
+			console.error('[AB] ❌ 初始化失败:', e);
+		}
+	}
+
+	// 等待 body 就绪后初始化
+	if (document.body) {
+		setTimeout(init, 1000);
+	} else {
+		document.addEventListener('DOMContentLoaded', () => setTimeout(init, 1000));
+	}
+})();
 </script>
 
 </html>
