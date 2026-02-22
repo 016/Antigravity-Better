@@ -8,7 +8,7 @@
     <strong>中文</strong>
   </p>
   <p>
-    <img src="https://img.shields.io/badge/version-0.1.7-brightgreen" alt="Version">
+    <img src="https://img.shields.io/badge/version-0.2.1-brightgreen" alt="Version">
     <img src="https://img.shields.io/badge/dependencies-zero-green" alt="Zero Dependencies">
     <img src="https://img.shields.io/badge/file-single%20HTML-blue" alt="Single File">
     <img src="https://img.shields.io/badge/target-Antigravity-purple" alt="Antigravity">
@@ -42,6 +42,8 @@
 ### 兼容性说明
 
 - ✅ **主要目标**：Antigravity（Google AI IDE）
+  - **v0.2.x**: 支持 IDE v1.18.3+ 系列（全新 `workbench.html` 架构）
+  - **v0.1.x**: 支持旧版 IDE(<1.18.3)（基于 `cascade-panel.html` 架构）
 - ⚠️ **可能兼容**：其他基于 VS Code 的 AI IDE（如 Cursor、Windsurf 等）可能需要适配，我们无法保证兼容性。
 
 ---
@@ -52,6 +54,7 @@
 
 | 功能 |版本 | 说明 |
 |------|------|------|
+| 🏗️ **全新架构升级** | 0.2.1 | 全面适配 IDE v1.18.3+ 的 `workbench.html` 新架构，为 0.1.7 用户提供功能平移 |
 | 🎨 **自定义颜色** | 0.1.1 | 修改用户消息、AI 回复、代码块、思考过程等的文字颜色 |
 | 🔤 **字体大小** | 0.1.4 | 为不同内容类型自定义字体大小，支持一键同步 |
 | 📋 **一键复制** | 0.1.7 | 为任意消息类型（用户、AI、思考）添加复制按钮。0.1.7: 修复单行输入时按钮重叠问题 |
@@ -79,23 +82,23 @@
 
 1. **找到目标文件**
    ```
-   macOS: /Applications/Antigravity.app/Contents/Resources/app/extensions/antigravity/cascade-panel.html
-   Windows: [应用安装目录]/Antigravity/resources/app/extensions/antigravity/cascade-panel.html
+   macOS: /Applications/Antigravity.app/Contents/Resources/app/out/vs/code/electron-browser/workbench/workbench.html
+   Windows: [应用安装目录]/Antigravity/resources/app/out/vs/code/electron-browser/workbench/workbench.html
    ```
 
 2. **备份并替换**
    ```bash
    # 进入安装目录
    ## Mac os
-   cd /Applications/Antigravity.app/Contents/Resources/app/extensions/antigravity/
+   cd /Applications/Antigravity.app/Contents/Resources/app/out/vs/code/electron-browser/workbench/
    ## Windows
-   cd [应用安装目录]/Antigravity/resources/app/extensions/antigravity/
+   cd [应用安装目录]/Antigravity/resources/app/out/vs/code/electron-browser/workbench/
 
    # 备份原文件
-   cp cascade-panel.html cascade-panel.html.bak
+   cp workbench.html workbench.html.bak
    
    # 替换为 Antigravity Better
-   cp /path/to/antigravity-better/app_root/cascade-panel.html ./
+   cp /path/to/antigravity-better/app_root/workbench.html ./
    ```
 
 3. **重启 Antigravity** - 完成！🎉

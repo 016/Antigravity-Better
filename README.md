@@ -8,7 +8,7 @@
     <a href="./README_ZH.md">中文</a>
   </p>
   <p>
-    <img src="https://img.shields.io/badge/version-0.1.7-brightgreen" alt="Version">
+    <img src="https://img.shields.io/badge/version-0.2.1-brightgreen" alt="Version">
     <img src="https://img.shields.io/badge/dependencies-zero-green" alt="Zero Dependencies">
     <img src="https://img.shields.io/badge/file-single%20HTML-blue" alt="Single File">
     <img src="https://img.shields.io/badge/target-Antigravity-purple" alt="Antigravity">
@@ -42,6 +42,8 @@ You can freely customize this HTML file to build your own features. Following ou
 ### Compatibility Note
 
 - ✅ **Primary Target**: Antigravity (Google's AI IDE)
+  - **v0.2.x**: Supports IDE v1.18.3+ (New `workbench.html` architecture)
+  - **v0.1.x**: Supports older IDE versions(<1.18.3) (Legacy `cascade-panel.html` architecture)
 - ⚠️ **Potentially Compatible**: Other VS Code-based AI IDEs (Cursor, Windsurf, etc.) may work with modifications, but we cannot guarantee compatibility.
 
 ---
@@ -52,6 +54,7 @@ You can freely customize this HTML file to build your own features. Following ou
 
 | Feature | Version | Description |
 |---------|---------|-------------|
+| 🏗️ **Architecture Upgrade** | 0.2.1 | Full migration to IDE v1.18.3+ `workbench.html` architecture with feature parity for v0.1.7 |
 | 🎨 **Custom Colors** | 0.1.1 | Change text colors for user messages, AI responses, code blocks, thinking process, and more |
 | 🔤 **Font Size Control** | 0.1.4 | Customize font sizes for different content types with sync-all option |
 | 📋 **Copy Buttons** | 0.1.7 | One-click copy for any message type (user, AI, thinking). 0.1.7: Fixed button overlap issue for single-line input |
@@ -79,23 +82,23 @@ You can freely customize this HTML file to build your own features. Following ou
 
 1. **Locate the target file**
    ```
-   macOS: /Applications/Antigravity.app/Contents/Resources/app/extensions/antigravity/cascade-panel.html
-   Windows: [PathToAppFolder]/Antigravity/resources/app/extensions/antigravity/cascade-panel.html
+   macOS: /Applications/Antigravity.app/Contents/Resources/app/out/vs/code/electron-browser/workbench/workbench.html
+   Windows: [PathToAppFolder]/Antigravity/resources/app/out/vs/code/electron-browser/workbench/workbench.html
    ```
 
 2. **Backup & Replace**
    ```bash
    # Navigate to the installation directory
    ## Mac os
-   cd /Applications/Antigravity.app/Contents/Resources/app/extensions/antigravity/
+   cd /Applications/Antigravity.app/Contents/Resources/app/out/vs/code/electron-browser/workbench/
    ## Windows
-   cd [PathToAppFolder]/Antigravity/resources/app/extensions/antigravity/
+   cd [PathToAppFolder]/Antigravity/resources/app/out/vs/code/electron-browser/workbench/
 
    # Backup original
-   cp cascade-panel.html cascade-panel.html.bak
+   cp workbench.html workbench.html.bak
    
    # Replace with Antigravity Better
-   cp /path/to/antigravity-better/app_root/cascade-panel.html ./
+   cp /path/to/antigravity-better/app_root/workbench.html ./
    ```
 
 3. **Restart Antigravity** - Done! 🎉

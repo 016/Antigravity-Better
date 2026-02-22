@@ -9,7 +9,7 @@ trigger: always_on
 项目采用 **HTML 直接覆盖** 模式，用户只需将修改后的 HTML 文件替换原始文件即可生效。
 
 ## Rules
-- **单文件原则**: 所有自定义 JS、CSS 和新增 HTML 代码都必须内联写入 `cascade-panel.html` 文件中。
+- **单文件原则**: 所有自定义 JS、CSS 和新增 HTML 代码都必须内联写入 `workbench.html` 文件中。
 - **零依赖**: 不依赖任何外部库或构建工具，保持纯原生 HTML/CSS/JS。
 - **KISS 原则**: 保持实现简单，方便用户复制替换文件。
 - **零基础友好**: 代码和注释需清晰，方便用户理解和二次修改。
@@ -23,7 +23,7 @@ trigger: always_on
 - **运行环境**: Mac OS (宿主)
 - **项目根目录**: `/Volumes/eeBox/eeProject/lm802.4.14.6.25`
 - **应用目录**: `./app_root`
-- **核心文件**: `./app_root/cascade-panel.html`
+- **核心文件**: `./app_root/workbench.html`
 
 ## 设计要求
 - 主题上要求简洁、精致、专业、好看、大气
@@ -32,11 +32,11 @@ trigger: always_on
 ## 工作流程自动匹配
 - 本项目涉及两个类型的工作, 根据收到的任务类型自动匹配下面的工作流程
     - html页面核心修改/设计工作匹配 html-worker(.agent/workflows/html-worker.md)
-    - cascade-panel.html 功能开发工作匹配 cascade-worker(.agent/workflows/cascade-worker.md)
+    - workbench.html 功能开发工作匹配 anti-better-worker(.agent/workflows/anti-better-worker.md)
     - 其他未匹配工作则使用默认流程
 
 ## 核心项目文件
-- `app_root/cascade-panel.html`: AI 聊天窗口 iframe 的 HTML 文件，所有自定义代码都写在这里
+- `app_root/workbench.html`: AI 侧边栏的 HTML 文件，所有针对 V0.2 的自定义代码都写在这里。
 
 ## 用户使用方式
-用户将修改后的 `cascade-panel.html` 文件复制替换到 VS Code 对应位置即可生效。
+用户将修改后的 `workbench.html` 文件复制替换到 IDE 对应位置即可生效。
