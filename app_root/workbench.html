@@ -83,15 +83,18 @@
 	<link rel="stylesheet" href="../../../workbench/workbench.desktop.main.css">
 
 	<style>
-		/* ===== Antigravity Better v0.2.1 - 最小验证版本 ===== */
-
-		/* --- 自定义颜色变量 --- */
+		/* ===== Antigravity Better v0.2.1 ===== */
 		:root {
 			--color-user-message: #60A5FA;
 			--color-ai-response: #E0E0E0;
 			--color-code-block: #A78BFA;
 			--color-action-status: #4ADE80;
 			--color-thinking: #9CA3AF;
+			--fontsize-user-message: 14px;
+			--fontsize-ai-response: 14px;
+			--fontsize-code-block: 13px;
+			--fontsize-action-status: 13px;
+			--fontsize-thinking: 13px;
 			--bg-modal: #1e1e1e;
 			--border-color: #3c3c3c;
 			--accent-color: #667eea;
@@ -99,269 +102,126 @@
 			--text-sub: #999;
 		}
 
-		/* --- 悬浮按钮 (定位在 AI 面板内) --- */
-		/* 注: .antigravity-agent-side-panel 已有 position:absolute, 无需额外设置 */
-		#ab-settings-btn {
-			position: absolute;
-			right: 0;
-			top: 66%;
-			transform: translateY(-50%);
-			width: 28px;
-			height: 48px;
-			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-			border: none;
-			border-radius: 8px 0 0 8px;
-			cursor: pointer;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			box-shadow: -2px 2px 8px rgba(0, 0, 0, 0.3);
-			z-index: 9999;
-			transition: all 0.3s ease;
-		}
-		#ab-settings-btn:hover {
-			width: 36px;
-			background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-		}
-		#ab-settings-btn svg {
-			width: 18px;
-			height: 18px;
-			fill: white;
-			transition: transform 0.3s ease;
-		}
-		#ab-settings-btn:hover svg {
-			transform: rotate(90deg);
-		}
+		/* 悬浮按钮 (absolute in side-panel) */
+		#ab-settings-btn { position:absolute; right:0; top:66%; transform:translateY(-50%); width:28px; height:48px; background:linear-gradient(135deg,#667eea,#764ba2); border:none; border-radius:8px 0 0 8px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:-2px 2px 8px rgba(0,0,0,.3); z-index:9999; transition:all .3s ease; }
+		#ab-settings-btn:hover { width:36px; background:linear-gradient(135deg,#764ba2,#667eea); }
+		#ab-settings-btn svg { width:18px; height:18px; fill:#fff; transition:transform .3s ease; }
+		#ab-settings-btn:hover svg { transform:rotate(90deg); }
 
-		/* --- 弹窗遮罩层 (定位在 AI 面板内) --- */
-		#ab-overlay {
-			position: absolute;
-			top: 0; left: 0; right: 0; bottom: 0;
-			background: rgba(0, 0, 0, 0.5);
-			z-index: 10000;
-			display: none;
-			opacity: 0;
-			transition: opacity 0.3s ease;
-			align-items: center;
-			justify-content: center;
-		}
-		#ab-overlay.show { display: flex; }
-		#ab-overlay.visible { opacity: 1; }
+		/* 遮罩层 (absolute in side-panel) */
+		#ab-overlay { position:absolute; top:0;left:0;right:0;bottom:0; background:rgba(0,0,0,.5); z-index:10000; display:none; opacity:0; transition:opacity .3s ease; align-items:center; justify-content:center; }
+		#ab-overlay.show { display:flex; }
+		#ab-overlay.visible { opacity:1; }
 
-		/* --- 设置弹窗 --- */
-		#ab-modal {
-			background: var(--bg-modal);
-			border-radius: 12px;
-			width: 400px;
-			max-width: 90%;
-			max-height: 85%;
-			display: flex;
-			flex-direction: column;
-			box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-			border: 1px solid var(--border-color);
-			transform: scale(0.9);
-			transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-			overflow: hidden;
-		}
-		#ab-overlay.visible #ab-modal { transform: scale(1); }
+		/* 弹窗 */
+		#ab-modal { background:var(--bg-modal); border-radius:12px; width:400px; max-width:90%; max-height:85%; display:flex; flex-direction:column; box-shadow:0 8px 32px rgba(0,0,0,.4); border:1px solid var(--border-color); transform:scale(.9); transition:transform .3s cubic-bezier(.34,1.56,.64,1); overflow:hidden; }
+		#ab-overlay.visible #ab-modal { transform:scale(1); }
 
-		/* 弹窗 Header */
-		.ab-header {
-			padding: 16px 20px;
-			border-bottom: 1px solid var(--border-color);
-			display: flex;
-			justify-content: space-between;
-			align-items: center;
-			background: rgba(255, 255, 255, 0.02);
-		}
-		.ab-brand {
-			color: var(--text-main);
-			font-size: 16px;
-			font-weight: 700;
-			background: linear-gradient(90deg, #fff, #a5b4fc);
-			-webkit-background-clip: text;
-			background-clip: text;
-			-webkit-text-fill-color: transparent;
-		}
-		.ab-version {
-			font-size: 10px;
-			color: var(--text-sub);
-			background: rgba(255, 255, 255, 0.1);
-			padding: 2px 6px;
-			border-radius: 4px;
-			margin-left: 8px;
-			font-weight: normal;
-			-webkit-text-fill-color: var(--text-sub);
-		}
-		.ab-close {
-			background: none;
-			border: none;
-			color: var(--text-sub);
-			font-size: 20px;
-			cursor: pointer;
-			padding: 0;
-			line-height: 1;
-			transition: color 0.2s;
-		}
-		.ab-close:hover { color: var(--text-main); }
+		/* Header */
+		.ab-header { padding:16px 20px; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:flex-start; background:rgba(255,255,255,.02); }
+		.ab-header-left { display:flex; flex-direction:column; }
+		.ab-brand { color:var(--text-main); font-size:16px; font-weight:700; background:linear-gradient(90deg,#fff,#a5b4fc); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+		.ab-version { font-size:10px; color:var(--text-sub); background:rgba(255,255,255,.1); padding:2px 6px; border-radius:4px; margin-left:8px; font-weight:normal; -webkit-text-fill-color:var(--text-sub); }
+		.ab-brand-links { display:flex; gap:12px; margin-top:4px; }
+		.ab-brand-link { color:var(--text-sub); font-size:10px; text-decoration:none; transition:color .2s; }
+		.ab-brand-link:hover { color:var(--accent-color); }
+		.ab-header-right { display:flex; align-items:center; gap:12px; }
+		.ab-lang-switch { background:none; border:1px solid var(--border-color); color:var(--text-sub); font-size:11px; padding:4px 8px; border-radius:4px; cursor:pointer; transition:all .2s; }
+		.ab-lang-switch:hover { border-color:var(--text-main); color:var(--text-main); }
+		.ab-close { background:none; border:none; color:var(--text-sub); font-size:20px; cursor:pointer; padding:0; line-height:1; transition:color .2s; }
+		.ab-close:hover { color:var(--text-main); }
 
-		/* 内容区 */
-		.ab-body {
-			flex: 1;
-			overflow-y: auto;
-			padding: 16px 20px;
-		}
+		/* Tab 导航 */
+		.ab-tab-nav { display:flex; border-bottom:1px solid var(--border-color); padding:0 10px; background:rgba(0,0,0,.1); }
+		.ab-tab-btn { flex:1; background:none; border:none; color:var(--text-sub); padding:12px; font-size:13px; cursor:pointer; position:relative; transition:all .2s; }
+		.ab-tab-btn:hover { color:var(--text-main); }
+		.ab-tab-btn.active { color:var(--accent-color); font-weight:600; }
+		.ab-tab-btn.active::after { content:''; position:absolute; bottom:-1px; left:0; width:100%; height:2px; background:var(--accent-color); }
 
-		/* 设置项 */
-		.ab-setting {
-			display: flex;
-			align-items: center;
-			justify-content: space-between;
-			padding: 8px 0;
-			border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-		}
-		.ab-setting:last-child { border-bottom: none; }
-		.ab-setting-name {
-			color: #ccc;
-			font-size: 13px;
-			display: flex;
-			align-items: center;
-			gap: 8px;
-		}
-		.ab-setting-right {
-			display: flex;
-			align-items: center;
-			gap: 8px;
-		}
+		/* Tab 内容 */
+		.ab-body { flex:1; overflow-y:auto; padding:0; }
+		.ab-tab-content { display:none; animation:abFadeIn .2s ease; }
+		.ab-tab-content.active { display:block; }
+		@keyframes abFadeIn { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
 
-		/* 主开关高亮 */
-		.ab-main-toggle {
-			display: flex;
-			align-items: center;
-			justify-content: space-between;
-			padding: 10px 12px;
-			background: rgba(102, 126, 234, 0.1);
-			border: 1px solid rgba(102, 126, 234, 0.2);
-			border-radius: 8px;
-			margin-bottom: 12px;
-		}
-		.ab-main-toggle-label {
-			color: var(--text-main);
-			font-size: 13px;
-			font-weight: 500;
-		}
+		/* 手风琴 */
+		.ab-accordion { border-bottom:1px solid var(--border-color); }
+		.ab-accordion-header { padding:14px 20px; background:rgba(255,255,255,.01); cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition:background .2s; }
+		.ab-accordion-header:hover { background:rgba(255,255,255,.03); }
+		.ab-accordion-title { font-size:13px; font-weight:600; color:var(--text-main); display:flex; align-items:center; gap:8px; }
+		.ab-accordion-icon { font-size:10px; color:var(--text-sub); transition:transform .3s; }
+		.ab-accordion.expanded .ab-accordion-icon { transform:rotate(180deg); }
+		.ab-accordion-body { max-height:0; overflow:hidden; transition:max-height .3s cubic-bezier(0,1,0,1); background:rgba(0,0,0,.1); }
+		.ab-accordion.expanded .ab-accordion-body { max-height:1000px; transition:max-height .3s ease-in-out; }
+		.ab-accordion-inner { padding:16px 20px; }
+
+		/* 通用控件 */
+		.ab-main-toggle { display:flex; align-items:center; justify-content:space-between; padding:10px 12px; background:rgba(102,126,234,.1); border:1px solid rgba(102,126,234,.2); border-radius:8px; margin-bottom:12px; }
+		.ab-main-toggle-label { color:var(--text-main); font-size:13px; font-weight:500; }
+		.ab-setting { display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,.05); }
+		.ab-setting:last-child { border-bottom:none; }
+		.ab-setting-left { display:flex; align-items:center; gap:10px; }
+		.ab-setting-icon { font-size:15px; width:20px; text-align:center; color:var(--text-sub); }
+		.ab-setting-name { color:#ccc; font-size:13px; }
+		.ab-setting-right { display:flex; align-items:center; gap:8px; }
+		.ab-setting-desc { font-size:11px; color:var(--text-sub); margin-bottom:12px; line-height:1.5; }
 
 		/* Toggle Switch */
-		.ab-toggle {
-			position: relative;
-			width: 32px;
-			height: 18px;
-		}
-		.ab-toggle input {
-			opacity: 0;
-			width: 0;
-			height: 0;
-		}
-		.ab-toggle-slider {
-			position: absolute;
-			cursor: pointer;
-			top: 0; left: 0; right: 0; bottom: 0;
-			background-color: #3c3c3c;
-			transition: 0.3s;
-			border-radius: 20px;
-		}
-		.ab-toggle-slider:before {
-			position: absolute;
-			content: "";
-			height: 12px;
-			width: 12px;
-			left: 3px;
-			bottom: 3px;
-			background-color: white;
-			transition: 0.3s;
-			border-radius: 50%;
-		}
-		.ab-toggle input:checked + .ab-toggle-slider {
-			background: var(--accent-color);
-		}
-		.ab-toggle input:checked + .ab-toggle-slider:before {
-			transform: translateX(14px);
-		}
+		.ab-toggle { position:relative; width:32px; height:18px; }
+		.ab-toggle input { opacity:0; width:0; height:0; }
+		.ab-toggle-slider { position:absolute; cursor:pointer; top:0;left:0;right:0;bottom:0; background-color:#3c3c3c; transition:.3s; border-radius:20px; }
+		.ab-toggle-slider:before { position:absolute; content:""; height:12px; width:12px; left:3px; bottom:3px; background-color:#fff; transition:.3s; border-radius:50%; }
+		.ab-toggle input:checked+.ab-toggle-slider { background:var(--accent-color); }
+		.ab-toggle input:checked+.ab-toggle-slider:before { transform:translateX(14px); }
 
-		/* Color Input */
-		.ab-color-input {
-			width: 24px;
-			height: 24px;
-			border: 1px solid var(--border-color);
-			border-radius: 4px;
-			cursor: pointer;
-			padding: 0;
-			background: none;
-		}
-		.ab-color-input::-webkit-color-swatch-wrapper { padding: 2px; }
-		.ab-color-input::-webkit-color-swatch { border-radius: 2px; border: none; }
+		/* Color/Select/FontSize Input */
+		.ab-color-input { width:24px; height:24px; border:1px solid var(--border-color); border-radius:4px; cursor:pointer; padding:0; background:none; }
+		.ab-color-input::-webkit-color-swatch-wrapper { padding:2px; }
+		.ab-color-input::-webkit-color-swatch { border-radius:2px; border:none; }
+		.ab-select-input { background:#2d2d2d; border:1px solid var(--border-color); border-radius:6px; padding:4px 8px; color:#ccc; font-size:12px; cursor:pointer; outline:none; min-width:110px; }
+		.ab-select-input:focus { border-color:var(--accent-color); }
+		.ab-fontsize-input { width:50px; background:#2d2d2d; border:1px solid var(--border-color); border-radius:6px; padding:4px 6px; color:#ccc; font-size:12px; text-align:center; outline:none; }
+		.ab-fontsize-input:focus { border-color:var(--accent-color); }
 
-		/* 区块标题 */
-		.ab-section-title {
-			font-size: 13px;
-			font-weight: 600;
-			color: var(--text-main);
-			margin: 16px 0 8px;
-			display: flex;
-			align-items: center;
-			gap: 6px;
-		}
-		.ab-section-title:first-child { margin-top: 0; }
+		/* 按钮组 */
+		.ab-btn-group { display:flex; gap:10px; margin-top:10px; }
+		.ab-btn { flex:1; padding:8px; border-radius:6px; border:none; cursor:pointer; font-size:12px; transition:all .2s; }
+		.ab-btn.primary { background:var(--accent-color); color:#fff; }
+		.ab-btn.primary:hover { filter:brightness(1.1); }
+		.ab-btn.secondary { background:rgba(255,255,255,.1); color:#ccc; border:1px solid var(--border-color); }
+		.ab-btn.secondary:hover { background:rgba(255,255,255,.15); }
+		.ab-save-status { font-size:11px; text-align:center; margin-top:8px; min-height:16px; color:#4ADE80; }
 
-		/* Toast 提示 */
-		#ab-toast {
-			position: fixed;
-			top: 50px;
-			left: 50%;
-			transform: translateX(-50%);
-			background: rgba(0, 0, 0, 0.85);
-			color: white;
-			padding: 10px 20px;
-			border-radius: 20px;
-			font-size: 13px;
-			z-index: 20000;
-			display: none;
-			opacity: 0;
-			transition: opacity 0.3s ease, top 0.3s ease;
-			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-			border: 1px solid rgba(255, 255, 255, 0.1);
-		}
-		#ab-toast.show { display: block; opacity: 1; top: 60px; }
+		/* 同步按钮 */
+		.ab-sync-btn { background:rgba(102,126,234,.2); border:1px solid rgba(102,126,234,.3); color:var(--accent-color); font-size:11px; padding:3px 8px; border-radius:4px; cursor:pointer; transition:all .2s; white-space:nowrap; }
+		.ab-sync-btn:hover { background:rgba(102,126,234,.4); }
 
-		/* 验证状态面板 */
-		.ab-verify-panel {
-			margin-top: 16px;
-			padding: 12px;
-			background: rgba(0, 0, 0, 0.2);
-			border-radius: 8px;
-			font-size: 12px;
-		}
-		.ab-verify-item {
-			display: flex;
-			align-items: center;
-			gap: 8px;
-			padding: 4px 0;
-			color: #ccc;
-		}
-		.ab-verify-pass { color: #4ADE80; }
-		.ab-verify-fail { color: #f87171; }
+		/* Pattern Grid (Auto Accept) */
+		.ab-pattern-grid { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
+		.ab-pattern-item { display:flex; align-items:center; gap:6px; padding:6px 10px; background:rgba(0,0,0,.3); border:1px solid var(--border-color); border-radius:6px; cursor:pointer; transition:all .2s; font-size:12px; color:#ccc; }
+		.ab-pattern-item:hover { background:rgba(255,255,255,.05); }
+		.ab-pattern-item.active { border-color:var(--accent-color); background:rgba(102,126,234,.15); color:var(--text-main); }
+		.ab-pattern-item input[type="checkbox"] { accent-color:var(--accent-color); width:14px; height:14px; cursor:pointer; }
 
-		/* ===== 颜色覆盖样式 ===== */
-		/* V0.2: .prose → .leading-relaxed.select-text */
-		/* V0.2: #react-app → body + .antigravity-agent-side-panel */
+		/* 统计面板 */
+		.ab-stats-panel { display:flex; justify-content:space-around; padding:12px; background:rgba(0,0,0,.2); border-radius:8px; margin-top:12px; }
+		.ab-stat-item { text-align:center; flex:1; }
+		.ab-stat-icon { font-size:16px; display:block; margin-bottom:4px; }
+		.ab-stat-value { display:block; font-size:18px; font-weight:700; color:var(--text-main); }
+		.ab-stat-label { font-size:10px; color:var(--text-sub); text-transform:uppercase; }
 
-		/* 用户消息 */
+		/* Textarea */
+		.ab-textarea { width:100%; min-height:100px; background:rgba(0,0,0,.3); border:1px solid var(--border-color); border-radius:6px; color:#ccc; font-family:'Consolas','Monaco',monospace; font-size:11px; padding:10px; resize:vertical; outline:none; box-sizing:border-box; }
+		.ab-textarea:focus { border-color:var(--accent-color); }
+
+		/* Toast */
+		#ab-toast { position:absolute; top:10px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,.85); color:#fff; padding:10px 20px; border-radius:20px; font-size:13px; z-index:20000; display:none; opacity:0; transition:opacity .3s ease,top .3s ease; box-shadow:0 4px 12px rgba(0,0,0,.3); border:1px solid rgba(255,255,255,.1); }
+		#ab-toast.show { display:block; opacity:1; top:20px; }
+
+		/* ===== 颜色覆盖 (V0.2 选择器) ===== */
 		body.color-user-message .antigravity-agent-side-panel .bg-gray-500\/15 .whitespace-pre-wrap,
-		body.color-user-message .antigravity-agent-side-panel .bg-gray-500\/15 [style*="word-break"] {
-			color: var(--color-user-message) !important;
-		}
+		body.color-user-message .antigravity-agent-side-panel .bg-gray-500\/15 [style*="word-break"] { color:var(--color-user-message) !important; }
 
-		/* AI回复 (排除思考区域) */
 		body.color-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) p,
 		body.color-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) li,
 		body.color-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) h1,
@@ -373,23 +233,37 @@
 		body.color-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) ol,
 		body.color-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) table,
 		body.color-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) th,
-		body.color-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) td {
-			color: var(--color-ai-response) !important;
-		}
+		body.color-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) td { color:var(--color-ai-response) !important; }
 
-		/* 代码块（.leading-relaxed 内的 pre/code + 行内 code） */
 		body.color-code-block .antigravity-agent-side-panel .leading-relaxed pre,
 		body.color-code-block .antigravity-agent-side-panel .leading-relaxed pre code,
 		body.color-code-block .antigravity-agent-side-panel .leading-relaxed pre span,
-		body.color-code-block .antigravity-agent-side-panel .leading-relaxed code.whitespace-pre-wrap {
-			color: var(--color-code-block) !important;
-		}
+		body.color-code-block .antigravity-agent-side-panel .leading-relaxed code.whitespace-pre-wrap { color:var(--color-code-block) !important; }
 
-		/* 思考过程 */
 		body.color-thinking .antigravity-agent-side-panel .leading-relaxed.select-text.opacity-70,
-		body.color-thinking .antigravity-agent-side-panel .leading-relaxed.select-text.opacity-70 * {
-			color: var(--color-thinking) !important;
-		}
+		body.color-thinking .antigravity-agent-side-panel .leading-relaxed.select-text.opacity-70 * { color:var(--color-thinking) !important; }
+
+		/* ===== 字体大小覆盖 (V0.2 选择器) ===== */
+		body.fontsize-user-message .antigravity-agent-side-panel .bg-gray-500\/15 .whitespace-pre-wrap,
+		body.fontsize-user-message .antigravity-agent-side-panel .bg-gray-500\/15 [style*="word-break"] { font-size:var(--fontsize-user-message) !important; }
+
+		body.fontsize-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) p,
+		body.fontsize-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) li,
+		body.fontsize-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) h2,
+		body.fontsize-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) h3,
+		body.fontsize-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) strong,
+		body.fontsize-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) ul,
+		body.fontsize-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) ol,
+		body.fontsize-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) table,
+		body.fontsize-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) th,
+		body.fontsize-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) td { font-size:var(--fontsize-ai-response) !important; }
+
+		body.fontsize-code-block .antigravity-agent-side-panel .leading-relaxed pre,
+		body.fontsize-code-block .antigravity-agent-side-panel .leading-relaxed pre code,
+		body.fontsize-code-block .antigravity-agent-side-panel .leading-relaxed pre span { font-size:var(--fontsize-code-block) !important; }
+
+		body.fontsize-thinking .antigravity-agent-side-panel .leading-relaxed.select-text.opacity-70,
+		body.fontsize-thinking .antigravity-agent-side-panel .leading-relaxed.select-text.opacity-70 * { font-size:var(--fontsize-thinking) !important; }
 	</style>
 </head>
 
@@ -404,55 +278,84 @@
 <script>
 (function () {
 	'use strict';
-
-	/* ===== Antigravity Better v0.2.1 - 最小验证版本 ===== */
-	/* 目的：验证以下关键技术点 */
-	/* 1. Trusted Types 兼容 - 动态 DOM 创建 */
-	/* 2. CSS 选择器适配 - body.xxx .antigravity-agent-side-panel */
-	/* 3. MutationObserver - 监听 AI 面板出现 */
-	/* 4. localStorage 数据持久化 */
-	/* 5. 设置面板 UI 渲染 */
-
-	console.log('[AB] Antigravity Better v0.2.1 (Minimal Verification) Loading...');
+	/* ===== Antigravity Better v0.2.1 ===== */
+	console.log('[AB] Antigravity Better v0.2.1 Loading...');
 
 	// ===== Trusted Types Policy =====
-	// workbench.html 要求 trusted-types，我们在 CSP 中注册了 'antigravityBetter'
 	let abPolicy = null;
 	if (window.trustedTypes && trustedTypes.createPolicy) {
 		try {
-			abPolicy = trustedTypes.createPolicy('antigravityBetter', {
-				createHTML: (input) => input
-			});
+			abPolicy = trustedTypes.createPolicy('antigravityBetter', { createHTML: (input) => input });
 			console.log('[AB] ✅ Trusted Types Policy 创建成功');
-		} catch (e) {
-			console.warn('[AB] ⚠️ Trusted Types Policy 创建失败:', e.message);
-		}
+		} catch (e) { console.warn('[AB] ⚠️ Trusted Types Policy 创建失败:', e.message); }
 	}
+	function safeSetHTML(el, html) { el.innerHTML = abPolicy ? abPolicy.createHTML(html) : html; }
 
-	// 安全设置 innerHTML 的辅助函数
-	function safeSetHTML(el, html) {
-		if (abPolicy) {
-			el.innerHTML = abPolicy.createHTML(html);
-		} else {
-			el.innerHTML = html;
+	// ===== I18N 字典 =====
+	const T = {
+		zh: {
+			tab_appearance: '🎨 外观', tab_features: '🛠️ 功能', tab_system: '⚙️ 系统',
+			colors_title: '🎨 颜色自定义', enable_custom_colors: '启用自定义颜色',
+			lbl_user_msg: '用户消息', lbl_ai_resp: 'AI回复', lbl_code: '代码块', lbl_status: '操作状态', lbl_thinking: '思考过程',
+			fontsize_title: '🔤 字体大小', enable_custom_fontsize: '启用自定义字体大小', btn_sync: '同步全部',
+			copy_title: '📋 一键复制', enable_copy: '启用复制按钮',
+			hotkey_title: '⌨️ 快捷键设置', enable_hotkey: '自定义发送快捷键', lbl_send_hotkey: '发送快捷键',
+			auto_accept_title: '🤖 自动操作', enable_auto_accept: '启用自动操作', auto_accept_desc: '选择要自动点击的按钮类型',
+			stat_clicks: '已点击', stat_blocked: '已阻止', stat_verified: '已验证',
+			banned_title: '🛡️ 安全规则', banned_desc: '包含以下关键词的命令将不会被自动执行（每行一个）',
+			btn_save: '保存', btn_reset: '重置', banned_saved: '✓ 安全规则已保存', banned_reset: '✓ 已重置为默认值',
+			version_title: '🔄 版本更新', lbl_auto_update: '启动时自动检测', lbl_manual_update: '手动检测更新', btn_check_update: '立即检测',
+			update_checking: '正在检测...', update_latest: '✓ 已是最新版本', update_found: '✓ 发现新版本', update_failed: '✗ 检测失败',
+			update_available: '新版本可用', btn_download: '下载更新',
+			latex_title: '📐 LaTeX 公式', enable_latex: '启用 LaTeX 渲染', latex_desc: '自动渲染 AI 回复中的 LaTeX 数学公式'
+		},
+		en: {
+			tab_appearance: '🎨 Appearance', tab_features: '🛠️ Features', tab_system: '⚙️ System',
+			colors_title: '🎨 Colors', enable_custom_colors: 'Enable Custom Colors',
+			lbl_user_msg: 'User Message', lbl_ai_resp: 'AI Response', lbl_code: 'Code Block', lbl_status: 'Action Status', lbl_thinking: 'Thinking Process',
+			fontsize_title: '🔤 Font Size', enable_custom_fontsize: 'Enable Custom Font Size', btn_sync: 'Sync All',
+			copy_title: '📋 One-Click Copy', enable_copy: 'Enable Copy Buttons',
+			hotkey_title: '⌨️ Shortcuts', enable_hotkey: 'Custom Send Hotkey', lbl_send_hotkey: 'Send Hotkey',
+			auto_accept_title: '🤖 Auto Accept', enable_auto_accept: 'Enable Auto Accept', auto_accept_desc: 'Select button types to auto-click',
+			stat_clicks: 'Clicked', stat_blocked: 'Blocked', stat_verified: 'Verified',
+			banned_title: '🛡️ Safety Rules', banned_desc: 'Commands containing these keywords will not be auto-executed (one per line)',
+			btn_save: 'Save', btn_reset: 'Reset', banned_saved: '✓ Safety rules saved', banned_reset: '✓ Reset to defaults',
+			version_title: '🔄 Version Update', lbl_auto_update: 'Auto check on startup', lbl_manual_update: 'Manual check', btn_check_update: 'Check Now',
+			update_checking: 'Checking...', update_latest: '✓ Already latest', update_found: '✓ New version found', update_failed: '✗ Check failed',
+			update_available: 'New version available', btn_download: 'Download',
+			latex_title: '📐 LaTeX Formulas', enable_latex: 'Enable LaTeX Rendering', latex_desc: 'Auto-render LaTeX math formulas in AI responses'
 		}
-	}
+	};
+	function t(key) { return (T[currentSettings.lang] || T.zh)[key] || key; }
 
 	// ===== 配置 =====
-	const APP_VERSION = '0.2.1-beta';
+	const APP_VERSION = '0.2.1';
 	const STORAGE_KEY = 'antigravity-better-settings';
 
 	const COLOR_CONFIGS = [
-		{ id: 'user-message', cssVar: '--color-user-message', cssClass: 'color-user-message', default: '#60A5FA', enabled: true, icon: '📝', labelZh: '用户消息', labelEn: 'User Message' },
-		{ id: 'ai-response', cssVar: '--color-ai-response', cssClass: 'color-ai-response', default: '#E0E0E0', enabled: true, icon: '🤖', labelZh: 'AI回复', labelEn: 'AI Response' },
-		{ id: 'code-block', cssVar: '--color-code-block', cssClass: 'color-code-block', default: '#A78BFA', enabled: true, icon: '💻', labelZh: '代码块', labelEn: 'Code Block' },
-		{ id: 'thinking', cssVar: '--color-thinking', cssClass: 'color-thinking', default: '#9CA3AF', enabled: false, icon: '💭', labelZh: '思考过程', labelEn: 'Thinking' },
+		{ id: 'user-message', cssVar: '--color-user-message', cssClass: 'color-user-message', default: '#60A5FA', enabled: true, icon: '📝' },
+		{ id: 'ai-response', cssVar: '--color-ai-response', cssClass: 'color-ai-response', default: '#E0E0E0', enabled: true, icon: '🤖' },
+		{ id: 'code-block', cssVar: '--color-code-block', cssClass: 'color-code-block', default: '#A78BFA', enabled: true, icon: '💻' },
+		{ id: 'action-status', cssVar: '--color-action-status', cssClass: 'color-action-status', default: '#4ADE80', enabled: false, icon: '✅' },
+		{ id: 'thinking', cssVar: '--color-thinking', cssClass: 'color-thinking', default: '#9CA3AF', enabled: false, icon: '💭' },
+	];
+
+	const FONTSIZE_CONFIGS = [
+		{ id: 'user-message', cssVar: '--fontsize-user-message', cssClass: 'fontsize-user-message', default: 14, enabled: true, icon: '📝' },
+		{ id: 'ai-response', cssVar: '--fontsize-ai-response', cssClass: 'fontsize-ai-response', default: 14, enabled: true, icon: '🤖' },
+		{ id: 'code-block', cssVar: '--fontsize-code-block', cssClass: 'fontsize-code-block', default: 13, enabled: true, icon: '💻' },
+		{ id: 'action-status', cssVar: '--fontsize-action-status', cssClass: 'fontsize-action-status', default: 13, enabled: false, icon: '✅' },
+		{ id: 'thinking', cssVar: '--fontsize-thinking', cssClass: 'fontsize-thinking', default: 13, enabled: false, icon: '💭' },
 	];
 
 	const defaultSettings = {
 		lang: 'zh',
 		masterEnabled: false,
 		colors: COLOR_CONFIGS.reduce((acc, c) => { acc[c.id] = { color: c.default, enabled: c.enabled }; return acc; }, {}),
+		fontsizeMasterEnabled: false,
+		fontsizes: FONTSIZE_CONFIGS.reduce((acc, c) => { acc[c.id] = { size: c.default, enabled: c.enabled }; return acc; }, {}),
+		copyEnabled: false, hotkeyEnabled: false, sendHotkey: 'cmd+enter',
+		autoAcceptEnabled: false, autoUpdateEnabled: true, latexEnabled: false,
 	};
 
 	// ===== 存储 =====
@@ -460,297 +363,280 @@
 		try {
 			const saved = localStorage.getItem(STORAGE_KEY);
 			if (saved) {
-				const parsed = JSON.parse(saved);
-				return {
-					lang: parsed.lang ?? defaultSettings.lang,
-					masterEnabled: parsed.masterEnabled ?? defaultSettings.masterEnabled,
-					colors: { ...defaultSettings.colors, ...parsed.colors },
-				};
+				const p = JSON.parse(saved);
+				return { ...defaultSettings, ...p, colors: { ...defaultSettings.colors, ...p.colors }, fontsizes: { ...defaultSettings.fontsizes, ...p.fontsizes } };
 			}
 		} catch (e) { /* ignore */ }
 		return { ...defaultSettings };
 	}
-
-	function saveSettings(s) {
-		try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch (e) { /* ignore */ }
-	}
-
+	function saveSettings(s) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch (e) { /* ignore */ } }
 	let currentSettings = loadSettings();
 
-	// ===== 验证结果 =====
-	const verifyResults = {};
-
-	// ===== 应用颜色设置 =====
+	// ===== 应用颜色/字体设置 =====
 	function applyColorSettings() {
-		COLOR_CONFIGS.forEach(config => {
-			const colorSetting = currentSettings.colors[config.id];
-			document.documentElement.style.setProperty(config.cssVar, colorSetting.color);
-			if (currentSettings.masterEnabled && colorSetting.enabled) {
-				document.body.classList.add(config.cssClass);
-			} else {
-				document.body.classList.remove(config.cssClass);
-			}
+		COLOR_CONFIGS.forEach(c => {
+			const s = currentSettings.colors[c.id];
+			document.documentElement.style.setProperty(c.cssVar, s.color);
+			document.body.classList.toggle(c.cssClass, currentSettings.masterEnabled && s.enabled);
+		});
+	}
+	function applyFontsizeSettings() {
+		FONTSIZE_CONFIGS.forEach(c => {
+			const s = currentSettings.fontsizes[c.id];
+			document.documentElement.style.setProperty(c.cssVar, s.size + 'px');
+			document.body.classList.toggle(c.cssClass, currentSettings.fontsizeMasterEnabled && s.enabled);
 		});
 	}
 
-	// ===== 动态创建设置面板 UI =====
+	// ===== DOM 工具 =====
+	function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text) e.textContent = text; return e; }
+	function createToggle(checked, onChange) {
+		const label = el('label', 'ab-toggle');
+		const input = document.createElement('input'); input.type = 'checkbox'; input.checked = checked;
+		input.addEventListener('change', () => onChange(input.checked));
+		const slider = el('span', 'ab-toggle-slider');
+		label.appendChild(input); label.appendChild(slider); return label;
+	}
+	function createMainToggle(i18nKey, checked, onChange) {
+		const w = el('div', 'ab-main-toggle');
+		const lb = el('span', 'ab-main-toggle-label', t(i18nKey)); lb.dataset.i18n = i18nKey;
+		w.appendChild(lb); w.appendChild(createToggle(checked, onChange)); return w;
+	}
+	function createAccordion(i18nKey, expanded) {
+		const item = el('div', 'ab-accordion' + (expanded ? ' expanded' : ''));
+		const header = el('div', 'ab-accordion-header');
+		const title = el('span', 'ab-accordion-title', t(i18nKey)); title.dataset.i18n = i18nKey;
+		const icon = el('span', 'ab-accordion-icon', '▼');
+		header.appendChild(title); header.appendChild(icon);
+		header.addEventListener('click', () => item.classList.toggle('expanded'));
+		const body = el('div', 'ab-accordion-body');
+		const inner = el('div', 'ab-accordion-inner');
+		body.appendChild(inner); item.appendChild(header); item.appendChild(body);
+		return { item, inner };
+	}
+	function createSettingItem(icon, i18nKey) {
+		const row = el('div', 'ab-setting');
+		const left = el('div', 'ab-setting-left');
+		left.appendChild(el('span', 'ab-setting-icon', icon));
+		const name = el('span', 'ab-setting-name', t(i18nKey)); name.dataset.i18n = i18nKey;
+		left.appendChild(name);
+		const right = el('div', 'ab-setting-right');
+		row.appendChild(left); row.appendChild(right);
+		return { row, right };
+	}
+
+	// ===== I18N 更新 =====
+	let langSwitchBtn = null;
+	function updateLanguage() {
+		document.querySelectorAll('[data-i18n]').forEach(e => {
+			const key = e.dataset.i18n;
+			const val = t(key); if (val) e.textContent = val;
+		});
+		if (langSwitchBtn) langSwitchBtn.textContent = currentSettings.lang === 'zh' ? '🌐 English' : '🌐 中文';
+	}
+
+	// ===== 创建设置面板 =====
 	function createSettingsUI(panelEl) {
-		// 避免重复创建
 		if (panelEl.querySelector('#ab-settings-btn')) return;
 
-		// --- 悬浮按钮 ---
-		const btn = document.createElement('button');
-		btn.id = 'ab-settings-btn';
-		btn.title = 'Antigravity Better Settings';
+		// 悬浮按钮
+		const btn = el('button'); btn.id = 'ab-settings-btn'; btn.title = 'Antigravity Better Settings';
 		const svgNS = 'http://www.w3.org/2000/svg';
-		const svg = document.createElementNS(svgNS, 'svg');
-		svg.setAttribute('viewBox', '0 0 24 24');
+		const svg = document.createElementNS(svgNS, 'svg'); svg.setAttribute('viewBox', '0 0 24 24');
 		const path = document.createElementNS(svgNS, 'path');
 		path.setAttribute('d', 'M19.14,12.94c0.04-0.31,0.06-0.63,0.06-0.94c0-0.31-0.02-0.63-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.37,4.8,11.69,4.8,12s0.02,0.63,0.06,0.94l-2.03,1.58c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z');
-		svg.appendChild(path);
-		btn.appendChild(svg);
-		panelEl.appendChild(btn);
-		verifyResults['DOM创建'] = '✅';
-		console.log('[AB] ✅ 悬浮按钮创建成功 (挂载到 AI 面板)');
+		svg.appendChild(path); btn.appendChild(svg); panelEl.appendChild(btn);
 
-		// --- 遮罩层 ---
-		const overlay = document.createElement('div');
-		overlay.id = 'ab-overlay';
+		// 遮罩层 + 弹窗
+		const overlay = el('div'); overlay.id = 'ab-overlay';
+		const modal = el('div'); modal.id = 'ab-modal';
 
-		// --- 弹窗 ---
-		const modal = document.createElement('div');
-		modal.id = 'ab-modal';
-
-		// Header
-		const header = document.createElement('div');
-		header.className = 'ab-header';
-		const brandSpan = document.createElement('span');
-		brandSpan.className = 'ab-brand';
-		brandSpan.textContent = 'Antigravity Better';
-		const versionSpan = document.createElement('span');
-		versionSpan.className = 'ab-version';
-		versionSpan.textContent = 'v' + APP_VERSION;
-		brandSpan.appendChild(versionSpan);
-		const closeBtn = document.createElement('button');
-		closeBtn.className = 'ab-close';
-		closeBtn.textContent = '×';
-		header.appendChild(brandSpan);
-		header.appendChild(closeBtn);
+		// === Header ===
+		const header = el('div', 'ab-header');
+		const headerLeft = el('div', 'ab-header-left');
+		const brand = el('span', 'ab-brand', 'Antigravity Better');
+		const ver = el('span', 'ab-version', 'v' + APP_VERSION); brand.appendChild(ver);
+		const links = el('div', 'ab-brand-links');
+		const link1 = document.createElement('a'); link1.className = 'ab-brand-link'; link1.href = 'https://dpit.lib00.com'; link1.target = '_blank'; link1.textContent = '🌐 dpit.lib00.com';
+		const link2 = document.createElement('a'); link2.className = 'ab-brand-link'; link2.href = 'https://github.com/016/Antigravity-Better'; link2.target = '_blank'; link2.textContent = '📦 GitHub';
+		links.appendChild(link1); links.appendChild(link2);
+		headerLeft.appendChild(brand); headerLeft.appendChild(links);
+		const headerRight = el('div', 'ab-header-right');
+		langSwitchBtn = el('button', 'ab-lang-switch', currentSettings.lang === 'zh' ? '🌐 English' : '🌐 中文');
+		langSwitchBtn.addEventListener('click', () => { currentSettings.lang = currentSettings.lang === 'zh' ? 'en' : 'zh'; saveSettings(currentSettings); updateLanguage(); });
+		const closeBtn = el('button', 'ab-close', '×');
+		headerRight.appendChild(langSwitchBtn); headerRight.appendChild(closeBtn);
+		header.appendChild(headerLeft); header.appendChild(headerRight);
 		modal.appendChild(header);
 
-		// Body
-		const body = document.createElement('div');
-		body.className = 'ab-body';
-
-		// 颜色区块标题
-		const colorTitle = document.createElement('div');
-		colorTitle.className = 'ab-section-title';
-		colorTitle.textContent = '🎨 颜色自定义';
-		body.appendChild(colorTitle);
-
-		// 主开关
-		const mainToggle = createMainToggle('启用自定义颜色', 'Enable Custom Colors', currentSettings.masterEnabled, (checked) => {
-			currentSettings.masterEnabled = checked;
-			saveSettings(currentSettings);
-			applyColorSettings();
+		// === Tab 导航 ===
+		const tabNav = el('div', 'ab-tab-nav');
+		const tabs = [
+			{ id: 'appearance', i18n: 'tab_appearance' },
+			{ id: 'features', i18n: 'tab_features' },
+			{ id: 'system', i18n: 'tab_system' },
+		];
+		const tabContents = {};
+		tabs.forEach((tab, i) => {
+			const tbtn = el('button', 'ab-tab-btn' + (i === 0 ? ' active' : ''), t(tab.i18n));
+			tbtn.dataset.i18n = tab.i18n; tbtn.dataset.tab = tab.id;
+			tabNav.appendChild(tbtn);
+			const content = el('div', 'ab-tab-content' + (i === 0 ? ' active' : ''));
+			tabContents[tab.id] = content;
 		});
-		body.appendChild(mainToggle);
+		modal.appendChild(tabNav);
 
-		// 颜色设置项
-		COLOR_CONFIGS.forEach(config => {
-			const colorSetting = currentSettings.colors[config.id];
-			const item = document.createElement('div');
-			item.className = 'ab-setting';
-
-			const nameDiv = document.createElement('div');
-			nameDiv.className = 'ab-setting-name';
-			nameDiv.textContent = config.icon + ' ' + (currentSettings.lang === 'zh' ? config.labelZh : config.labelEn);
-
-			const rightDiv = document.createElement('div');
-			rightDiv.className = 'ab-setting-right';
-
-			const toggle = createToggle(colorSetting.enabled, (checked) => {
-				currentSettings.colors[config.id].enabled = checked;
-				saveSettings(currentSettings);
-				applyColorSettings();
-			});
-			rightDiv.appendChild(toggle);
-
-			const colorInput = document.createElement('input');
-			colorInput.type = 'color';
-			colorInput.className = 'ab-color-input';
-			colorInput.value = colorSetting.color;
-			colorInput.addEventListener('input', () => {
-				currentSettings.colors[config.id].color = colorInput.value;
-				saveSettings(currentSettings);
-				applyColorSettings();
-			});
-			rightDiv.appendChild(colorInput);
-
-			item.appendChild(nameDiv);
-			item.appendChild(rightDiv);
-			body.appendChild(item);
+		// Tab 切换逻辑
+		tabNav.addEventListener('click', (e) => {
+			const tb = e.target.closest('.ab-tab-btn'); if (!tb) return;
+			tabNav.querySelectorAll('.ab-tab-btn').forEach(b => b.classList.remove('active'));
+			tb.classList.add('active');
+			Object.values(tabContents).forEach(c => c.classList.remove('active'));
+			tabContents[tb.dataset.tab].classList.add('active');
 		});
 
-		// 验证面板
-		const verifyTitle = document.createElement('div');
-		verifyTitle.className = 'ab-section-title';
-		verifyTitle.textContent = '🔍 技术验证结果';
-		verifyTitle.style.marginTop = '20px';
-		body.appendChild(verifyTitle);
+		// === Body ===
+		const body = el('div', 'ab-body');
 
-		const verifyPanel = document.createElement('div');
-		verifyPanel.className = 'ab-verify-panel';
-		verifyPanel.id = 'ab-verify-panel';
-		body.appendChild(verifyPanel);
+		// ============ Tab: 外观 ============
+		const tabAppearance = tabContents['appearance'];
 
+		// -- 颜色自定义 --
+		const colorAcc = createAccordion('colors_title', true);
+		colorAcc.inner.appendChild(createMainToggle('enable_custom_colors', currentSettings.masterEnabled, (v) => {
+			currentSettings.masterEnabled = v; saveSettings(currentSettings); applyColorSettings();
+		}));
+		COLOR_CONFIGS.forEach(c => {
+			const s = currentSettings.colors[c.id];
+			const lbl = c.id === 'user-message' ? 'lbl_user_msg' : c.id === 'ai-response' ? 'lbl_ai_resp' : c.id === 'code-block' ? 'lbl_code' : c.id === 'action-status' ? 'lbl_status' : 'lbl_thinking';
+			const { row, right } = createSettingItem(c.icon, lbl);
+			right.appendChild(createToggle(s.enabled, (v) => { currentSettings.colors[c.id].enabled = v; saveSettings(currentSettings); applyColorSettings(); }));
+			const ci = document.createElement('input'); ci.type = 'color'; ci.className = 'ab-color-input'; ci.value = s.color;
+			ci.addEventListener('input', () => { currentSettings.colors[c.id].color = ci.value; saveSettings(currentSettings); applyColorSettings(); });
+			right.appendChild(ci);
+			colorAcc.inner.appendChild(row);
+		});
+		tabAppearance.appendChild(colorAcc.item);
+
+		// -- 字体大小 --
+		const fontAcc = createAccordion('fontsize_title', false);
+		fontAcc.inner.appendChild(createMainToggle('enable_custom_fontsize', currentSettings.fontsizeMasterEnabled, (v) => {
+			currentSettings.fontsizeMasterEnabled = v; saveSettings(currentSettings); applyFontsizeSettings();
+		}));
+		FONTSIZE_CONFIGS.forEach((c, idx) => {
+			const s = currentSettings.fontsizes[c.id];
+			const lbl = c.id === 'user-message' ? 'lbl_user_msg' : c.id === 'ai-response' ? 'lbl_ai_resp' : c.id === 'code-block' ? 'lbl_code' : c.id === 'action-status' ? 'lbl_status' : 'lbl_thinking';
+			const { row, right } = createSettingItem(c.icon, lbl);
+			right.appendChild(createToggle(s.enabled, (v) => { currentSettings.fontsizes[c.id].enabled = v; saveSettings(currentSettings); applyFontsizeSettings(); }));
+			const fi = document.createElement('input'); fi.type = 'number'; fi.className = 'ab-fontsize-input'; fi.value = s.size; fi.min = 10; fi.max = 24;
+			fi.addEventListener('change', () => { currentSettings.fontsizes[c.id].size = parseInt(fi.value) || c.default; saveSettings(currentSettings); applyFontsizeSettings(); });
+			right.appendChild(fi); right.appendChild(document.createTextNode(' px'));
+			// 第一个项加同步按钮
+			if (idx === 0) {
+				const syncBtn = el('button', 'ab-sync-btn', t('btn_sync')); syncBtn.dataset.i18n = 'btn_sync';
+				syncBtn.addEventListener('click', () => {
+					const val = parseInt(fi.value) || c.default;
+					FONTSIZE_CONFIGS.forEach(fc => { currentSettings.fontsizes[fc.id].size = val; });
+					saveSettings(currentSettings); applyFontsizeSettings();
+					fontAcc.inner.querySelectorAll('.ab-fontsize-input').forEach(inp => inp.value = val);
+				});
+				right.appendChild(syncBtn);
+			}
+			fontAcc.inner.appendChild(row);
+		});
+		tabAppearance.appendChild(fontAcc.item);
+
+		// -- LaTeX (占位) --
+		const latexAcc = createAccordion('latex_title', false);
+		latexAcc.inner.appendChild(createMainToggle('enable_latex', currentSettings.latexEnabled, (v) => {
+			currentSettings.latexEnabled = v; saveSettings(currentSettings); /* TODO: LaTeX 逻辑 */
+		}));
+		const latexDesc = el('div', 'ab-setting-desc', t('latex_desc')); latexDesc.dataset.i18n = 'latex_desc';
+		latexAcc.inner.appendChild(latexDesc);
+		tabAppearance.appendChild(latexAcc.item);
+
+		// ============ Tab: 功能 ============
+		const tabFeatures = tabContents['features'];
+
+		// -- 一键复制 (占位) --
+		const copyAcc = createAccordion('copy_title', true);
+		copyAcc.inner.appendChild(createMainToggle('enable_copy', currentSettings.copyEnabled, (v) => {
+			currentSettings.copyEnabled = v; saveSettings(currentSettings); /* TODO */
+		}));
+		tabFeatures.appendChild(copyAcc.item);
+
+		// -- 快捷键 (占位) --
+		const hotkeyAcc = createAccordion('hotkey_title', false);
+		hotkeyAcc.inner.appendChild(createMainToggle('enable_hotkey', currentSettings.hotkeyEnabled, (v) => {
+			currentSettings.hotkeyEnabled = v; saveSettings(currentSettings); /* TODO */
+		}));
+		tabFeatures.appendChild(hotkeyAcc.item);
+
+		// -- 自动操作 (占位) --
+		const autoAcc = createAccordion('auto_accept_title', false);
+		autoAcc.inner.appendChild(createMainToggle('enable_auto_accept', currentSettings.autoAcceptEnabled, (v) => {
+			currentSettings.autoAcceptEnabled = v; saveSettings(currentSettings); /* TODO */
+		}));
+		tabFeatures.appendChild(autoAcc.item);
+
+		// -- 安全规则 (占位) --
+		const bannedAcc = createAccordion('banned_title', false);
+		const bannedDesc = el('div', 'ab-setting-desc', t('banned_desc')); bannedDesc.dataset.i18n = 'banned_desc';
+		bannedAcc.inner.appendChild(bannedDesc);
+		tabFeatures.appendChild(bannedAcc.item);
+
+		// ============ Tab: 系统 ============
+		const tabSystem = tabContents['system'];
+
+		// -- 版本更新 (占位) --
+		const verAcc = createAccordion('version_title', true);
+		const { row: autoRow, right: autoRight } = createSettingItem('🔄', 'lbl_auto_update');
+		autoRight.appendChild(createToggle(currentSettings.autoUpdateEnabled, (v) => {
+			currentSettings.autoUpdateEnabled = v; saveSettings(currentSettings); /* TODO */
+		}));
+		verAcc.inner.appendChild(autoRow);
+		const { row: manualRow, right: manualRight } = createSettingItem('👉', 'lbl_manual_update');
+		const checkBtn = el('button', 'ab-btn primary', t('btn_check_update')); checkBtn.dataset.i18n = 'btn_check_update';
+		manualRight.appendChild(checkBtn);
+		verAcc.inner.appendChild(manualRow);
+		tabSystem.appendChild(verAcc.item);
+
+		// 组装 body
+		Object.values(tabContents).forEach(c => body.appendChild(c));
 		modal.appendChild(body);
-		overlay.appendChild(modal);
-		panelEl.appendChild(overlay);
+		overlay.appendChild(modal); panelEl.appendChild(overlay);
 
-		// --- 事件绑定 ---
-		btn.addEventListener('click', () => {
-			overlay.classList.add('show');
-			requestAnimationFrame(() => overlay.classList.add('visible'));
-			updateVerifyPanel();
-		});
+		// === 事件 ===
+		btn.addEventListener('click', () => { overlay.classList.add('show'); requestAnimationFrame(() => overlay.classList.add('visible')); });
+		const closeModal = () => { overlay.classList.remove('visible'); setTimeout(() => overlay.classList.remove('show'), 300); };
 		closeBtn.addEventListener('click', closeModal);
 		overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
-
-		function closeModal() {
-			overlay.classList.remove('visible');
-			setTimeout(() => overlay.classList.remove('show'), 300);
-		}
 
 		console.log('[AB] ✅ 设置面板创建成功');
 	}
 
-	// 创建 Toggle 开关
-	function createToggle(checked, onChange) {
-		const label = document.createElement('label');
-		label.className = 'ab-toggle';
-		const input = document.createElement('input');
-		input.type = 'checkbox';
-		input.checked = checked;
-		input.addEventListener('change', () => onChange(input.checked));
-		const slider = document.createElement('span');
-		slider.className = 'ab-toggle-slider';
-		label.appendChild(input);
-		label.appendChild(slider);
-		return label;
-	}
-
-	// 创建主开关
-	function createMainToggle(zhLabel, enLabel, checked, onChange) {
-		const wrapper = document.createElement('div');
-		wrapper.className = 'ab-main-toggle';
-		const label = document.createElement('span');
-		label.className = 'ab-main-toggle-label';
-		label.textContent = currentSettings.lang === 'zh' ? zhLabel : enLabel;
-		const toggle = createToggle(checked, onChange);
-		wrapper.appendChild(label);
-		wrapper.appendChild(toggle);
-		return wrapper;
-	}
-
-	// 更新验证面板
-	function updateVerifyPanel() {
-		const panel = document.getElementById('ab-verify-panel');
-		if (!panel) return;
-		while (panel.firstChild) panel.removeChild(panel.firstChild);
-
-		const checks = [
-			{ name: 'Trusted Types Policy', result: abPolicy ? '✅ 已创建' : '⚠️ 未创建（非必须）' },
-			{ name: 'DOM 动态创建', result: verifyResults['DOM创建'] || '❌ 失败' },
-			{ name: 'localStorage 读写', result: testLocalStorage() },
-			{ name: 'CSS 变量注入', result: testCSSVariable() },
-			{ name: 'AI 面板检测', result: verifyResults['AI面板'] || '❌ 未找到' },
-			{ name: 'SafeHTML (innerHTML)', result: testSafeHTML() },
-			{ name: '面板内定位', result: '✅ 已挂载到 AI 面板' },
-		];
-
-		checks.forEach(check => {
-			const item = document.createElement('div');
-			item.className = 'ab-verify-item';
-			const isPass = check.result.startsWith('✅');
-			item.classList.add(isPass ? 'ab-verify-pass' : 'ab-verify-fail');
-			item.textContent = check.result + ' ' + check.name;
-			panel.appendChild(item);
-		});
-	}
-
-	// ===== 验证函数 =====
-	function testLocalStorage() {
-		try {
-			localStorage.setItem('ab-test', 'ok');
-			const val = localStorage.getItem('ab-test');
-			localStorage.removeItem('ab-test');
-			return val === 'ok' ? '✅' : '❌';
-		} catch (e) {
-			return '❌ ' + e.message;
-		}
-	}
-
-	function testCSSVariable() {
-		const val = getComputedStyle(document.documentElement).getPropertyValue('--color-user-message').trim();
-		return val ? '✅' : '❌ 变量未生效';
-	}
-
-	function testSafeHTML() {
-		try {
-			const testEl = document.createElement('span');
-			safeSetHTML(testEl, '<b>test</b>');
-			const result = testEl.querySelector('b') ? '✅' : '❌';
-			return result;
-		} catch (e) {
-			return '❌ ' + e.message;
-		}
-	}
-
-	// ===== 等待 AI 面板出现 → 初始化 UI =====
+	// ===== 生命周期 =====
 	function onPanelReady(panelEl) {
 		console.log('[AB] ✅ AI 面板已检测到');
-		verifyResults['AI面板'] = '✅';
 		createSettingsUI(panelEl);
 		applyColorSettings();
+		applyFontsizeSettings();
 	}
-
 	function waitForAgentPanel() {
-		const panel = document.querySelector('.antigravity-agent-side-panel');
-		if (panel) {
-			onPanelReady(panel);
-			return;
-		}
-
-		const observer = new MutationObserver((mutations, obs) => {
-			const panel = document.querySelector('.antigravity-agent-side-panel');
-			if (panel) {
-				obs.disconnect();
-				onPanelReady(panel);
-			}
+		const p = document.querySelector('.antigravity-agent-side-panel');
+		if (p) { onPanelReady(p); return; }
+		const obs = new MutationObserver((_, o) => {
+			const p = document.querySelector('.antigravity-agent-side-panel');
+			if (p) { o.disconnect(); onPanelReady(p); }
 		});
-		observer.observe(document.body, { childList: true, subtree: true });
+		obs.observe(document.body, { childList: true, subtree: true });
 		console.log('[AB] ⏳ 等待 AI 面板出现...');
 	}
-
-	// ===== 初始化 =====
 	function init() {
 		console.log('[AB] 开始初始化...');
-		try {
-			applyColorSettings();
-			waitForAgentPanel();
-			console.log('[AB] ✅ 初始化完成，等待 AI 面板...');
-		} catch (e) {
-			console.error('[AB] ❌ 初始化失败:', e);
-		}
+		try { applyColorSettings(); applyFontsizeSettings(); waitForAgentPanel(); console.log('[AB] ✅ 初始化完成'); } catch (e) { console.error('[AB] ❌ 初始化失败:', e); }
 	}
-
-	// 等待 body 就绪后初始化
-	if (document.body) {
-		setTimeout(init, 1000);
-	} else {
-		document.addEventListener('DOMContentLoaded', () => setTimeout(init, 1000));
-	}
+	if (document.body) { setTimeout(init, 1000); } else { document.addEventListener('DOMContentLoaded', () => setTimeout(init, 1000)); }
 })();
 </script>
 
