@@ -3,6 +3,485 @@
 
 <head>
   <meta charset="UTF-8">
+  <script>
+  // === AG-Better: React Fiber Bridge for Cascade Tab Switching ===
+  // Accesses Cascade's React component tree to read conversation list and switch conversations.
+  // This is the proven approach discovered via CDP deep testing (T1.0-T1.4).
+  (function() {
+    'use strict';
+    try {
+      if (localStorage.getItem('ag-better-bridge-enabled') === 'false') return;
+
+      const FIBER_POLL_INTERVAL = 3000;
+      const MAX_FIBER_DEPTH = 500;
+      let _fiberSuffix = null;
+      let _cascadeContext = null;
+      let _lastConversations = [];
+      let _currentCascadeId = null;
+
+      // Find React fiber suffix (e.g., 'iz359v3fbbm')
+      function findFiberSuffix() {
+        if (_fiberSuffix) return _fiberSuffix;
+        const all = document.querySelectorAll('*');
+        for (let i = 0; i < all.length; i++) {
+          const keys = Object.keys(all[i]);
+          for (let k = 0; k < keys.length; k++) {
+            if (keys[k].startsWith('__reactContainer$')) {
+              _fiberSuffix = keys[k].replace('__reactContainer$', '');
+              return _fiberSuffix;
+            }
+          }
+        }
+        return null;
+      }
+
+      // Get React container from #react-app
+      function getReactContainer() {
+        const suffix = findFiberSuffix();
+        if (!suffix) return null;
+        const reactApp = document.getElementById('react-app');
+        if (!reactApp) return null;
+        return reactApp['__reactContainer$' + suffix] || null;
+      }
+
+      // Traverse fiber tree to find cascade context provider
+      function findCascadeContext() {
+        const container = getReactContainer();
+        if (!container) return null;
+
+        const visited = new WeakSet();
+        const queue = [container];
+        let count = 0;
+
+        while (queue.length > 0 && count < MAX_FIBER_DEPTH) {
+          const f = queue.shift();
+          if (!f || visited.has(f)) continue;
+          visited.add(f);
+          count++;
+
+          if (f.memoizedProps && f.memoizedProps.value && typeof f.memoizedProps.value === 'object') {
+            const val = f.memoizedProps.value;
+            if (val.events && val.state && val.layout && val.events.setCascadeConversationState) {
+              _cascadeContext = val;
+              return val;
+            }
+          }
+          if (f.child) queue.push(f.child);
+          if (f.sibling) queue.push(f.sibling);
+        }
+        return null;
+      }
+
+      // Find conversation list component (uses prop shape matching, not component name)
+      function findConversationList() {
+        const container = getReactContainer();
+        if (!container) return _lastConversations;
+
+        const visited = new WeakSet();
+        const queue = [container];
+        let count = 0;
+        let listComponent = null;
+
+        while (queue.length > 0 && count < MAX_FIBER_DEPTH) {
+          const f = queue.shift();
+          if (!f || visited.has(f)) continue;
+          visited.add(f);
+          count++;
+
+          // Match by prop shape: component with cascadeIds array prop
+          if (f.memoizedProps && Array.isArray(f.memoizedProps.cascadeIds) && f.memoizedProps.cascadeIds.length > 0) {
+            listComponent = f;
+            break;
+          }
+          if (f.child) queue.push(f.child);
+          if (f.sibling) queue.push(f.sibling);
+        }
+
+        // If not mounted (e.g., viewing a conversation), return cached data
+        if (!listComponent) return _lastConversations;
+
+        // Get cascadeIds from props
+        const cascadeIds = listComponent.memoizedProps.cascadeIds;
+
+        // Search state chain for summaries object (keyed by UUID)
+        let summaries = {};
+        let state = listComponent.memoizedState;
+        let sIdx = 0;
+        while (state && sIdx < 15) {
+          if (state.memoizedState && typeof state.memoizedState === 'object' && !Array.isArray(state.memoizedState)) {
+            const ms = state.memoizedState;
+            // Check if this is the summaries map (has .summaries key or is directly UUID-keyed)
+            if (ms.summaries && typeof ms.summaries === 'object') {
+              summaries = ms.summaries;
+              break;
+            }
+            // useRef 模式: { current: { [uuid]: ... } }
+            if (ms.current && typeof ms.current === 'object' && !Array.isArray(ms.current)) {
+              const ck = Object.keys(ms.current);
+              if (ck.length > 0 && /^[0-9a-f]{8}-/.test(ck[0])) {
+                summaries = ms.current;
+                break;
+              }
+            }
+            // Check if keys look like UUIDs
+            const keys = Object.keys(ms);
+            if (keys.length > 0 && /^[0-9a-f]{8}-/.test(keys[0])) {
+              summaries = ms;
+              break;
+            }
+          }
+          state = state.next;
+          sIdx++;
+        }
+
+        // Build conversation list — 兼容多种字段命名
+        const conversations = cascadeIds.map(id => {
+          const raw = summaries[id];
+          let info = {};
+          if (typeof raw === 'string') {
+            // 直接以字符串存储 summary
+            info = { summary: raw };
+          } else if (raw && typeof raw === 'object') {
+            info = raw;
+          }
+          return {
+            cascadeId: id,
+            summary: info.summary || info.name || info.title || info.displayName || '',
+            lastModifiedTime: info.lastModifiedTime || '',
+            status: info.status || '',
+            stepCount: info.stepCount || 0
+          };
+        });
+
+        _lastConversations = conversations;
+        return conversations;
+      }
+
+      // Get current cascade ID
+      function getCurrentCascadeId() {
+        const ctx = findCascadeContext();
+        if (ctx && ctx.state && ctx.state.cascadeState) {
+          _currentCascadeId = ctx.state.cascadeState.cascadeId || null;
+          return _currentCascadeId;
+        }
+        return _currentCascadeId;
+      }
+
+      // Switch to a conversation by cascadeId
+      function switchConversation(cascadeId) {
+        const ctx = findCascadeContext();
+        if (!ctx || !ctx.events || !ctx.events.setCascadeConversationState) {
+          return false;
+        }
+        try {
+          ctx.events.setCascadeConversationState({ cascadeId: cascadeId });
+          _currentCascadeId = cascadeId;
+          return true;
+        } catch (e) {
+          return false;
+        }
+      }
+
+      // Start new conversation (clear cascade ID)
+      function startNewConversation() {
+        const ctx = findCascadeContext();
+        if (!ctx || !ctx.events || !ctx.events.clearCascadeId) {
+          return false;
+        }
+        try {
+          ctx.events.clearCascadeId();
+          _currentCascadeId = null;
+          return true;
+        } catch (e) {
+          return false;
+        }
+      }
+
+      // Find conversation title from multiple sources
+      function findConversationTitle(cascadeId) {
+        if (!cascadeId) return null;
+
+        // Source 1: conversation list cache
+        try {
+          const convos = findConversationList();
+          const match = convos.find(c => c.cascadeId === cascadeId);
+          if (match && match.summary) return match.summary;
+        } catch (e) { /* ignore */ }
+
+        // Source 2: cascade context state — 检查多种字段名
+        try {
+          const ctx = findCascadeContext();
+          if (ctx && ctx.state) {
+            const cs = ctx.state.cascadeState || {};
+            if (cs.cascadeId === cascadeId) {
+              const t = cs.summary || cs.title || cs.name || cs.displayName;
+              if (t) return t;
+            }
+            // 检查 state 中是否有 conversations map（多种可能的字段名）
+            const convMaps = [ctx.state.conversations, ctx.state.cascadeConversations, ctx.state.conversationMap];
+            for (const convMap of convMaps) {
+              if (convMap && typeof convMap === 'object') {
+                const c = convMap[cascadeId];
+                if (c) {
+                  const t = typeof c === 'string' ? c : (c.summary || c.title || c.name || c.displayName);
+                  if (t) return t;
+                }
+              }
+            }
+          }
+        } catch (e) { /* ignore */ }
+
+        // Source 3: scan fiber tree for props/state containing this cascadeId
+        try {
+          const container = getReactContainer();
+          if (container) {
+            const visited = new WeakSet();
+            const queue = [container];
+            let count = 0;
+            while (queue.length > 0 && count < MAX_FIBER_DEPTH) {
+              const f = queue.shift();
+              if (!f || visited.has(f)) continue;
+              visited.add(f);
+              count++;
+
+              // 检查 props 中的 cascadeId + summary/title/name
+              const p = f.memoizedProps;
+              if (p && typeof p === 'object') {
+                if (p.cascadeId === cascadeId) {
+                  const t = p.summary || p.title || p.name || p.displayName;
+                  if (t) return t;
+                }
+                // 检查 props.conversation 或 props.data 中是否有标题
+                const nested = p.conversation || p.data || p.item;
+                if (nested && typeof nested === 'object' && nested.cascadeId === cascadeId) {
+                  const t = nested.summary || nested.title || nested.name;
+                  if (t) return t;
+                }
+              }
+
+              // Source 4: 检查 memoizedState 链中是否有 cascadeId 关联的标题
+              let st = f.memoizedState;
+              let si = 0;
+              while (st && si < 8) {
+                const ms = st.memoizedState;
+                if (ms && typeof ms === 'object' && !Array.isArray(ms)) {
+                  // 直接检查是否有 cascadeId 作为 key
+                  const entry = ms[cascadeId] || (ms.current && ms.current[cascadeId]);
+                  if (entry) {
+                    const t = typeof entry === 'string' ? entry : (entry.summary || entry.title || entry.name || entry.displayName);
+                    if (t) return t;
+                  }
+                }
+                st = st.next;
+                si++;
+              }
+
+              if (f.child) queue.push(f.child);
+              if (f.sibling) queue.push(f.sibling);
+            }
+          }
+        } catch (e) { /* ignore */ }
+
+        // Source 5: DOM 标题提取 — 仅对当前活跃对话有效
+        // Cascade 面板顶部有一个 <p> 元素显示当前对话标题
+        try {
+          if (_currentCascadeId === cascadeId || getCurrentCascadeId() === cascadeId) {
+            const titleEl = document.querySelector('p[class*="text-ellipsis"][class*="whitespace-nowrap"]');
+            if (titleEl) {
+              const text = (titleEl.textContent || '').trim();
+              if (text && text.length > 0 && text.length < 100) return text;
+            }
+          }
+        } catch (e) { /* ignore */ }
+
+        return null;
+      }
+
+      // Detect busy (generating) conversations
+      // 'active' 和 'pending' 已移除：'active' 匹配所有打开的对话，'pending' 匹配等待中的对话，均非生成状态
+      const BUSY_STATUSES = ['in_progress', 'generating', 'streaming', 'running', 'processing'];
+      // 数字状态映射：需通过 diagnoseBusy() 在生成中捕获实际忙碌值后填入
+      // CDP 调试确认 1 = idle，其他值待确认
+      const NUMERIC_BUSY_STATUSES = new Set();
+      const _discoveredStatuses = new Set();
+
+      function getBusyConversations() {
+        const busyIds = new Set();
+        let _layer1HasData = false;
+
+        // Layer 1: Check conversation list status fields
+        try {
+          const convos = findConversationList();
+          if (convos.length > 0) _layer1HasData = true;
+          for (const c of convos) {
+            if (c.status != null) {
+              // 记录发现的状态值（含类型信息）
+              const statusKey = typeof c.status + ':' + c.status;
+              if (!_discoveredStatuses.has(statusKey)) {
+                _discoveredStatuses.add(statusKey);
+                const logLevel = localStorage.getItem('ag-better-log-level');
+                if (logLevel === 'debug') {
+                  console.log('[AG-Bridge] Discovered status value:', JSON.stringify(c.status), 'type:', typeof c.status);
+                }
+              }
+              // 数字类型直接检查
+              if (typeof c.status === 'number' && NUMERIC_BUSY_STATUSES.has(c.status)) {
+                busyIds.add(c.cascadeId);
+                continue;
+              }
+              // 字符串类型
+              const s = String(c.status).toLowerCase();
+              if (BUSY_STATUSES.includes(s)) {
+                busyIds.add(c.cascadeId);
+              }
+            }
+          }
+        } catch (e) { /* ignore */ }
+
+        // Layer 2: Check cascade context state
+        // CDP 调试确认：isGenerating/isStreaming 在此 Cascade 版本中始终为 undefined
+        // 实际忙碌指标：st.isRunning (top-level bool) 和 cs.executorLoopStatus (1=idle, 2+=busy)
+        try {
+          const ctx = findCascadeContext();
+          if (ctx && ctx.state) {
+            const st = ctx.state;
+            const cs = st.cascadeState || {};
+            const cascadeId = cs.cascadeId;
+            if (cascadeId) {
+              const isBusy = (st.isRunning === true)
+                || (st.isGenerating === true) || (st.isStreaming === true)
+                || (cs.isGenerating === true) || (cs.isStreaming === true)
+                || (typeof cs.executorLoopStatus === 'number' && cs.executorLoopStatus > 1);
+              if (isBusy) {
+                busyIds.add(cascadeId);
+                const logLevel = localStorage.getItem('ag-better-log-level');
+                if (logLevel === 'debug') {
+                  console.log('[AG-Bridge] Layer2 busy:', cascadeId.substring(0, 8),
+                    'isRunning:', st.isRunning, 'execLoop:', cs.executorLoopStatus,
+                    'isGen:', st.isGenerating, cs.isGenerating,
+                    'isStr:', st.isStreaming, cs.isStreaming);
+                }
+              }
+            }
+          }
+        } catch (e) { /* ignore */ }
+
+        // Layer 3: DOM-based — 仅作为最后防线，且不覆盖 Layer 1 的判断
+        // 只在 Layer 1 无数据时启用，且只匹配高置信度的 stop/cancel 按钮
+        try {
+          const currentId = getCurrentCascadeId();
+          // 仅当 Layer 1 没有该对话的数据时才用 DOM 检测
+          // 如果 Layer 1 已经报告了状态（包括 idle），信任 Layer 1
+          if (currentId && !busyIds.has(currentId) && !_layer1HasData) {
+            const selectors = [
+              // 仅保留 stop/cancel 按钮 — 唯一可靠的生成中 DOM 指标
+              // 这些按钮只在 AI 生成期间存在，完成后立即从 DOM 移除
+              '[data-testid="stop-button"]',
+              'button[aria-label="Stop"]',
+              'button[aria-label="Cancel"]',
+              '.stop-button',
+              '.codicon-debug-stop'
+              // 已移除：.animate-pulse, [class*="streaming"], [class*="generating"],
+              // [class*="typing"], .in-progress-checkbox — 这些匹配 Cascade 常驻 UI 元素，
+              // 导致空闲对话被误判为忙碌
+            ];
+            const searchRoot = document.getElementById('react-app') || document.body;
+            const found = searchRoot.querySelector(selectors.join(','));
+            if (found && !found.closest('#ag-tab-bar') && found.offsetHeight > 0) {
+              busyIds.add(currentId);
+              if (!_discoveredStatuses.has('__dom_detected__')) {
+                const logLevel = localStorage.getItem('ag-better-log-level');
+                if (logLevel === 'debug') {
+                  console.log('[AG-Bridge] DOM busy detected via:', found.tagName, found.className.substring(0, 80));
+                }
+                _discoveredStatuses.add('__dom_detected__');
+              }
+            }
+          }
+        } catch (e) { /* ignore */ }
+
+        return busyIds;
+      }
+
+      // 获取工作区标识，用于隔离不同项目的 Tab 数据
+      function getWorkspaceId() {
+        try {
+          const parentTitle = window.parent.document.title || '';
+          // 格式: "WorkspaceName — filename" 或 "WorkspaceName"
+          const dashIdx = parentTitle.indexOf(' \u2014 ');
+          const ws = dashIdx > 0 ? parentTitle.substring(0, dashIdx).trim() : parentTitle.trim();
+          if (ws.length > 0) return ws;
+        } catch (e) { /* cross-origin or no parent */ }
+        return 'default';
+      }
+
+      // 诊断函数：输出三层忙碌检测的实时状态
+      function diagnoseBusy() {
+        const result = { layers: {} };
+        try {
+          const convos = findConversationList();
+          result.layers.layer1 = convos.map(function(c) {
+            return {
+              id: c.cascadeId ? c.cascadeId.substring(0, 8) : null,
+              status: c.status,
+              statusType: typeof c.status
+            };
+          });
+        } catch (e) { result.layers.layer1 = { error: e.message }; }
+        try {
+          const ctx = findCascadeContext();
+          if (ctx && ctx.state) {
+            var cs = ctx.state.cascadeState || {};
+            var st = ctx.state;
+            result.layers.layer2 = {
+              cascadeId: cs.cascadeId,
+              status: cs.status,
+              executorLoopStatus: cs.executorLoopStatus,
+              isRunning: st.isRunning,
+              isGenerating: st.isGenerating || cs.isGenerating,
+              isStreaming: st.isStreaming || cs.isStreaming,
+              wouldTrigger: (st.isRunning === true)
+                || (st.isGenerating === true) || (st.isStreaming === true)
+                || (cs.isGenerating === true) || (cs.isStreaming === true)
+                || (typeof cs.executorLoopStatus === 'number' && cs.executorLoopStatus > 1)
+            };
+          }
+        } catch (e) { result.layers.layer2 = { error: e.message }; }
+        try {
+          var selectors = [
+            '[data-testid="stop-button"]', 'button[aria-label="Stop"]',
+            'button[aria-label="Cancel"]', '.stop-button', '.codicon-debug-stop'
+          ];
+          var searchRoot = document.getElementById('react-app') || document.body;
+          var found = searchRoot.querySelector(selectors.join(','));
+          result.layers.layer3 = {
+            found: !!found,
+            element: found ? found.tagName + '.' + found.className.substring(0, 60) : null
+          };
+        } catch (e) { result.layers.layer3 = { error: e.message }; }
+        result.busyIds = Array.from(getBusyConversations());
+        return result;
+      }
+
+      // Expose bridge API on window for TabManager to use
+      window._agBridge = {
+        findCascadeContext: findCascadeContext,
+        findConversationList: findConversationList,
+        findConversationTitle: findConversationTitle,
+        getCurrentCascadeId: getCurrentCascadeId,
+        switchConversation: switchConversation,
+        startNewConversation: startNewConversation,
+        getBusyConversations: getBusyConversations,
+        getWorkspaceId: getWorkspaceId,
+        diagnoseBusy: diagnoseBusy,
+        isReady: function() { return !!findCascadeContext(); }
+      };
+
+    } catch (e) {
+      // Bridge init failed - tab switching will be unavailable but IDE works fine
+    }
+  })();
+  </script>
   <style>
     /* ===== 自定义颜色变量 ===== */
     :root {
@@ -22,6 +501,173 @@
       --accent-color: #667eea;
       --text-main: #fff;
       --text-sub: #999;
+    }
+
+    /* ===== Tab Bar 样式 ===== */
+    .ag-tab-bar-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: #e8e8e8;
+      border-bottom: 1px solid #ccc;
+      display: flex;
+      align-items: center;
+      z-index: 1000;
+      padding: 0 4px;
+      height: 36px;
+      overflow: hidden;
+    }
+    .ag-add-tab-btn {
+      flex: 0 0 32px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      color: #555;
+      cursor: pointer;
+      border-radius: 4px;
+      margin-right: 4px;
+      transition: all 0.2s;
+    }
+    .ag-add-tab-btn:hover {
+      background: rgba(0, 0, 0, 0.08);
+      color: #222;
+    }
+    /* Tab 计数器：显示在 + 按钮右侧 */
+    .ag-tab-counter {
+      flex: 0 0 auto;
+      font-size: 11px;
+      color: #888;
+      margin-right: 4px;
+      user-select: none;
+      white-space: nowrap;
+    }
+    /* Tab 栏提示 toast（固定定位在 tab bar 下方） */
+    .ag-tab-toast {
+      position: fixed;
+      left: 50%;
+      top: 40px;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.78);
+      color: #fff;
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 4px;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.25s;
+      z-index: 1001;
+    }
+    .ag-tab-toast.ag-toast-visible {
+      opacity: 1;
+    }
+    .ag-tabs-scroll {
+      flex: 1;
+      display: flex;
+      gap: 4px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding: 4px 0;
+    }
+    .ag-tabs-scroll::-webkit-scrollbar { display: none; }
+    .ag-tab-item {
+      position: relative;
+      flex: 0 0 auto;
+      height: 28px;
+      padding: 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #d5d5d5;
+      border: 1px solid #bbb;
+      border-radius: 4px;
+      color: #444;
+      font-size: 11px;
+      cursor: pointer;
+      white-space: nowrap;
+      max-width: 160px;
+      transition: all 0.2s;
+    }
+    .ag-tab-item:hover {
+      background: #c8c8c8;
+      color: #111;
+    }
+    .ag-tab-item.active {
+      background: #f0f0f0;
+      border-color: #667eea;
+      color: #111;
+    }
+    .ag-tab-item span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .ag-tab-close {
+      font-size: 14px;
+      color: #666;
+      opacity: 0.6;
+      margin-right: -4px;
+      transition: opacity 0.2s;
+    }
+    .ag-tab-close:hover { opacity: 1; color: #222; }
+    .ag-tab-item[data-stale] { opacity: 0.5; }
+    .ag-tab-item[data-stale] span:first-child { font-style: italic; color: #999; }
+    .ag-tab-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #999;
+      flex-shrink: 0;
+    }
+    .ag-tab-dot.active-dot {
+      background: #4ADE80;
+    }
+    /* Scroll arrows for tab overflow */
+    .ag-scroll-btn {
+      flex: 0 0 24px;
+      height: 28px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(to right, #e0e0e0, #e8e8e8);
+      border: none;
+      color: #555;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 0;
+      transition: color 0.15s, background 0.15s;
+      user-select: none;
+    }
+    .ag-scroll-btn:last-child { background: linear-gradient(to left, #e0e0e0, #e8e8e8); }
+    .ag-scroll-btn:hover { color: #111; background: #d0d0d0; }
+    .ag-scroll-btn.visible { display: flex; }
+    .ag-scroll-btn.at-edge { opacity: 0.3; cursor: default; }
+    @keyframes ag-tab-shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-3px); }
+      40% { transform: translateX(3px); }
+      60% { transform: translateX(-2px); }
+      80% { transform: translateX(2px); }
+    }
+    .ag-tab-item.shake { animation: ag-tab-shake 0.4s ease-in-out; }
+    .ag-tab-rename-input {
+      border: none;
+      background: transparent;
+      font: inherit;
+      color: inherit;
+      padding: 0;
+      margin: 0;
+      outline: none;
+      min-width: 40px;
+      max-width: 140px;
+    }
+    body.ag-tab-bar-active .react-app-container {
+      margin-top: 36px;
+      height: calc(100% - 36px) !important;
     }
 
     /* ===== 悬浮按钮样式 ===== */
@@ -1327,6 +1973,42 @@
           </div>
         </div>
 
+          <!-- Accordion: Tab Bar -->
+          <div class="accordion-item expanded">
+            <div class="accordion-header">
+              <span class="accordion-title" data-i18n="tab_bar_title">📑 横向 Tab 栏</span>
+              <span class="accordion-icon">▼</span>
+            </div>
+            <div class="accordion-body">
+              <div class="accordion-inner">
+                <div class="main-toggle">
+                  <span class="main-toggle-label" data-i18n="enable_tab_bar">启用 Tab 栏</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="tab-bar-master-toggle" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                <div class="setting-desc" data-i18n="tab_bar_desc">在顶部显示横向标签栏，快速切换多个对话</div>
+
+                <div class="setting-item">
+                  <div class="setting-info">
+                    <span class="setting-name" data-i18n="tab_bar_max_tabs">最大 Tab 数量</span>
+                  </div>
+                  <div class="setting-control">
+                    <select class="select-input" id="tab-bar-max-tabs">
+                      <option value="5">5</option>
+                      <option value="8">8</option>
+                      <option value="10" selected>10</option>
+                      <option value="15">15</option>
+                      <option value="20">20</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Tab: System -->
         <div class="tab-content" id="tab-system">
           <!-- Accordion: Version Update -->
@@ -1418,7 +2100,11 @@
         latex_desc: '自动渲染 AI 回复中的 LaTeX 数学公式',
         latex_loading: '加载 KaTeX 库... cdn.jsdelivr.net',
         latex_ready: '✓ KaTeX 已就绪',
-        latex_failed: '✗ KaTeX 加载失败'
+        latex_failed: '✗ KaTeX 加载失败',
+        tab_bar_title: '📑 横向 Tab 栏',
+        enable_tab_bar: '启用 Tab 栏',
+        tab_bar_desc: '在顶部显示横向标签栏，快速切换多个对话',
+        tab_bar_max_tabs: '最大 Tab 数量'
       },
       en: {
         tab_appearance: '🎨 Appearance',
@@ -1466,7 +2152,11 @@
         latex_desc: 'Auto-render LaTeX math formulas in AI responses',
         latex_loading: 'Loading KaTeX... cdn.jsdelivr.net',
         latex_ready: '✓ KaTeX Ready',
-        latex_failed: '✗ KaTeX Load Failed'
+        latex_failed: '✗ KaTeX Load Failed',
+        tab_bar_title: '📑 Tab Bar',
+        enable_tab_bar: 'Enable Tab Bar',
+        tab_bar_desc: 'Show horizontal tab bar at top for quick conversation switching',
+        tab_bar_max_tabs: 'Max Tabs'
       }
     };
 
@@ -1627,7 +2317,10 @@
       // 系统设置
       autoUpdateEnabled: true,
       // LaTeX 渲染设置
-      latexEnabled: false
+      latexEnabled: false,
+      // Tab Bar 设置
+      tabBarEnabled: true,
+      tabBarMaxTabs: 10
     };
 
     function loadSettings() {
@@ -1651,7 +2344,9 @@
             bannedCommands: parsed.bannedCommands ?? [...DEFAULT_BANNED_COMMANDS],
             autoAcceptStats: { ...defaultSettings.autoAcceptStats, ...parsed.autoAcceptStats },
             autoUpdateEnabled: parsed.autoUpdateEnabled ?? defaultSettings.autoUpdateEnabled,
-            latexEnabled: parsed.latexEnabled ?? defaultSettings.latexEnabled
+            latexEnabled: parsed.latexEnabled ?? defaultSettings.latexEnabled,
+            tabBarEnabled: parsed.tabBarEnabled ?? defaultSettings.tabBarEnabled,
+            tabBarMaxTabs: parsed.tabBarMaxTabs ?? defaultSettings.tabBarMaxTabs
           };
         }
         return { ...defaultSettings };
@@ -2411,6 +3106,848 @@
       });
     }
 
+    /* ===== HistoryTabManager ===== */
+    const TAB_STORAGE_KEY_GLOBAL = 'ag-better-tabs';
+    const TAB_STORAGE_KEY_OLD = 'ag-better-tab-state';
+    function getTabStorageKey() {
+      const wsId = (window._agBridge && window._agBridge.getWorkspaceId)
+        ? window._agBridge.getWorkspaceId() : 'default';
+      return 'ag-better-tabs-' + wsId;
+    }
+    const LOG_LEVELS = { error: 0, warn: 1, info: 2, debug: 3 };
+
+    class HistoryTabManager {
+      constructor(maxTabs) {
+        this._switchId = 0;
+        this._state = 'idle'; // idle | switching | verifying | success | failed | cancelled
+        this._tabs = [];
+        this._activeTabId = null;
+        this._maxTabs = maxTabs || 10;
+        this._nextId = 1;
+        this._container = null;
+        this._scrollArea = null;
+        this._bridgeReady = false;
+        this._pollTimer = null;
+        this._syncTimer = null;
+        this._logLevel = LOG_LEVELS[localStorage.getItem('ag-better-log-level') || 'error'] ?? 0;
+        this._destroyed = false;
+      }
+
+      // --- Logging ---
+      _log(level, ...args) {
+        if (LOG_LEVELS[level] > this._logLevel) return;
+        const prefix = '[AG-TabBar]';
+        if (level === 'error') console.error(prefix, ...args);
+        else if (level === 'warn') console.warn(prefix, ...args);
+        else if (level === 'info') console.info(prefix, ...args);
+        else console.log(prefix, ...args);
+      }
+
+      // --- Initialization ---
+      init() {
+        this._createTabBarDOM();
+        this._loadPersistedTabs();
+        this._updateCounter(); // 初始化计数器
+        this._waitForBridge();
+        document.body.classList.add('ag-tab-bar-active');
+        this._log('info', 'Tab bar initialized');
+      }
+
+      _createTabBarDOM() {
+        this._container = document.createElement('div');
+        this._container.className = 'ag-tab-bar-container';
+
+        // Add tab button
+        const addBtn = document.createElement('button');
+        addBtn.className = 'ag-add-tab-btn';
+        addBtn.innerHTML = '+';
+        addBtn.title = 'New conversation';
+        addBtn.addEventListener('click', () => this._onAddTab());
+        this._container.appendChild(addBtn);
+
+        // Tab 计数器（+ 按钮右侧）
+        this._counterEl = document.createElement('span');
+        this._counterEl.className = 'ag-tab-counter';
+        this._container.appendChild(this._counterEl);
+
+        // Left scroll arrow
+        this._scrollLeftBtn = document.createElement('button');
+        this._scrollLeftBtn.className = 'ag-scroll-btn';
+        this._scrollLeftBtn.textContent = '\u25C0';
+        this._scrollLeftBtn.addEventListener('click', () => {
+          this._scrollArea.scrollBy({ left: -120, behavior: 'smooth' });
+        });
+        this._container.appendChild(this._scrollLeftBtn);
+
+        // Scroll area for tabs
+        this._scrollArea = document.createElement('div');
+        this._scrollArea.className = 'ag-tabs-scroll';
+        this._scrollArea.addEventListener('scroll', () => this._updateScrollArrows());
+        this._container.appendChild(this._scrollArea);
+
+        // Right scroll arrow
+        this._scrollRightBtn = document.createElement('button');
+        this._scrollRightBtn.className = 'ag-scroll-btn';
+        this._scrollRightBtn.textContent = '\u25B6';
+        this._scrollRightBtn.addEventListener('click', () => {
+          this._scrollArea.scrollBy({ left: 120, behavior: 'smooth' });
+        });
+        this._container.appendChild(this._scrollRightBtn);
+
+        document.body.prepend(this._container);
+
+        // Toast 提示元素（放在 body 上避免被 container overflow:hidden 裁切）
+        this._toastEl = document.createElement('div');
+        this._toastEl.className = 'ag-tab-toast';
+        document.body.appendChild(this._toastEl);
+
+        // 使 tab bar 容器可聚焦，用于键盘导航
+        this._container.setAttribute('tabindex', '0');
+        // 键盘导航事件（仅在 tab bar 聚焦时生效）
+        this._keydownHandler = (e) => this._handleKeydown(e);
+        this._container.addEventListener('keydown', this._keydownHandler);
+
+        // Update arrows on window resize (panel width changes)
+        this._resizeHandler = () => this._updateScrollArrows();
+        window.addEventListener('resize', this._resizeHandler);
+      }
+
+      _updateScrollArrows() {
+        if (!this._scrollArea || !this._scrollLeftBtn || !this._scrollRightBtn) return;
+        // Use setTimeout to let layout settle after DOM changes and smooth scroll start
+        setTimeout(() => {
+          if (!this._scrollArea) return;
+          const { scrollLeft, scrollWidth, clientWidth } = this._scrollArea;
+          const overflows = scrollWidth > clientWidth + 1;
+          // Show both arrows when tabs overflow
+          this._scrollLeftBtn.classList.toggle('visible', overflows);
+          this._scrollRightBtn.classList.toggle('visible', overflows);
+          // Gray out at edges
+          this._scrollLeftBtn.classList.toggle('at-edge', scrollLeft <= 1);
+          this._scrollRightBtn.classList.toggle('at-edge', scrollLeft >= scrollWidth - clientWidth - 1);
+        }, 80);
+      }
+
+      // --- Tab 计数器更新 ---
+      _updateCounter() {
+        if (!this._counterEl) return;
+        this._counterEl.textContent = '(' + this._tabs.length + ')';
+      }
+
+      // --- Toast 提示（短暂显示后自动消失） ---
+      _showToast(msg) {
+        if (!this._toastEl) return;
+        // 清除前一个 toast 定时器
+        if (this._toastTimer) {
+          clearTimeout(this._toastTimer);
+          this._toastTimer = null;
+        }
+        this._toastEl.textContent = msg;
+        this._toastEl.classList.add('ag-toast-visible');
+        this._toastTimer = setTimeout(() => {
+          this._toastEl.classList.remove('ag-toast-visible');
+          this._toastTimer = null;
+        }, 2000);
+      }
+
+      // --- 键盘导航 ---
+      _handleKeydown(e) {
+        // 忽略在输入框中的按键
+        const tag = e.target.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
+        let direction = 0; // -1=左, 1=右
+        if (e.key === 'ArrowLeft') direction = -1;
+        else if (e.key === 'ArrowRight') direction = 1;
+        else if (e.key === 'Tab') {
+          direction = 1;
+          e.preventDefault(); // 阻止焦点跳出 tab bar
+        }
+        if (direction === 0) return;
+
+        e.preventDefault();
+        const currentIdx = this._tabs.findIndex(t => t.id === this._activeTabId);
+        if (currentIdx === -1) return;
+        const targetIdx = currentIdx + direction;
+        // 不回绕：到达边界时停止
+        if (targetIdx < 0 || targetIdx >= this._tabs.length) return;
+        this._onClickTab(this._tabs[targetIdx].id);
+      }
+
+      _waitForBridge() {
+        const check = () => {
+          if (this._destroyed) return;
+          if (window._agBridge && window._agBridge.isReady()) {
+            this._bridgeReady = true;
+            this._log('info', 'Bridge ready');
+            this._onBridgeReady();
+          } else {
+            this._pollTimer = setTimeout(check, 2000);
+          }
+        };
+        check();
+      }
+
+      _onBridgeReady() {
+        // Sync with current conversation
+        const currentId = window._agBridge.getCurrentCascadeId();
+        this._log('debug', 'Current cascade ID:', currentId);
+
+        // 清理不属于当前工作区的 stale Tab
+        try {
+          const convos = window._agBridge.findConversationList();
+          const validIds = new Set(convos.map(function(c) { return c.cascadeId; }));
+          const before = this._tabs.length;
+          this._tabs = this._tabs.filter(function(t) {
+            return !t.cascadeId || t.cascadeId === currentId || validIds.has(t.cascadeId);
+          });
+          if (this._tabs.length < before) {
+            this._log('info', 'Cleaned', before - this._tabs.length, 'stale tabs');
+          }
+        } catch (e) {
+          this._log('warn', 'Failed to clean stale tabs:', e.message);
+        }
+
+        if (this._tabs.length === 0) {
+          // 无持久化 Tab — 为当前对话创建一个
+          const title = this._getTitleForCascadeId(currentId) || (currentId ? ('Chat ' + currentId.substring(0, 8)) : 'New Chat');
+          this._addTabInternal(title, currentId);
+          // 标题可能尚未就绪，1.5s 后重试
+          if (currentId && !this._getTitleForCascadeId(currentId)) {
+            setTimeout(() => this.updateTabTitles(), 1500);
+          }
+        } else {
+          // 持久化 Tab 存在 — 查找或创建当前对话的 Tab
+          const existingTab = currentId ? this._tabs.find(t => t.cascadeId === currentId) : null;
+          if (existingTab) {
+            this._activeTabId = existingTab.id;
+          } else if (currentId) {
+            // 当前对话不在 Tab 中 — 添加
+            const title = this._getTitleForCascadeId(currentId) || ('Chat ' + currentId.substring(0, 8));
+            const newTab = this._addTabInternal(title, currentId);
+            if (newTab) {
+              // 标题可能尚未就绪，1.5s 后重试
+              if (!this._getTitleForCascadeId(currentId)) {
+                setTimeout(() => this.updateTabTitles(), 1500);
+              }
+            }
+          } else if (this._tabs.length > 0) {
+            // No current conversation - activate first tab
+            this._activeTabId = this._tabs[0].id;
+          }
+        }
+
+        this._renderTabs();
+        this._saveTabs();
+
+        // Start periodic sync to detect external conversation changes
+        this._startSync();
+      }
+
+      _startSync() {
+        if (this._syncTimer) clearInterval(this._syncTimer);
+        this._syncTimer = setInterval(() => {
+          if (this._destroyed || !this._bridgeReady || this._state === 'switching') return;
+          const currentId = window._agBridge.getCurrentCascadeId();
+          if (!currentId) {
+            this._updateScrollArrows();
+            this.updateTabTitles();
+            this._updateBusyState();
+            return;
+          }
+
+          const activeTab = this._tabs.find(t => t.id === this._activeTabId);
+          if (activeTab && activeTab.cascadeId === currentId) {
+            this._updateScrollArrows();
+            this.updateTabTitles();
+            this._updateBusyState();
+            return;
+          }
+
+          // Active tab has no cascadeId (freshly created via "+") — bind it
+          if (activeTab && !activeTab.cascadeId) {
+            activeTab.cascadeId = currentId;
+            const title = this._getTitleForCascadeId(currentId);
+            if (title && !activeTab.customTitle) activeTab.title = title;
+            this._renderTabs();
+            this._saveTabs();
+            this._log('debug', 'Bound cascadeId to active tab:', currentId);
+            // Retry title fetch after a delay (summary may not be available yet)
+            if (!title) {
+              setTimeout(() => this.updateTabTitles(), 2000);
+            }
+            this._updateScrollArrows();
+            this._updateBusyState();
+            return;
+          }
+
+          // Current conversation changed externally
+          const existingTab = this._tabs.find(t => t.cascadeId === currentId);
+          if (existingTab) {
+            this._activeTabId = existingTab.id;
+            this._renderTabs();
+            this._saveTabs();
+            this._log('debug', 'Synced to externally switched conversation');
+          } else {
+            // 外部打开的新对话（含 Past Conversation 导入）— 添加 Tab
+            const title = this._getTitleForCascadeId(currentId) || 'New Chat';
+            const newTab = this._addTabInternal(title, currentId);
+            if (!newTab) {
+              // Tab 已满，拒绝添加（toast 已在 _addTabInternal 中显示）
+              this._log('info', 'Rejected external conversation: tab limit reached');
+              return;
+            }
+            this._renderTabs();
+            this._saveTabs();
+            this._log('debug', 'Added tab for externally opened conversation');
+            // 标题重试：DOM 标题可能需要稍等 React 渲染完成
+            setTimeout(() => this.updateTabTitles(), 800);
+            setTimeout(() => this.updateTabTitles(), 2500);
+          }
+          this._updateBusyState();
+          this._updateScrollArrows();
+          this.updateTabTitles();
+        }, 3000);
+
+        // Faster polling for busy state (1s) — generation can be brief
+        if (this._busyTimer) clearInterval(this._busyTimer);
+        this._busyTimer = setInterval(() => {
+          if (this._destroyed || !this._bridgeReady) return;
+          this._updateBusyState();
+        }, 1000);
+      }
+
+      _updateBusyState() {
+        if (!window._agBridge || !window._agBridge.getBusyConversations) return;
+        try {
+          const busyIds = window._agBridge.getBusyConversations();
+          let changed = false;
+          for (const tab of this._tabs) {
+            const isBusy = tab.cascadeId ? busyIds.has(tab.cascadeId) : false;
+            const isActive = tab.id === this._activeTabId;
+
+            if (isBusy && !tab.busy) {
+              // Became busy → mark activity unseen (only for non-active tabs)
+              tab.busy = true;
+              if (!isActive) {
+                tab.activityUnseen = true;
+              }
+              console.log('[AG-TabMgr] Tab became busy:', tab.title.substring(0, 20),
+                'cascadeId:', tab.cascadeId ? tab.cascadeId.substring(0, 8) : null,
+                'isActive:', isActive, 'unseen:', tab.activityUnseen);
+              changed = true;
+            } else if (!isBusy && tab.busy) {
+              // No longer busy
+              tab.busy = false;
+              if (isActive) {
+                // Active tab: user is watching, clear unseen
+                tab.activityUnseen = false;
+              } else {
+                // Inactive tab: user wasn't watching, mark unseen
+                tab.activityUnseen = true;
+              }
+              changed = true;
+            }
+
+            // 防护：活跃 Tab 的 activityUnseen 永远不应为 true
+            // 用户已在查看此 Tab，无需提示"有未读活动"
+            if (isActive && tab.activityUnseen) {
+              tab.activityUnseen = false;
+              changed = true;
+            }
+          }
+          if (changed) {
+            this._renderTabs();
+          }
+        } catch (e) {
+          this._log('warn', 'Busy state update failed:', e.message);
+        }
+      }
+
+      _getTitleForCascadeId(cascadeId) {
+        if (!cascadeId || !window._agBridge) return null;
+        try {
+          const title = window._agBridge.findConversationTitle(cascadeId);
+          if (title) return title.substring(0, 40);
+        } catch (e) {
+          this._log('warn', 'Failed to get title:', e.message);
+        }
+        return null;
+      }
+
+      // --- Persistence ---
+      _loadPersistedTabs() {
+        try {
+          const storageKey = getTabStorageKey();
+          let raw = localStorage.getItem(storageKey);
+          // 迁移旧 key (ag-better-tab-state → 工作区 key)
+          if (!raw) {
+            raw = localStorage.getItem(TAB_STORAGE_KEY_OLD);
+            if (raw) {
+              localStorage.setItem(storageKey, raw);
+              localStorage.removeItem(TAB_STORAGE_KEY_OLD);
+              this._log('info', 'Migrated tab state from old key');
+            }
+          }
+          // 迁移全局 key (ag-better-tabs → 工作区 key)
+          if (!raw) {
+            raw = localStorage.getItem(TAB_STORAGE_KEY_GLOBAL);
+            if (raw) {
+              localStorage.setItem(storageKey, raw);
+              // 不删除全局 key，其他工作区可能尚未迁移
+              this._log('info', 'Migrated tab state from global key to', storageKey);
+            }
+          }
+          if (!raw) return;
+          const data = JSON.parse(raw);
+          if (data.version !== 1) return;
+          this._tabs = (data.tabs || []).map(t => ({
+            id: t.id,
+            title: t.title || (t.cascadeId ? ('Chat ' + t.cascadeId.substring(0, 8)) : 'New Chat'),
+            cascadeId: t.cascadeId || null,
+            timestamp: t.timestamp || Date.now(),
+            stale: false,
+            customTitle: !!t.customTitle,
+            busy: false,
+            activityUnseen: false
+          }));
+          this._activeTabId = data.activeTabId || null;
+          this._nextId = data.nextId || (this._tabs.length + 1);
+          this._log('info', 'Loaded', this._tabs.length, 'persisted tabs');
+        } catch (e) {
+          this._log('warn', 'Failed to load persisted tabs:', e.message);
+          this._tabs = [];
+        }
+      }
+
+      _saveTabs() {
+        try {
+          const data = {
+            version: 1,
+            tabs: this._tabs.map(t => ({
+              id: t.id,
+              title: t.title,
+              cascadeId: t.cascadeId,
+              timestamp: t.timestamp,
+              customTitle: !!t.customTitle
+            })),
+            activeTabId: this._activeTabId,
+            nextId: this._nextId
+          };
+          localStorage.setItem(getTabStorageKey(), JSON.stringify(data));
+        } catch (e) {
+          this._log('error', 'Failed to save tabs:', e.message);
+        }
+      }
+
+      // --- Tab Operations ---
+      _addTabInternal(title, cascadeId) {
+        // 超限时拒绝添加，返回 null
+        if (this._tabs.length >= this._maxTabs) {
+          this._showToast('已达上限（' + this._maxTabs + '），请先关闭标签');
+          this._log('info', 'Tab limit reached, refusing add:', this._maxTabs);
+          return null;
+        }
+
+        const tab = {
+          id: 'tab_' + this._nextId++,
+          title: title || (cascadeId ? ('Chat ' + cascadeId.substring(0, 8)) : 'New Chat'),
+          cascadeId: cascadeId || null,
+          timestamp: Date.now(),
+          stale: false,
+          customTitle: false,
+          busy: false,
+          activityUnseen: false
+        };
+        this._tabs.push(tab);
+        this._activeTabId = tab.id;
+        return tab;
+      }
+
+      _onAddTab() {
+        if (!this._bridgeReady) {
+          this._log('warn', 'Bridge not ready, cannot add tab');
+          return;
+        }
+
+        // 达到上限时显示 toast 提示，不新增 Tab
+        if (this._tabs.length >= this._maxTabs) {
+          this._showToast('已达上限，请先关闭标签');
+          this._log('info', 'Tab limit reached:', this._maxTabs);
+          return;
+        }
+
+        // Capture current conversation's cascadeId on active tab before creating new
+        const activeTab = this._tabs.find(t => t.id === this._activeTabId);
+        if (activeTab && !activeTab.cascadeId) {
+          const currentId = window._agBridge.getCurrentCascadeId();
+          if (currentId) {
+            activeTab.cascadeId = currentId;
+            const title = this._getTitleForCascadeId(currentId);
+            if (title) activeTab.title = title;
+          }
+        }
+
+        // Start new conversation via bridge
+        const success = window._agBridge.startNewConversation();
+        if (!success) {
+          this._log('error', 'Failed to start new conversation');
+          return;
+        }
+
+        // 创建新 Tab（cascadeId 会在 sync 中绑定）
+        this._addTabInternal('New Chat', null);
+        this._renderTabs();
+        this._saveTabs();
+        this._log('info', 'Added new tab');
+      }
+
+      _onCloseTab(tabId) {
+        const idx = this._tabs.findIndex(t => t.id === tabId);
+        if (idx === -1) return;
+
+        // Don't close the last tab
+        if (this._tabs.length <= 1) return;
+
+        const wasActive = this._activeTabId === tabId;
+        this._tabs.splice(idx, 1);
+
+        if (wasActive) {
+          // Switch to adjacent tab
+          const newIdx = Math.min(idx, this._tabs.length - 1);
+          const newTab = this._tabs[newIdx];
+          this._activeTabId = newTab.id;
+          if (newTab.cascadeId && this._bridgeReady) {
+            this._doSwitch(newTab);
+          }
+        }
+
+        this._renderTabs();
+        this._saveTabs();
+        this._log('info', 'Closed tab', tabId);
+      }
+
+      _onClickTab(tabId) {
+        if (tabId === this._activeTabId) {
+          // Clicking active tab = "已读", clear unseen
+          const tab = this._tabs.find(t => t.id === tabId);
+          if (tab && tab.activityUnseen) {
+            tab.activityUnseen = false;
+            this._renderTabs();
+          }
+          return;
+        }
+        const tab = this._tabs.find(t => t.id === tabId);
+        if (!tab) return;
+
+        // Clicking any tab = user is reading it → mark as seen
+        tab.activityUnseen = false;
+
+        if (!this._bridgeReady) {
+          this._log('warn', 'Bridge not ready');
+          this._shakeTab(tabId);
+          return;
+        }
+
+        // Capture current cascadeId on previously active tab
+        const prevTab = this._tabs.find(t => t.id === this._activeTabId);
+        if (prevTab && !prevTab.cascadeId) {
+          const currentId = window._agBridge.getCurrentCascadeId();
+          if (currentId) {
+            prevTab.cascadeId = currentId;
+            const title = this._getTitleForCascadeId(currentId);
+            if (title) prevTab.title = title;
+          }
+        }
+
+        if (!tab.cascadeId) {
+          // No cascadeId - start new conversation
+          this._activeTabId = tabId;
+          window._agBridge.startNewConversation();
+          this._renderTabs();
+          this._saveTabs();
+          return;
+        }
+
+        this._doSwitch(tab);
+      }
+
+      // --- Switch with debounce and state machine ---
+      _doSwitch(tab) {
+        const switchId = ++this._switchId;
+        this._state = 'switching';
+        this._activeTabId = tab.id;
+        this._renderTabs();
+        this._log('debug', 'Switching to', tab.cascadeId, 'switchId:', switchId);
+
+        // Debounce: if another switch happens, this one is cancelled
+        setTimeout(() => {
+          if (this._destroyed) return;
+          if (this._switchId !== switchId) {
+            this._state = 'cancelled';
+            this._log('debug', 'Switch cancelled, switchId:', switchId);
+            return;
+          }
+
+          // Attempt switch via bridge
+          const success = window._agBridge.switchConversation(tab.cascadeId);
+
+          if (this._switchId !== switchId) {
+            this._state = 'cancelled';
+            return;
+          }
+
+          if (success) {
+            this._state = 'verifying';
+
+            // Verify switch after short delay
+            setTimeout(() => {
+              if (this._destroyed) return;
+              if (this._switchId !== switchId) {
+                this._state = 'cancelled';
+                return;
+              }
+
+              const currentId = window._agBridge.getCurrentCascadeId();
+              if (currentId === tab.cascadeId) {
+                this._state = 'success';
+                tab.stale = false;
+                this._log('info', 'Switch verified:', tab.cascadeId);
+              } else {
+                this._state = 'failed';
+                this._log('warn', 'Switch verification failed, expected:', tab.cascadeId, 'got:', currentId);
+                tab.stale = true;
+                this._shakeTab(tab.id);
+              }
+              this._renderTabs();
+              this._saveTabs();
+              this._state = 'idle';
+            }, 800);
+          } else {
+            this._state = 'failed';
+            tab.stale = true;
+            this._shakeTab(tab.id);
+            this._renderTabs();
+            this._saveTabs();
+            this._log('error', 'Switch failed for:', tab.cascadeId);
+            this._state = 'idle';
+          }
+        }, 50); // small debounce window
+      }
+
+      _shakeTab(tabId) {
+        const el = this._scrollArea?.querySelector(`[data-tab-id="${tabId}"]`);
+        if (el) {
+          el.classList.add('shake');
+          setTimeout(() => el.classList.remove('shake'), 500);
+        }
+      }
+
+      // --- Rename ---
+      _startRename(tab, spanEl) {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'ag-tab-rename-input';
+        input.value = tab.title;
+        input.style.width = Math.max(spanEl.offsetWidth, 40) + 'px';
+
+        let committed = false;
+        const commit = () => {
+          if (committed) return;
+          committed = true;
+          const val = input.value.trim();
+          if (val && val !== tab.title) {
+            tab.title = val;
+            tab.customTitle = true;
+            this._saveTabs();
+          }
+          this._renderTabs();
+        };
+        const cancel = () => {
+          if (committed) return;
+          committed = true;
+          this._renderTabs();
+        };
+
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') { e.preventDefault(); commit(); }
+          if (e.key === 'Escape') { e.preventDefault(); cancel(); }
+        });
+        input.addEventListener('blur', () => commit());
+
+        spanEl.replaceWith(input);
+        input.focus();
+        input.select();
+      }
+
+      // --- Rendering ---
+      _renderTabs() {
+        if (!this._scrollArea) return;
+        this._scrollArea.innerHTML = '';
+
+        this._tabs.forEach(tab => {
+          const el = document.createElement('div');
+          el.className = 'ag-tab-item' + (tab.id === this._activeTabId ? ' active' : '');
+          el.dataset.tabId = tab.id;
+          if (tab.stale) el.dataset.stale = 'true';
+          const isActive = tab.busy || tab.activityUnseen;
+          if (isActive) el.dataset.busy = 'true';
+
+          // Status dot (always visible: green=busy/unseen, gray=idle)
+          const dot = document.createElement('span');
+          dot.className = 'ag-tab-dot' + (isActive ? ' active-dot' : '');
+          el.appendChild(dot);
+
+          const titleSpan = document.createElement('span');
+          titleSpan.textContent = tab.stale ? tab.title + ' [!]' : tab.title;
+          titleSpan.addEventListener('dblclick', (e) => {
+            e.stopPropagation();
+            this._startRename(tab, titleSpan);
+          });
+          el.appendChild(titleSpan);
+
+          // Close button (only if more than 1 tab)
+          if (this._tabs.length > 1) {
+            const closeSpan = document.createElement('span');
+            closeSpan.className = 'ag-tab-close';
+            closeSpan.textContent = '\u00d7';
+            closeSpan.addEventListener('click', (e) => {
+              e.stopPropagation();
+              this._onCloseTab(tab.id);
+            });
+            el.appendChild(closeSpan);
+          }
+
+          el.addEventListener('click', () => this._onClickTab(tab.id));
+          this._scrollArea.appendChild(el);
+        });
+
+        // Scroll active tab into view
+        const activeEl = this._scrollArea.querySelector('.active');
+        if (activeEl) {
+          activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+        }
+        this._updateScrollArrows();
+        this._updateCounter();
+      }
+
+      // --- Title Updates ---
+      updateTabTitles() {
+        if (!this._bridgeReady) return;
+        try {
+          let changed = false;
+          this._tabs.forEach(tab => {
+            if (!tab.cascadeId) return;
+            if (tab.customTitle) return;
+            // Use multi-source title lookup
+            const title = window._agBridge.findConversationTitle(tab.cascadeId);
+            if (title) {
+              const newTitle = title.substring(0, 40);
+              if (newTitle !== tab.title) {
+                tab.title = newTitle;
+                changed = true;
+              }
+              if (tab.stale) {
+                tab.stale = false;
+                changed = true;
+              }
+            }
+          });
+          if (changed) {
+            this._renderTabs();
+            this._saveTabs();
+          }
+          // 递进式重试：标题可能需要 AI 回复后才生成，持续重试最多 5 次
+          const hasDefault = this._tabs.some(t => t.cascadeId && !t.customTitle && (t.title === 'New Tab' || t.title === 'Current Chat' || t.title === 'New Chat' || t.title.startsWith('Chat ')));
+          if (hasDefault) {
+            const retryCount = this._titleRetryCount || 0;
+            if (retryCount < 5 && !this._titleRetryTimer) {
+              this._titleRetryCount = retryCount + 1;
+              // 递进延迟: 2s, 3s, 4.5s, 6.75s, 10s
+              const delay = Math.min(2000 * Math.pow(1.5, retryCount), 10000);
+              this._titleRetryTimer = setTimeout(() => {
+                this._titleRetryTimer = null;
+                this.updateTabTitles();
+              }, delay);
+            }
+          } else {
+            // 所有标题已获取，重置重试计数
+            this._titleRetryCount = 0;
+          }
+        } catch (e) {
+          this._log('warn', 'Title update failed:', e.message);
+        }
+      }
+
+      // --- Settings Update ---
+      setMaxTabs(maxTabs) {
+        this._maxTabs = maxTabs;
+        // 超限时移除最早的非活跃 Tab
+        while (this._tabs.length > this._maxTabs) {
+          const removeIdx = this._tabs.findIndex(t => t.id !== this._activeTabId);
+          if (removeIdx !== -1) {
+            this._tabs.splice(removeIdx, 1);
+          } else {
+            this._tabs.shift();
+          }
+        }
+        this._renderTabs();
+        this._saveTabs();
+      }
+
+      // --- Destroy ---
+      destroy() {
+        this._destroyed = true;
+        if (this._pollTimer) clearTimeout(this._pollTimer);
+        if (this._syncTimer) clearInterval(this._syncTimer);
+        if (this._busyTimer) clearInterval(this._busyTimer);
+        if (this._titleRetryTimer) clearTimeout(this._titleRetryTimer);
+        if (this._toastTimer) clearTimeout(this._toastTimer);
+        if (this._resizeHandler) window.removeEventListener('resize', this._resizeHandler);
+        // 移除键盘事件监听
+        if (this._keydownHandler && this._container) {
+          this._container.removeEventListener('keydown', this._keydownHandler);
+        }
+        if (this._container && this._container.parentNode) {
+          this._container.parentNode.removeChild(this._container);
+        }
+        // 移除 toast 元素
+        if (this._toastEl && this._toastEl.parentNode) {
+          this._toastEl.parentNode.removeChild(this._toastEl);
+        }
+        this._container = null;
+        this._scrollArea = null;
+        this._scrollLeftBtn = null;
+        this._scrollRightBtn = null;
+        this._counterEl = null;
+        this._toastEl = null;
+        document.body.classList.remove('ag-tab-bar-active');
+        this._log('info', 'Tab bar destroyed');
+      }
+    }
+
+    // Global reference (exposed on window for debugging)
+    let _tabManager = null;
+    Object.defineProperty(window, '_tabManager', { get: () => _tabManager, configurable: true });
+
+    function initTabBar() {
+      if (_tabManager) {
+        _tabManager.destroy();
+        _tabManager = null;
+      }
+      if (!currentSettings.tabBarEnabled) return;
+      _tabManager = new HistoryTabManager(currentSettings.tabBarMaxTabs);
+      _tabManager.init();
+      // 标题更新已整合到 3s sync 轮询中，无需独立定时器
+    }
+
+    function destroyTabBar() {
+      if (_tabManager) {
+        _tabManager.destroy();
+        _tabManager = null;
+      }
+    }
+
     /* ===== 初始化 ===== */
     function initUI() {
       // 0. 显示当前版本号
@@ -2486,7 +4023,38 @@
         manualUpdateBtn.addEventListener('click', manualCheckUpdate);
       }
 
-      // 5. 启动时版本检测（如果启用）
+      // 5. Tab Bar 初始化
+      const tabBarToggle = document.getElementById('tab-bar-master-toggle');
+      const tabBarMaxTabsSelect = document.getElementById('tab-bar-max-tabs');
+
+      if (tabBarToggle) {
+        tabBarToggle.checked = currentSettings.tabBarEnabled;
+        tabBarToggle.addEventListener('change', () => {
+          currentSettings.tabBarEnabled = tabBarToggle.checked;
+          saveSettings(currentSettings);
+          if (currentSettings.tabBarEnabled) {
+            initTabBar();
+          } else {
+            destroyTabBar();
+          }
+        });
+      }
+
+      if (tabBarMaxTabsSelect) {
+        tabBarMaxTabsSelect.value = String(currentSettings.tabBarMaxTabs);
+        tabBarMaxTabsSelect.addEventListener('change', () => {
+          currentSettings.tabBarMaxTabs = parseInt(tabBarMaxTabsSelect.value, 10) || 10;
+          saveSettings(currentSettings);
+          if (_tabManager) _tabManager.setMaxTabs(currentSettings.tabBarMaxTabs);
+        });
+      }
+
+      // Initialize tab bar if enabled
+      if (currentSettings.tabBarEnabled) {
+        initTabBar();
+      }
+
+      // 6. 启动时版本检测（如果启用）
       if (currentSettings.autoUpdateEnabled) {
         setTimeout(checkForUpdate, 10000);
       }
