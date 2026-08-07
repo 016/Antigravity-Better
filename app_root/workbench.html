@@ -444,6 +444,10 @@
 	];
 
 	const AUTO_ACCEPT_CONFIGS = [
+		{ id: 'confirm', label: 'Confirm', defaultEnabled: false },
+		{ id: 'allow', label: 'Allow', defaultEnabled: false },
+		{ id: 'submit', label: 'Submit', defaultEnabled: false },
+		{ id: 'tool permissions', label: 'Tool Permissions', defaultEnabled: false },
 		{ id: 'accept', label: 'Accept', defaultEnabled: false },
 		{ id: 'accept all', label: 'Accept all', defaultEnabled: true },
 		{ id: 'always allow', label: 'Always Allow', defaultEnabled: true },
@@ -1001,12 +1005,36 @@
 		const rejects = ['skip', 'reject', 'cancel', 'close', 'refine', 'dismiss', 'always'];
 		if (rejects.some(r => text.includes(r))) return false;
 		if (!patterns.some(p => text.includes(p))) return false;
+		// 防呆保护：如果在提问框（包含选项和 Skip 按钮）中，放过 submit 按钮，不进行自动点击
+		if (text.includes('submit')) {
+			const container = btn.closest('form, [role="dialog"], [class*="modal"]') || btn.parentElement?.parentElement;
+			if (container) {
+				const containerHtml = container.innerHTML.toLowerCase();
+				// 如果是权限弹窗，判断是否放行
+				if (containerHtml.includes('always allow') || containerHtml.includes('allow this conversation') || containerHtml.includes('allow running') || containerHtml.includes('allow access')) {
+					if (!currentSettings.autoAcceptPatterns['tool permissions']) {
+						return false; // 如果未勾选 "Tool Permissions"，则依然拦截
+					}
+				} else {
+					// 调查问卷防呆判定：问卷通常带有 Skip 按钮，或者带有一个文本输入框（用于其它选项）
+					const hasSkipButton = Array.from(container.querySelectorAll('button')).some(b => b.textContent.trim().toLowerCase().includes('skip'));
+					const hasTextInput = container.querySelector('textarea, input[type="text"], vscode-text-field') !== null;
+					if (hasSkipButton || hasTextInput) {
+						return false;
+					}
+				}
+			}
+		}
 		const style = window.getComputedStyle(btn); const rect = btn.getBoundingClientRect();
 		return style.display !== 'none' && rect.width > 0 && !btn.disabled;
 	}
 	function findNearbyCommandText(btnEl) {
-		let cmd = ''; let container = btnEl.parentElement; let depth = 0;
+		let cmd = ''; let container = btnEl; let depth = 0;
 		while (container && depth < 10) {
+			// 先检查容器自身以及其内部的代码
+			if (/^(PRE|CODE)$/.test(container.tagName)) cmd += ' ' + container.textContent.trim();
+			container.querySelectorAll('pre, code').forEach(e => cmd += ' ' + e.textContent.trim());
+			
 			let sib = container.previousElementSibling; let sc = 0;
 			while (sib && sc < 5) { if (/^(PRE|CODE)$/.test(sib.tagName)) cmd += ' ' + sib.textContent.trim(); sib.querySelectorAll('pre, code').forEach(e => cmd += ' ' + e.textContent.trim()); sib = sib.previousElementSibling; sc++; }
 			if (cmd.length > 10) break; container = container.parentElement; depth++;

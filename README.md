@@ -52,6 +52,7 @@ You can freely customize this HTML file to build your own features. Following ou
 
 ### Release Timeline (Partial)
 
+- **v0.2.11**: Adds `Submit` auto-accept support with questionnaire modal protection, introduces `Submit`and`Tool Permissions` independent toggle to bypass normal tool permission prompts, and fixes a blind spot in the high-risk command filter for elements within the same container.
 - **v0.2.10**: Fixes the Undo icon rendering issue in conversations by allowing the required Google resources in the Content Security Policy. The fix proposal came from hanliangwei.
 - **v0.2.9**: Fixes accidental auto-clicks on conversation titles when creating a new conversation by skipping title buttons that carry both `title` and `grow`.
 - **v0.2.8**: Fixes the app version string that was still shown as `0.2.2`, and aligns documentation version info.
