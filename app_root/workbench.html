@@ -1009,17 +1009,17 @@
 		if (text.includes('submit')) {
 			const container = btn.closest('form, [role="dialog"], [class*="modal"]') || btn.parentElement?.parentElement;
 			if (container) {
-				const containerText = container.textContent.toLowerCase();
-				// 如果是权限弹窗（带有 always allow 或 always同意 等字样），判断是否放行
-				if (containerText.includes('always allow') || containerText.includes('allow this conversation') || containerText.includes('always同意')) {
+				const containerHtml = container.innerHTML.toLowerCase();
+				// 如果是权限弹窗，判断是否放行
+				if (containerHtml.includes('always allow') || containerHtml.includes('allow this conversation') || containerHtml.includes('allow running') || containerHtml.includes('allow access')) {
 					if (!currentSettings.autoAcceptPatterns['tool permissions']) {
 						return false; // 如果未勾选 "Tool Permissions"，则依然拦截
 					}
 				} else {
-					// 普通提问框：检查是否有多个选项或 Skip 按钮
-					const hasMultipleOptions = container.querySelectorAll('input[type="radio"], input[type="checkbox"], vscode-radio, vscode-checkbox, [role="radio"], [role="checkbox"]').length > 1;
+					// 调查问卷防呆判定：问卷通常带有 Skip 按钮，或者带有一个文本输入框（用于其它选项）
 					const hasSkipButton = Array.from(container.querySelectorAll('button')).some(b => b.textContent.trim().toLowerCase().includes('skip'));
-					if (hasMultipleOptions || hasSkipButton) {
+					const hasTextInput = container.querySelector('textarea, input[type="text"], vscode-text-field') !== null;
+					if (hasSkipButton || hasTextInput) {
 						return false;
 					}
 				}
