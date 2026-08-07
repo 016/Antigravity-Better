@@ -8,7 +8,7 @@
     <strong>中文</strong>
   </p>
   <p>
-    <img src="https://img.shields.io/badge/version-0.2.11-brightgreen" alt="Version">
+    <img src="https://img.shields.io/badge/version-0.2.10-brightgreen" alt="Version">
     <img src="https://img.shields.io/badge/dependencies-zero-green" alt="Zero Dependencies">
     <img src="https://img.shields.io/badge/file-single%20HTML-blue" alt="Single File">
     <img src="https://img.shields.io/badge/target-Antigravity-purple" alt="Antigravity">
