@@ -8,7 +8,7 @@
     <strong>中文</strong>
   </p>
   <p>
-    <img src="https://img.shields.io/badge/version-0.2.10-brightgreen" alt="Version">
+    <img src="https://img.shields.io/badge/version-0.2.11-brightgreen" alt="Version">
     <img src="https://img.shields.io/badge/dependencies-zero-green" alt="Zero Dependencies">
     <img src="https://img.shields.io/badge/file-single%20HTML-blue" alt="Single File">
     <img src="https://img.shields.io/badge/target-Antigravity-purple" alt="Antigravity">
@@ -52,6 +52,7 @@
 
 ### 版本发布列表（不完全）
 
+- **v0.2.11**：新增 `Submit` 自动点击支持，并增加了问卷弹窗保护；新增 `Submit`、`Tool Permissions` 独立开关，支持一键放行常规工具权限申请；修复了高危命令过滤在同级容器内的检测盲区。
 - **v0.2.10**：修复对话中 Undo 图标未正确渲染的问题，原因是 CSP 未放行所需的 Google 相关资源；本次通过补充相关策略完成修复，方案来自 hanliangwei。
 - **v0.2.9**：修复新建对话时误点历史会话标题的问题；当按钮同时带有 `title` 且包含 `grow` 类名时，跳过自动点击。
 - **v0.2.8**：修复程序内版本号仍显示为 `0.2.2` 的问题，并同步整理文档版本信息。
