@@ -86,7 +86,7 @@
 	<link rel="stylesheet" href="../../../workbench/workbench.desktop.main.css">
 
 	<style>
-		/* ===== Antigravity Better v0.2.10 ===== */
+		/* ===== Antigravity Better v0.2.11 ===== */
 		:root {
 			--color-user-message: #60A5FA;
 			--color-ai-response: #E0E0E0;
@@ -320,8 +320,8 @@
 <script>
 (function () {
 	'use strict';
-	/* ===== Antigravity Better v0.2.10 ===== */
-	console.log('[AB] Antigravity Better v0.2.10 Loading...');
+	/* ===== Antigravity Better v0.2.11 ===== */
+	console.log('[AB] Antigravity Better v0.2.11 Loading...');
 
 	// ===== Trusted Types Policy =====
 	let abPolicy = null;
@@ -410,7 +410,7 @@
 	function t(key) { return (T[currentSettings.lang] || T.zh)[key] || key; }
 
 	// ===== 配置 =====
-	const APP_VERSION = '0.2.10';
+	const APP_VERSION = '0.2.11';
 	const STORAGE_KEY = 'antigravity-better-settings';
 
 	const COLOR_CONFIGS = [
@@ -456,8 +456,6 @@
 		{ id: 'run', label: 'Run', defaultEnabled: true },
 		{ id: 'apply', label: 'Apply', defaultEnabled: true },
 		{ id: 'execute', label: 'Execute', defaultEnabled: true },
-		{ id: 'confirm', label: 'Confirm', defaultEnabled: true },
-		{ id: 'allow', label: 'Allow', defaultEnabled: true },
 	];
 
 	const DEFAULT_BANNED_COMMANDS = ['rm -rf /','rm -rf ~','rm -rf *','format c:','del /f /s /q','rmdir /s /q',':(){:|:&};:','dd if=','mkfs.','> /dev/sda','chmod -R 777 /'];
@@ -975,6 +973,7 @@
 		const selected = currentSettings.sendHotkey;
 		const config = HOTKEY_OPTIONS.find(h => h.id === selected);
 		hotkeyHandler = function (e) {
+			if (e.isComposing || e.keyCode === 229) return;
 			const inputEl = e.target.closest(INPUT_SELECTOR);
 			if (!inputEl || e.key !== 'Enter') return;
 			if (inputEl.hasAttribute('aria-activedescendant')) return;
@@ -992,66 +991,112 @@
 	}
 
 	// ===== 自动操作功能 =====
-	let autoAcceptObserver = null, autoAcceptPermissionTimer = null, autoAcceptCommandTimer = null;
+	let autoAcceptObserver = null, autoAcceptIntervalTimer = null;
 	function isAutoAcceptButton(btn) {
 		const text = (btn.textContent || '').trim().toLowerCase();
-		if (!text || text.length > 50) return false;
-		// 排除下拉菜单触发器（如 "Always run" 按钮）
+		if (!text || text.length > 35) return false;
+		
+		// 排除自身设置弹窗中的按钮
+		if (btn.closest('#ab-overlay') || btn.closest('#ab-modal')) return false;
+
+		// 排除下拉菜单触发器、折叠面板、建议列表项
 		if (btn.hasAttribute('aria-haspopup')) return false;
-		// 排除列表项/建议按钮（带 title 且含 grow 的全宽按钮）
+		if (btn.hasAttribute('aria-expanded')) return false;
 		if (btn.title && btn.classList.contains('grow')) return false;
-		const patterns = Object.entries(currentSettings.autoAcceptPatterns).filter(([_, v]) => v).map(([k]) => k);
-		if (!patterns.length) return false;
-		const rejects = ['skip', 'reject', 'cancel', 'close', 'refine', 'dismiss', 'always'];
+
+		const rejects = ['reject', 'cancel', 'close', 'refine', 'dismiss'];
 		if (rejects.some(r => text.includes(r))) return false;
-		if (!patterns.some(p => text.includes(p))) return false;
-		// 防呆保护：如果在提问框（包含选项和 Skip 按钮）中，放过 submit 按钮，不进行自动点击
-		if (text.includes('submit')) {
-			const container = btn.closest('form, [role="dialog"], [class*="modal"]') || btn.parentElement?.parentElement;
-			if (container) {
-				const containerHtml = container.innerHTML.toLowerCase();
-				// 如果是权限弹窗，判断是否放行
-				if (containerHtml.includes('always allow') || containerHtml.includes('allow this conversation') || containerHtml.includes('allow running') || containerHtml.includes('allow access')) {
-					if (!currentSettings.autoAcceptPatterns['tool permissions']) {
-						return false; // 如果未勾选 "Tool Permissions"，则依然拦截
-					}
-				} else {
-					// 调查问卷防呆判定：问卷通常带有 Skip 按钮，或者带有一个文本输入框（用于其它选项）
-					const hasSkipButton = Array.from(container.querySelectorAll('button')).some(b => b.textContent.trim().toLowerCase().includes('skip'));
-					const hasTextInput = container.querySelector('textarea, input[type="text"], vscode-text-field') !== null;
-					if (hasSkipButton || hasTextInput) {
-						return false;
-					}
-				}
+
+		// 向上寻找弹窗/卡片容器（逐层向上最多 8 层，排除 SidePanel 自身）
+		let container = btn.parentElement;
+		let depth = 0;
+		while (container && depth < 8) {
+			if (container.matches && container.matches('[role="dialog"], form, [class*="modal"], [class*="dialog"], [class*="popup"], [class*="fixed"], [class*="overlay"], [class*="card"]')) {
+				break;
 			}
+			if ((container.classList && container.classList.contains('antigravity-agent-side-panel')) || container.tagName === 'BODY') {
+				container = btn.parentElement; // 降级回退到按钮父元素，防止误用全局容器
+				break;
+			}
+			container = container.parentElement;
+			depth++;
 		}
-		const style = window.getComputedStyle(btn); const rect = btn.getBoundingClientRect();
-		return style.display !== 'none' && rect.width > 0 && !btn.disabled;
+		const containerText = container ? (container.textContent || '').toLowerCase() : '';
+
+		// 调查问卷/方案选择防呆判断 (含有交互式输入框或选项，且不含权限特征)
+		const hasTextInput = container ? container.querySelector('textarea, input[type="text"], vscode-text-field') !== null : false;
+		const hasOptions = container ? container.querySelector('input[type="checkbox"], input[type="radio"], [role="checkbox"], [role="radio"]') !== null : false;
+		
+		// 判断是否为工具权限/命令放行弹窗
+		const isPermissionModal = containerText.includes('allow') || containerText.includes('permission') || 
+		                          containerText.includes('running') || containerText.includes('access') ||
+		                          containerText.includes('command') || containerText.includes('tool') ||
+		                          containerText.includes('always allow') || containerText.includes('allow this conversation');
+
+		// Submit 核心放行判断
+		if (text.includes('submit')) {
+			// 只有在明确是带有输入框/未选选项的问卷且不是权限弹窗时，才防呆拦截
+			if ((hasTextInput || hasOptions) && !isPermissionModal) {
+				return false;
+			}
+
+			// 如果开启了 tool permissions 或开启了 submit，则放行
+			if (currentSettings.autoAcceptPatterns['tool permissions'] || currentSettings.autoAcceptPatterns['submit']) {
+				// 放行
+			} else {
+				return false;
+			}
+		} else {
+			// 其他按钮按 pattern 检查
+			const patterns = Object.entries(currentSettings.autoAcceptPatterns).filter(([_, v]) => v).map(([k]) => k);
+			if (!patterns.length) return false;
+			if (!patterns.some(p => text === p || (text.includes(p) && text.length <= p.length + 10))) return false;
+		}
+
+		// 检查可见性与可用性
+		const style = window.getComputedStyle(btn); 
+		const rect = btn.getBoundingClientRect();
+		return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0 && !btn.disabled && btn.getAttribute('aria-disabled') !== 'true';
 	}
 	function findNearbyCommandText(btnEl) {
 		let cmd = ''; let container = btnEl; let depth = 0;
 		while (container && depth < 10) {
-			// 先检查容器自身以及其内部的代码
 			if (/^(PRE|CODE)$/.test(container.tagName)) cmd += ' ' + container.textContent.trim();
 			container.querySelectorAll('pre, code').forEach(e => cmd += ' ' + e.textContent.trim());
-			
+
 			let sib = container.previousElementSibling; let sc = 0;
-			while (sib && sc < 5) { if (/^(PRE|CODE)$/.test(sib.tagName)) cmd += ' ' + sib.textContent.trim(); sib.querySelectorAll('pre, code').forEach(e => cmd += ' ' + e.textContent.trim()); sib = sib.previousElementSibling; sc++; }
-			if (cmd.length > 10) break; container = container.parentElement; depth++;
+			while (sib && sc < 5) { 
+				if (/^(PRE|CODE)$/.test(sib.tagName)) cmd += ' ' + sib.textContent.trim(); 
+				sib.querySelectorAll('pre, code').forEach(e => cmd += ' ' + e.textContent.trim()); 
+				sib = sib.previousElementSibling; 
+				sc++; 
+			}
+			if (cmd.length > 10) break; 
+			container = container.parentElement; 
+			depth++;
 		}
 		return cmd.trim().toLowerCase();
 	}
 	function isCommandBanned(text) {
 		if (!text) return false;
 		const list = currentSettings.bannedCommands || [];
-		return list.some(p => p && text.toLowerCase().includes(p.toLowerCase()));
+		const lower = text.toLowerCase();
+		return list.some(p => {
+			if (!p) return false;
+			const pl = p.toLowerCase().trim();
+			if (pl.length <= 3) {
+				const reg = new RegExp('\\b' + pl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i');
+				return reg.test(lower);
+			}
+			return lower.includes(pl);
+		});
 	}
 	function isDiffConfirmationArea(btn) {
 		let node = btn;
 		for (let depth = 0; node && depth < 6; depth++) {
 			const text = (node.textContent || '').toLowerCase();
 			const className = typeof node.className === 'string' ? node.className : '';
-			if (className.includes('outline-solid') && className.includes('justify-between') && text.includes('file with changes') && text.includes('reject all') && text.includes('accept all')) return true;
+			if (className.includes('outline-solid') && className.includes('justify-between') && /files?\s+with\s+changes/i.test(text) && text.includes('reject all') && text.includes('accept all')) return true;
 			node = node.parentElement;
 		}
 		return false;
@@ -1076,17 +1121,17 @@
 	}
 	function resolvePermissionClickTarget(candidate, root) {
 		if (!candidate) return null;
-		const directButton = candidate.matches('button, [role="button"]') ? candidate : null;
-		const nestedButton = candidate.querySelector('button, [role="button"]');
+		const directButton = candidate.matches('button, [role="button"], vscode-button') ? candidate : null;
+		const nestedButton = candidate.querySelector('button, [role="button"], vscode-button');
 		const clickableSelf = typeof candidate.className === 'string' && candidate.className.includes('cursor-pointer') ? candidate : null;
-		const targets = [directButton, nestedButton, candidate.closest('button, [role="button"]'), candidate.closest('[class*="cursor-pointer"]'), clickableSelf].filter(Boolean);
+		const targets = [directButton, nestedButton, candidate.closest('button, [role="button"], vscode-button'), candidate.closest('[class*="cursor-pointer"]'), clickableSelf].filter(Boolean);
 		return targets.find(el => root.contains(el) && !el.closest('#ab-overlay') && !el.closest('#ab-modal') && isVisibleEnabledActionElement(el));
 	}
 	function findScopedPermissionTarget(scope, expectedText) {
 		const root = scope || document.querySelector('.antigravity-agent-side-panel');
 		if (!root) return null;
 		const normalizedExpected = normalizeAutoAcceptText(expectedText);
-		const candidates = Array.from(root.querySelectorAll('button, [role="button"], span, div')).filter(el => {
+		const candidates = Array.from(root.querySelectorAll('button, [role="button"], vscode-button, span, div')).filter(el => {
 			if (el.closest('#ab-overlay') || el.closest('#ab-modal')) return false;
 			return normalizeAutoAcceptText(el.textContent) === normalizedExpected;
 		});
@@ -1096,85 +1141,112 @@
 		}
 		return null;
 	}
+	function triggerAutoAcceptClick(target) {
+		if (!target) return;
+		// 焦点守卫：记录当前活动元素，若用户正在终端或编辑器输入，点击后立刻归还焦点
+		const prevActive = document.activeElement;
+		const isTerminalOrEditorFocused = prevActive && (
+			prevActive.closest('.terminal, .xterm, .monaco-editor, .terminal-wrapper, .terminal-tabs') ||
+			prevActive.tagName === 'TEXTAREA' ||
+			prevActive.tagName === 'INPUT'
+		) && !prevActive.closest('.antigravity-agent-side-panel, [role="dialog"], #ab-modal');
+
+		if (typeof target.click === 'function') {
+			target.click();
+		} else if (typeof target.dispatchEvent === 'function') {
+			target.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, composed: true, view: window }));
+		}
+
+		if (isTerminalOrEditorFocused && prevActive && typeof prevActive.focus === 'function') {
+			try { prevActive.focus(); } catch (e) { /* ignore */ }
+		}
+	}
 	async function performScopedPermissionAutoAccept(scope) {
 		if (!scope || !currentSettings.autoAcceptEnabled) return;
 		if (!currentSettings.autoAcceptUnlimited && currentSettings.autoAcceptRemaining <= 0) return;
 		if (currentSettings.autoAcceptPatterns['allow this conversation'] && (currentSettings.autoAcceptUnlimited || currentSettings.autoAcceptRemaining > 0)) {
 			const allowConversationTarget = findScopedPermissionTarget(scope, 'allow this conversation');
-			if (allowConversationTarget) {
-				allowConversationTarget.click();
+			if (allowConversationTarget && (!allowConversationTarget.dataset.abClicked || (Date.now() - parseInt(allowConversationTarget.dataset.abClicked)) >= 2000)) {
+				allowConversationTarget.dataset.abClicked = Date.now().toString();
+				triggerAutoAcceptClick(allowConversationTarget);
 				if (scope._abUpdateStats) scope._abUpdateStats({ clicks: 1 });
 				await new Promise(r => setTimeout(r, 100));
 			}
 		}
 		if (currentSettings.autoAcceptPatterns['always allow'] && (currentSettings.autoAcceptUnlimited || currentSettings.autoAcceptRemaining > 0)) {
 			const alwaysAllowTarget = findScopedPermissionTarget(scope, 'always allow');
-			if (alwaysAllowTarget) {
-				alwaysAllowTarget.click();
+			if (alwaysAllowTarget && (!alwaysAllowTarget.dataset.abClicked || (Date.now() - parseInt(alwaysAllowTarget.dataset.abClicked)) >= 2000)) {
+				alwaysAllowTarget.dataset.abClicked = Date.now().toString();
+				triggerAutoAcceptClick(alwaysAllowTarget);
 				if (scope._abUpdateStats) scope._abUpdateStats({ clicks: 1 });
 				await new Promise(r => setTimeout(r, 100));
 			}
-		}
-	}
-	async function performScopedCommandAutoAccept(scope) {
-		if (!scope || !currentSettings.autoAcceptEnabled) return;
-		if (!currentSettings.autoAcceptUnlimited && currentSettings.autoAcceptRemaining <= 0) return;
-		const buttons = scope.querySelectorAll('button');
-		for (const btn of buttons) {
-			if (!currentSettings.autoAcceptUnlimited && currentSettings.autoAcceptRemaining <= 0) break;
-			const text = (btn.textContent || '').trim().toLowerCase();
-			if (!/run|execute/i.test(text)) continue;
-			if (!isAutoAcceptButton(btn)) continue;
-			const nearby = findNearbyCommandText(btn);
-			if (isCommandBanned(nearby)) {
-				if (scope._abUpdateStats) scope._abUpdateStats({ blocked: 1 });
-				continue;
-			}
-			btn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
-			if (scope._abUpdateStats) scope._abUpdateStats({ clicks: 1 });
-			await new Promise(r => setTimeout(r, 100));
 		}
 	}
 	async function performAutoAccept(panelEl) {
 		if (!currentSettings.autoAcceptEnabled) return;
-		// 非无限模式下，剩余次数为0则停止
 		if (!currentSettings.autoAcceptUnlimited && currentSettings.autoAcceptRemaining <= 0) return;
-		const scope = panelEl || document.querySelector('.antigravity-agent-side-panel');
-		if (!scope) return;
-		const buttons = scope.querySelectorAll('button');
-		for (const btn of buttons) {
-			if (!currentSettings.autoAcceptUnlimited && currentSettings.autoAcceptRemaining <= 0) break;
-			if (!isAutoAcceptButton(btn)) continue;
-			const text = (btn.textContent || '').trim().toLowerCase();
-			if (text === 'accept all' && !isDiffConfirmationArea(btn)) continue;
-			if (text === 'allow this conversation' || text === 'always allow') continue;
-			if (/run|execute/i.test(text)) { const nearby = findNearbyCommandText(btn); if (isCommandBanned(nearby)) { if (scope._abUpdateStats) scope._abUpdateStats({ blocked: 1 }); continue; } }
-			btn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
-			if (scope._abUpdateStats) scope._abUpdateStats({ clicks: 1 });
-			await new Promise(r => setTimeout(r, 100));
-		}
-		if (currentSettings.autoAcceptPatterns['accept all'] && (currentSettings.autoAcceptUnlimited || currentSettings.autoAcceptRemaining > 0)) {
-			const acceptAllTarget = findDiffAcceptAllTarget(scope);
-			if (acceptAllTarget) {
-				acceptAllTarget.click();
-				if (scope._abUpdateStats) scope._abUpdateStats({ clicks: 1 });
+		
+		const sidePanel = panelEl || document.querySelector('.antigravity-agent-side-panel');
+		// 仅扫描侧边栏及真正的独立弹窗容器，杜绝在全局 document.body 遍历误触终端或编辑器控件
+		const modals = Array.from(document.querySelectorAll('[role="dialog"], form, [class*="modal"], [class*="popup"], [class*="overlay"]'))
+			.filter(m => !m.closest('#ab-overlay') && !m.closest('#ab-modal') && (!sidePanel || !sidePanel.contains(m)));
+		const scopes = [sidePanel, ...modals].filter(Boolean);
+		const statsScope = sidePanel || document.body;
+
+		for (const scope of scopes) {
+			const buttons = scope.querySelectorAll('button, [role="button"], vscode-button');
+			for (const btn of buttons) {
+				if (!currentSettings.autoAcceptUnlimited && currentSettings.autoAcceptRemaining <= 0) break;
+				if (btn.closest('#ab-overlay') || btn.closest('#ab-modal')) continue;
+				if (!isAutoAcceptButton(btn)) continue;
+				
+				// 2 秒防死循环冷却机制
+				if (btn.dataset.abClicked && (Date.now() - parseInt(btn.dataset.abClicked)) < 2000) continue;
+
+				const text = (btn.textContent || '').trim().toLowerCase();
+				if (text === 'accept all' && !isDiffConfirmationArea(btn)) continue;
+				if (text === 'allow this conversation' || text === 'always allow') continue;
+				if (/run|execute/i.test(text)) { 
+					const nearby = findNearbyCommandText(btn); 
+					if (isCommandBanned(nearby)) { 
+						if (statsScope._abUpdateStats) statsScope._abUpdateStats({ blocked: 1 }); 
+						continue; 
+					} 
+				}
+				btn.dataset.abClicked = Date.now().toString();
+				triggerAutoAcceptClick(btn);
+				if (statsScope._abUpdateStats) statsScope._abUpdateStats({ clicks: 1 });
 				await new Promise(r => setTimeout(r, 100));
 			}
+
+			if (currentSettings.autoAcceptPatterns['accept all'] && (currentSettings.autoAcceptUnlimited || currentSettings.autoAcceptRemaining > 0)) {
+				const acceptAllTarget = findDiffAcceptAllTarget(scope);
+				if (acceptAllTarget && (!acceptAllTarget.dataset.abClicked || (Date.now() - parseInt(acceptAllTarget.dataset.abClicked)) >= 2000)) {
+					acceptAllTarget.dataset.abClicked = Date.now().toString();
+					triggerAutoAcceptClick(acceptAllTarget);
+					if (statsScope._abUpdateStats) statsScope._abUpdateStats({ clicks: 1 });
+					await new Promise(r => setTimeout(r, 100));
+				}
+			}
+			await performScopedPermissionAutoAccept(scope);
 		}
-		await performScopedCommandAutoAccept(scope);
-		await performScopedPermissionAutoAccept(scope);
 	}
 	function applyAutoAcceptSettings(panelEl) {
 		if (autoAcceptObserver) { autoAcceptObserver.disconnect(); autoAcceptObserver = null; }
-		if (autoAcceptPermissionTimer) { clearInterval(autoAcceptPermissionTimer); autoAcceptPermissionTimer = null; }
-		if (autoAcceptCommandTimer) { clearInterval(autoAcceptCommandTimer); autoAcceptCommandTimer = null; }
+		if (autoAcceptIntervalTimer) { clearInterval(autoAcceptIntervalTimer); autoAcceptIntervalTimer = null; }
 		if (!currentSettings.autoAcceptEnabled) return;
-		const scope = panelEl || document.querySelector('.antigravity-agent-side-panel');
-		if (!scope) return;
-		autoAcceptObserver = new MutationObserver(() => { clearTimeout(window._abAATimer); window._abAATimer = setTimeout(() => performAutoAccept(panelEl), 500); });
-		autoAcceptObserver.observe(scope, { childList: true, subtree: true, attributes: true, characterData: true });
-		autoAcceptPermissionTimer = setInterval(() => { performScopedPermissionAutoAccept(scope).catch(() => {}); }, 1000);
-		autoAcceptCommandTimer = setInterval(() => { performScopedCommandAutoAccept(scope).catch(() => {}); }, 1000);
+
+		autoAcceptObserver = new MutationObserver(() => {
+			clearTimeout(window._abAATimer);
+			window._abAATimer = setTimeout(() => performAutoAccept(panelEl), 100);
+		});
+		autoAcceptObserver.observe(document.body, { childList: true, subtree: true, attributes: true });
+
+		autoAcceptIntervalTimer = setInterval(() => {
+			performAutoAccept(panelEl).catch(() => {});
+		}, 400);
+
 		performAutoAccept(panelEl);
 	}
 
@@ -1413,7 +1485,7 @@
 			}
 			e.remove();
 		});
-		scope.querySelectorAll('[data-latex-processed]').forEach(e => delete e.dataset.latexProcessed);
+		scope.querySelectorAll('[data-latex-elem-processed]').forEach(e => delete e.dataset.latexElemProcessed);
 		scope.querySelectorAll('[data-latex-code-processed]').forEach(e => delete e.dataset.latexCodeProcessed);
 	}
 	async function applyLatexSettings(panelEl) {
