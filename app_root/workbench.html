@@ -1059,27 +1059,87 @@
 		const rect = btn.getBoundingClientRect();
 		return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0 && !btn.disabled && btn.getAttribute('aria-disabled') !== 'true';
 	}
-	function findNearbyCommandText(btnEl) {
-		let cmd = ''; let container = btnEl; let depth = 0;
-		while (container && depth < 10) {
-			if (/^(PRE|CODE)$/.test(container.tagName)) cmd += ' ' + container.textContent.trim();
-			container.querySelectorAll('pre, code').forEach(e => cmd += ' ' + e.textContent.trim());
+	// ===== 高危命令核心防御正则规则库 =====
+	const CRITICAL_DANGEROUS_PATTERNS = [
+		// 1. 拦截各类带递归/强制删除的 rm 命令 (rm -rf, rm -fr, rm -r, rm -f, rm -r -f, rm -rf path, sudo rm 等)
+		/\brm\s+[^;&|\n]*-[a-z]*r[a-z]*/i,
+		/\brm\s+[^;&|\n]*-[a-z]*f[a-z]*/i,
+		/\brm\s+--recursive/i,
+		/\brm\s+--force/i,
 
-			let sib = container.previousElementSibling; let sc = 0;
-			while (sib && sc < 5) { 
-				if (/^(PRE|CODE)$/.test(sib.tagName)) cmd += ' ' + sib.textContent.trim(); 
-				sib.querySelectorAll('pre, code').forEach(e => cmd += ' ' + e.textContent.trim()); 
-				sib = sib.previousElementSibling; 
-				sc++; 
+		// 2. 拦截 sudo rm
+		/\bsudo\s+rm\b/i,
+
+		// 3. 拦截磁盘与文件系统高危破坏指令 (mkfs, fdisk, parted, dd if=, format c:, del/rmdir 等)
+		/\b(mkfs(\.[a-z0-9]+)?|fdisk|parted)\b/i,
+		/\bdd\s+if=/i,
+		/\bformat\s+[a-z]:/i,
+		/\b(del|rmdir)\s+\/[a-z0-9\s\/]*/i,
+
+		// 4. 拦截向物理/虚拟裸设备重定向写入 (如 > /dev/sda, > /dev/nvme0n1)
+		/>\s*\/dev\/(sd[a-z]|nvme[0-9]|hd[a-z])/i,
+
+		// 5. 拦截全盘提权与 Fork 炸弹
+		/\bchmod\s+(-R\s+)?777\s+\//i,
+		/:\(\)\s*{\s*:|:&\s*};:/
+	];
+
+	function findNearbyCommandText(btnEl) {
+		if (!btnEl) return '';
+		let cmd = '';
+		let container = btnEl;
+		let depth = 0;
+
+		// 向上寻找所属卡片或弹窗容器（最多 10 层）
+		while (container && depth < 10) {
+			if (container.matches && container.matches('[role="dialog"], form, [class*="modal"], [class*="dialog"], [class*="popup"], [class*="card"], [class*="item"], [class*="message"], [class*="tool"], [class*="call"], [class*="panel-content"]')) {
+				break;
 			}
-			if (cmd.length > 10) break; 
-			container = container.parentElement; 
+			if ((container.classList && container.classList.contains('antigravity-agent-side-panel')) || container.tagName === 'BODY') {
+				container = btnEl.parentElement;
+				break;
+			}
+			container = container.parentElement;
 			depth++;
 		}
+
+		if (!container) container = btnEl.parentElement || btnEl;
+
+		// 1. 优先提取代码/终端/命令类特定元素文本
+		const codeEls = container.querySelectorAll('pre, code, .terminal, [class*="mono"], [class*="command"], [class*="code"], [class*="terminal"], textarea, input');
+		codeEls.forEach(e => {
+			const val = e.value || e.textContent || '';
+			cmd += ' ' + val.trim();
+		});
+
+		// 2. 提取所属容器的全量文本（确保无特定 class 包裹的普通文本指令不被漏检）
+		const containerAllText = container.textContent || '';
+		cmd += ' ' + containerAllText.trim();
+
+		// 3. 检查前置兄弟节点（解决操作按钮处于独立底部栏、命令文本在上方卡片的问题）
+		let sib = container.previousElementSibling;
+		let sc = 0;
+		while (sib && sc < 5) {
+			if (sib.matches && sib.matches('.antigravity-agent-side-panel, #ab-overlay, #ab-modal')) break;
+			const sibCodeEls = sib.querySelectorAll('pre, code, .terminal, [class*="mono"], [class*="command"], [class*="code"], textarea, input');
+			sibCodeEls.forEach(e => {
+				cmd += ' ' + (e.value || e.textContent || '').trim();
+			});
+			cmd += ' ' + (sib.textContent || '').trim();
+			sib = sib.previousElementSibling;
+			sc++;
+		}
+
 		return cmd.trim().toLowerCase();
 	}
+
 	function isCommandBanned(text) {
 		if (!text) return false;
+		// 1. 核心高危正则规则库检测
+		if (CRITICAL_DANGEROUS_PATTERNS.some(rgx => rgx.test(text))) {
+			return true;
+		}
+		// 2. 用户自定义黑名单检测
 		const list = currentSettings.bannedCommands || [];
 		const lower = text.toLowerCase();
 		return list.some(p => {
@@ -1093,6 +1153,7 @@
 			return lower.includes(pl);
 		});
 	}
+
 	function isDiffConfirmationArea(btn) {
 		let node = btn;
 		for (let depth = 0; node && depth < 6; depth++) {
@@ -1103,6 +1164,7 @@
 		}
 		return false;
 	}
+
 	function findDiffAcceptAllTarget(scope) {
 		const root = scope || document.querySelector('.antigravity-agent-side-panel');
 		if (!root) return null;
@@ -1112,15 +1174,18 @@
 			return text === 'accept all' && className.includes('cursor-pointer') && isDiffConfirmationArea(el);
 		});
 	}
+
 	function normalizeAutoAcceptText(text) {
 		return (text || '').toLowerCase().replace(/[\u200B-\u200D\uFEFF]/g, '').replace(/\s+/g, '').trim();
 	}
+
 	function isVisibleEnabledActionElement(el) {
 		if (!el) return false;
 		const style = window.getComputedStyle(el);
 		const rect = el.getBoundingClientRect();
 		return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0 && !el.disabled && el.getAttribute('aria-disabled') !== 'true';
 	}
+
 	function resolvePermissionClickTarget(candidate, root) {
 		if (!candidate) return null;
 		const directButton = candidate.matches('button, [role="button"], vscode-button') ? candidate : null;
@@ -1129,6 +1194,7 @@
 		const targets = [directButton, nestedButton, candidate.closest('button, [role="button"], vscode-button'), candidate.closest('[class*="cursor-pointer"]'), clickableSelf].filter(Boolean);
 		return targets.find(el => root.contains(el) && !el.closest('#ab-overlay') && !el.closest('#ab-modal') && isVisibleEnabledActionElement(el));
 	}
+
 	function findScopedPermissionTarget(scope, expectedText) {
 		const root = scope || document.querySelector('.antigravity-agent-side-panel');
 		if (!root) return null;
@@ -1143,6 +1209,7 @@
 		}
 		return null;
 	}
+
 	function triggerAutoAcceptClick(target) {
 		if (!target) return;
 		// 焦点守卫：记录当前活动元素，若用户正在终端或编辑器输入，点击后立刻归还焦点
@@ -1163,30 +1230,56 @@
 			try { prevActive.focus(); } catch (e) { /* ignore */ }
 		}
 	}
-	async function performScopedPermissionAutoAccept(scope) {
+
+	async function performScopedPermissionAutoAccept(scope, statsScope) {
 		if (!scope || !currentSettings.autoAcceptEnabled) return;
 		if (!currentSettings.autoAcceptUnlimited && currentSettings.autoAcceptRemaining <= 0) return;
+		const targetStats = statsScope || document.querySelector('.antigravity-agent-side-panel');
+
 		if (currentSettings.autoAcceptPatterns['allow this conversation'] && (currentSettings.autoAcceptUnlimited || currentSettings.autoAcceptRemaining > 0)) {
 			const allowConversationTarget = findScopedPermissionTarget(scope, 'allow this conversation');
-			if (allowConversationTarget && (!allowConversationTarget.dataset.abClicked || (Date.now() - parseInt(allowConversationTarget.dataset.abClicked)) >= 2000)) {
-				allowConversationTarget.dataset.abClicked = Date.now().toString();
-				triggerAutoAcceptClick(allowConversationTarget);
-				const statsPanel = document.querySelector('.antigravity-agent-side-panel');
-				if (statsPanel && statsPanel._abUpdateStats) statsPanel._abUpdateStats({ clicks: 1 });
-				await new Promise(r => setTimeout(r, 100));
+			if (allowConversationTarget) {
+				if (allowConversationTarget.dataset.abBlocked && (Date.now() - parseInt(allowConversationTarget.dataset.abBlocked)) < 5000) {
+					// 已安全拦截，跳过
+				} else if (!allowConversationTarget.dataset.abClicked || (Date.now() - parseInt(allowConversationTarget.dataset.abClicked)) >= 2000) {
+					// 前置高危命令安全审计
+					const nearby = findNearbyCommandText(allowConversationTarget);
+					if (isCommandBanned(nearby)) {
+						allowConversationTarget.dataset.abBlocked = Date.now().toString();
+						if (targetStats && targetStats._abUpdateStats) targetStats._abUpdateStats({ blocked: 1 });
+						console.warn('[AB] 🚨 Allow This Conversation 检测到高危指令，已强制拦截自动放行:', nearby.slice(0, 100));
+					} else {
+						allowConversationTarget.dataset.abClicked = Date.now().toString();
+						triggerAutoAcceptClick(allowConversationTarget);
+						if (targetStats && targetStats._abUpdateStats) targetStats._abUpdateStats({ clicks: 1 });
+						await new Promise(r => setTimeout(r, 100));
+					}
+				}
 			}
 		}
 		if (currentSettings.autoAcceptPatterns['always allow'] && (currentSettings.autoAcceptUnlimited || currentSettings.autoAcceptRemaining > 0)) {
 			const alwaysAllowTarget = findScopedPermissionTarget(scope, 'always allow');
-			if (alwaysAllowTarget && (!alwaysAllowTarget.dataset.abClicked || (Date.now() - parseInt(alwaysAllowTarget.dataset.abClicked)) >= 2000)) {
-				alwaysAllowTarget.dataset.abClicked = Date.now().toString();
-				triggerAutoAcceptClick(alwaysAllowTarget);
-				const statsPanel = document.querySelector('.antigravity-agent-side-panel');
-				if (statsPanel && statsPanel._abUpdateStats) statsPanel._abUpdateStats({ clicks: 1 });
-				await new Promise(r => setTimeout(r, 100));
+			if (alwaysAllowTarget) {
+				if (alwaysAllowTarget.dataset.abBlocked && (Date.now() - parseInt(alwaysAllowTarget.dataset.abBlocked)) < 5000) {
+					// 已安全拦截，跳过
+				} else if (!alwaysAllowTarget.dataset.abClicked || (Date.now() - parseInt(alwaysAllowTarget.dataset.abClicked)) >= 2000) {
+					// 前置高危命令安全审计
+					const nearby = findNearbyCommandText(alwaysAllowTarget);
+					if (isCommandBanned(nearby)) {
+						alwaysAllowTarget.dataset.abBlocked = Date.now().toString();
+						if (targetStats && targetStats._abUpdateStats) targetStats._abUpdateStats({ blocked: 1 });
+						console.warn('[AB] 🚨 Always Allow 检测到高危指令，已强制拦截自动放行:', nearby.slice(0, 100));
+					} else {
+						alwaysAllowTarget.dataset.abClicked = Date.now().toString();
+						triggerAutoAcceptClick(alwaysAllowTarget);
+						if (targetStats && targetStats._abUpdateStats) targetStats._abUpdateStats({ clicks: 1 });
+						await new Promise(r => setTimeout(r, 100));
+					}
+				}
 			}
 		}
 	}
+
 	async function performAutoAccept(panelEl) {
 		if (!currentSettings.autoAcceptEnabled) return;
 		if (!currentSettings.autoAcceptUnlimited && currentSettings.autoAcceptRemaining <= 0) return;
@@ -1208,16 +1301,22 @@
 				// 2 秒防死循环冷却机制
 				if (btn.dataset.abClicked && (Date.now() - parseInt(btn.dataset.abClicked)) < 2000) continue;
 
+				// 高危命令拦截冷却（5 秒内不重复触发 blocked 计数与告警）
+				if (btn.dataset.abBlocked && (Date.now() - parseInt(btn.dataset.abBlocked)) < 5000) continue;
+
 				const text = (btn.textContent || '').trim().toLowerCase();
 				if (text === 'accept all' && !isDiffConfirmationArea(btn)) continue;
 				if (text === 'allow this conversation' || text === 'always allow') continue;
-				if (/run|execute/i.test(text)) { 
-					const nearby = findNearbyCommandText(btn); 
-					if (isCommandBanned(nearby)) { 
-						if (statsScope._abUpdateStats) statsScope._abUpdateStats({ blocked: 1 }); 
-						continue; 
-					} 
+
+				// 【全按钮统一安全审计】：无论按钮是 Submit、Allow、Confirm、Run 还是 Execute，一律前置检测所属上下文中的高危指令
+				const nearby = findNearbyCommandText(btn); 
+				if (isCommandBanned(nearby)) { 
+					btn.dataset.abBlocked = Date.now().toString();
+					if (statsScope._abUpdateStats) statsScope._abUpdateStats({ blocked: 1 }); 
+					console.warn('[AB] 🚨 检测到高危指令，已强制拦截自动放行:', nearby.slice(0, 100));
+					continue; 
 				}
+
 				btn.dataset.abClicked = Date.now().toString();
 				triggerAutoAcceptClick(btn);
 				if (statsScope._abUpdateStats) statsScope._abUpdateStats({ clicks: 1 });
@@ -1233,9 +1332,10 @@
 					await new Promise(r => setTimeout(r, 100));
 				}
 			}
-			await performScopedPermissionAutoAccept(scope);
+			await performScopedPermissionAutoAccept(scope, statsScope);
 		}
 	}
+
 	function applyAutoAcceptSettings(panelEl) {
 		if (autoAcceptObserver) { autoAcceptObserver.disconnect(); autoAcceptObserver = null; }
 		if (autoAcceptIntervalTimer) { clearInterval(autoAcceptIntervalTimer); autoAcceptIntervalTimer = null; }
