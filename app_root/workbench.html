@@ -294,14 +294,6 @@
 	</style>
 </head>
 <body aria-label="">
-<script>
-window.addEventListener('error', function(e) {
-    var errDiv = document.createElement('div');
-    errDiv.style.cssText = 'position:fixed;top:0;left:0;width:100%;background:red;color:white;z-index:999999;padding:10px;font-family:monospace;white-space:pre-wrap;';
-    errDiv.innerHTML = '<b>[AB] 全局崩溃拦截:</b><br>' + e.message + '<br>' + (e.error ? e.error.stack : '');
-    document.body.appendChild(errDiv);
-});
-</script>
 </body>
 <!-- Startup (do not modify order of script tags!) -->
 <script src="./workbench.js" type="module"></script>
@@ -464,7 +456,7 @@ window.addEventListener('error', function(e) {
 		autoAcceptUnlimited: false,
 		bannedCommands: [...DEFAULT_BANNED_COMMANDS],
 		autoAcceptStats: { clicks: 0, blocked: 0, verified: 0 },
-		autoUpdateEnabled: true, latexEnabled: true, dismissCorruptEnabled: true,
+		autoUpdateEnabled: true, latexEnabled: false, dismissCorruptEnabled: true,
 	};
 	// ===== 存储 =====
 	function loadSettings() {
@@ -879,6 +871,7 @@ window.addEventListener('error', function(e) {
 			if (!o.persistent) window._abToastTimer = setTimeout(hideToast, o.duration || 2500);
 		}
 		panelEl._abShowToast = showToast;
+		window._abShowToast = showToast;
 		// === 事件 ===
 		btn.addEventListener('click', () => { overlay.classList.add('show'); (window.requestAnimationFrame || setTimeout)(() => overlay.classList.add('visible'), 16); });
 		const closeModal = () => { overlay.classList.remove('visible'); setTimeout(() => overlay.classList.remove('show'), 300); };
@@ -1825,60 +1818,6 @@ window.addEventListener('error', function(e) {
 		}
 	}
 	
-	function mergeAndRenderCrossElementLatex(prose) {
-		if (!prose || !prose.children) return;
-		const children = Array.from(prose.children);
-		let i = 0;
-		while (i < children.length) {
-			const el = children[i];
-			if (el.classList && el.classList.contains('latex-rendered')) { i++; continue; }
-			if (/^(PRE|CODE|SCRIPT|STYLE)$/i.test(el.tagName)) { i++; continue; }
-			let txt = el.textContent || '';
-			const dollars = (txt.match(/\$\$/g) || []).length;
-			if (dollars % 2 === 1) {
-				let j = i + 1;
-				let elementsToMerge = [el];
-				let combinedFormulaText = txt;
-				let foundEnd = false;
-				while (j < children.length) {
-					const next = children[j];
-					elementsToMerge.push(next);
-					combinedFormulaText += '\n' + (next.textContent || '');
-					const nextDollars = ((next.textContent || '').match(/\$\$/g) || []).length;
-					if (nextDollars % 2 === 1) {
-						foundEnd = true;
-						break;
-					}
-					j++;
-				}
-				if (foundEnd) {
-					const match = combinedFormulaText.match(/\$\$([\s\S]+?)\$\$/);
-					if (match) {
-						try {
-							let formula = sanitizeLatexFormula(match[1]);
-							formula = formula.replace(/^[•\-\*]\s+/gm, '- ');
-							formula = formula.replace(/\\\\\[/g, '\\\\\\\\[').replace(/\\\\\]/g, '\\\\\\\\]');
-							
-							const html = window.katex.renderToString(formula, { throwOnError: false, displayMode: true });
-							const wrap = document.createElement('div');
-							wrap.className = 'latex-block latex-rendered';
-							wrap.dataset.latexOriginal = match[0];
-							safeSetHTML(wrap, html);
-							el.replaceWith(wrap);
-							for (let k = 1; k < elementsToMerge.length; k++) {
-								elementsToMerge[k].remove();
-							}
-							i = j + 1;
-							continue;
-						} catch (e) {
-							console.warn('[AB] 跨元素 LaTeX 合并渲染异常:', e);
-						}
-					}
-				}
-			}
-			i++;
-		}
-	}
 	
 	function scanAndRenderLatex(panelEl) {
 		if (!currentSettings.latexEnabled || !katexLoaded) return;
