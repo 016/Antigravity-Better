@@ -8,7 +8,7 @@
     <a href="./README_ZH.md">中文</a>
   </p>
   <p>
-    <img src="https://img.shields.io/badge/version-0.2.10-brightgreen" alt="Version">
+    <img src="https://img.shields.io/badge/version-0.2.13-brightgreen" alt="Version">
     <img src="https://img.shields.io/badge/dependencies-zero-green" alt="Zero Dependencies">
     <img src="https://img.shields.io/badge/file-single%20HTML-blue" alt="Single File">
     <img src="https://img.shields.io/badge/target-Antigravity-purple" alt="Antigravity">
@@ -52,6 +52,10 @@ You can freely customize this HTML file to build your own features. Following ou
 
 ### Release Timeline (Partial)
 
+- **v0.2.13**: Hardens high-risk command protection, enhances LaTeX rendering robustness, and refines UX:
+  - **High-Risk Command Shield**: Rebuilds command detection with universal execution prefix matching (`DANGER_CMD_PREFIX`) supporting pipelines, semicolons, IDE parameter tags (`CommandLine:` / `"CommandLine":`), `sudo`/`xargs`/`bash -c`, and absolute paths; fixes DOM traversal truncation caused by generic Tailwind CSS class names; enforces dual safety audit in scoped permission dialogs with 5s safety circuit breaker to auto-skip unpermitted dangerous commands (`rm`, `del`, etc.) with zero false positives on standard Git and build commands.
+  - **LaTeX Engine Enhancements**: Adds auto-stitching for multi-line math split by `<br>` tags via TreeWalker and `elem.normalize()`; introduces HTML entity decoding (`&gt;`, `&lt;`, `&quot;`, `&#39;`, `&nbsp;`); adds environment-aware ampersand handling (`&` preserved inside `aligned`/`cases`/`matrix`, escaped as `\&` outside); auto-repairs swallowed backslashes in vertical spacing (`\[...pt]` -> `\\[...pt]`) and trailing single backslashes; extends emphasis tag (`<em>`/`<strong>`) unpacking to `$$...$$` block math and `\[...\]` expressions.
+  - **UX & Safety Confirmations**: Introduces a dedicated toggle for dangerous commands with a secondary confirmation modal (covering workspace scope, behavioral constraints, and Git backups); refactors settings cards to default collapsed with "Auto-Accept" prioritized at the top; introduces dual-color Toast feedback (emerald skip / red alert) with synchronized floating stats.
 - **v0.2.11**: Adds `Submit` auto-accept support with questionnaire modal protection, introduces `Submit`and`Tool Permissions` independent toggle to bypass normal tool permission prompts, and fixes a blind spot in the high-risk command filter for elements within the same container.
 - **v0.2.10**: Fixes the Undo icon rendering issue in conversations by allowing the required Google resources in the Content Security Policy. The fix proposal came from hanliangwei.
 - **v0.2.9**: Fixes accidental auto-clicks on conversation titles when creating a new conversation by skipping title buttons that carry both `title` and `grow`.

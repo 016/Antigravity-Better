@@ -1,7 +1,6 @@
 <!-- Copyright (C) Microsoft Corporation. All rights reserved. -->
 <!DOCTYPE html>
 <html>
-
 <head>
 	<meta charset="utf-8" />
 	<meta http-equiv="Content-Security-Policy" content="
@@ -54,6 +53,7 @@
 					vscode-managed-remote-resource:
 					https://*.vscode-unpkg.net
 					https://fonts.gstatic.com
+					https://cdn.jsdelivr.net
 				;
 				require-trusted-types-for
 					'script'
@@ -81,12 +81,10 @@
 					google#safe
 				;
 		" />
-
 	<!-- Workbench CSS -->
 	<link rel="stylesheet" href="../../../workbench/workbench.desktop.main.css">
-
 	<style>
-		/* ===== Antigravity Better v0.2.11 ===== */
+		/* ===== Antigravity Better v0.2.13 ===== */
 		:root {
 			--color-user-message: #60A5FA;
 			--color-ai-response: #E0E0E0;
@@ -104,22 +102,18 @@
 			--text-main: #fff;
 			--text-sub: #999;
 		}
-
 		/* 悬浮按钮 (absolute in side-panel) */
 		#ab-settings-btn { position:absolute; right:10px; top:66%; transform:translateY(-50%); width:36px; height:36px; background:rgba(255,255,255,.08); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,.12); border-radius:50%; cursor:pointer; box-shadow:0 2px 12px rgba(0,0,0,.2); z-index:9999; transition:all .35s cubic-bezier(.34,1.56,.64,1); }
 		#ab-settings-btn:hover { background:rgba(102,126,234,.15); border-color:rgba(102,126,234,.4); box-shadow:0 0 20px rgba(102,126,234,.25),0 4px 16px rgba(0,0,0,.2); transform:translateY(-50%) scale(1.1); }
 		#ab-settings-btn svg { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:17px; height:17px; fill:rgba(255,255,255,.6); transition:all .4s ease; }
 		#ab-settings-btn:hover svg { fill:#a5b4fc; transform:translate(-50%,-50%) rotate(90deg); }
-
 		/* 遮罩层 (absolute in side-panel) */
 		#ab-overlay { position:absolute; top:0;left:0;right:0;bottom:0; background:rgba(0,0,0,.5); z-index:10000; display:none; opacity:0; transition:opacity .3s ease; align-items:center; justify-content:center; }
 		#ab-overlay.show { display:flex; }
 		#ab-overlay.visible { opacity:1; }
-
 		/* 弹窗 */
 		#ab-modal { background:var(--bg-modal); border-radius:12px; width:400px; max-width:90%; max-height:85%; display:flex; flex-direction:column; box-shadow:0 8px 32px rgba(0,0,0,.4); border:1px solid var(--border-color); transform:scale(.9); transition:transform .3s cubic-bezier(.34,1.56,.64,1); overflow:hidden; }
 		#ab-overlay.visible #ab-modal { transform:scale(1); }
-
 		/* Header */
 		.ab-header { padding:16px 20px; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:flex-start; background:rgba(255,255,255,.02); }
 		.ab-header-left { display:flex; flex-direction:column; }
@@ -133,20 +127,17 @@
 		.ab-lang-switch:hover { border-color:var(--text-main); color:var(--text-main); }
 		.ab-close { background:none; border:none; color:var(--text-sub); font-size:18px; cursor:pointer; padding:6px; width:32px; height:32px; line-height:1; transition:all .2s; border-radius:6px; display:flex; align-items:center; justify-content:center; }
 		.ab-close:hover { color:var(--text-main); background:rgba(255,255,255,.1); }
-
 		/* Tab 导航 */
 		.ab-tab-nav { display:flex; border-bottom:1px solid var(--border-color); padding:0 10px; background:rgba(0,0,0,.1); }
 		.ab-tab-btn { flex:1; background:none; border:none; color:var(--text-sub); padding:12px 12px; min-height:42px; font-size:13px; cursor:pointer; position:relative; transition:all .2s; box-sizing:border-box; outline:none; display:flex; align-items:center; justify-content:center; gap:4px; }
 		.ab-tab-btn:hover { color:var(--text-main); }
 		.ab-tab-btn.active { color:var(--accent-color); font-weight:600; }
 		.ab-tab-btn.active::after { content:''; position:absolute; bottom:-1px; left:0; width:100%; height:2px; background:var(--accent-color); }
-
 		/* Tab 内容 */
 		.ab-body { flex:1; overflow-y:auto; padding:0; }
 		.ab-tab-content { display:none; animation:abFadeIn .2s ease; }
 		.ab-tab-content.active { display:block; }
 		@keyframes abFadeIn { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
-
 		/* 手风琴 */
 		.ab-accordion { border-bottom:1px solid var(--border-color); }
 		.ab-accordion-header { padding:14px 20px; background:rgba(255,255,255,.01); cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition:background .2s; }
@@ -157,7 +148,6 @@
 		.ab-accordion-body { max-height:0; overflow:hidden; transition:max-height .3s cubic-bezier(0,1,0,1); background:rgba(0,0,0,.1); }
 		.ab-accordion.expanded .ab-accordion-body { max-height:1000px; transition:max-height .3s ease-in-out; }
 		.ab-accordion-inner { padding:16px 20px; }
-
 		/* 通用控件 */
 		.ab-main-toggle { display:flex; align-items:center; justify-content:space-between; padding:10px 12px; background:rgba(102,126,234,.1); border:1px solid rgba(102,126,234,.2); border-radius:8px; margin-bottom:12px; }
 		.ab-main-toggle-label { color:var(--text-main); font-size:13px; font-weight:500; }
@@ -168,7 +158,6 @@
 		.ab-setting-name { color:#ccc; font-size:13px; line-height:28px; }
 		.ab-setting-right { display:flex; align-items:center; gap:8px; }
 		.ab-setting-desc { font-size:11px; color:var(--text-sub); margin-bottom:12px; line-height:1.5; }
-
 		/* Toggle Switch */
 		.ab-toggle { position:relative; display:inline-block; width:32px; height:18px; flex-shrink:0; }
 		.ab-toggle input { display:none !important; }
@@ -176,7 +165,6 @@
 		.ab-toggle-slider:before { position:absolute; content:""; height:12px; width:12px; left:3px; bottom:3px; background-color:#fff; transition:.3s; border-radius:50%; }
 		.ab-toggle input:checked+.ab-toggle-slider { background:var(--accent-color); }
 		.ab-toggle input:checked+.ab-toggle-slider:before { transform:translateX(14px); }
-
 		/* Color/Select/FontSize Input */
 		.ab-color-input { width:24px; height:24px; border:1px solid var(--border-color); border-radius:4px; cursor:pointer; padding:0; background:none; }
 		.ab-color-input::-webkit-color-swatch-wrapper { padding:2px; }
@@ -188,7 +176,6 @@
 		.ab-fontsize-input:focus { border-color:var(--accent-color) !important; outline:none !important; }
 		.ab-fontsize-input::-webkit-inner-spin-button { opacity:0; height:24px; cursor:pointer; transition:opacity .2s; }
 		.ab-fontsize-input:focus::-webkit-inner-spin-button { opacity:1; }
-
 		/* 按钮组 */
 		.ab-btn-group { display:flex; gap:10px; margin-top:10px; }
 		.ab-btn { flex:1; padding:8px; border-radius:6px; border:none; cursor:pointer; font-size:12px; transition:all .2s; }
@@ -197,41 +184,35 @@
 		.ab-btn.secondary { background:rgba(255,255,255,.1); color:#ccc; border:1px solid var(--border-color); }
 		.ab-btn.secondary:hover { background:rgba(255,255,255,.15); }
 		.ab-save-status { font-size:11px; text-align:center; margin-top:8px; min-height:16px; color:#4ADE80; }
-
 		/* 同步按钮 */
 		.ab-sync-btn { background:rgba(102,126,234,.2); border:1px solid rgba(102,126,234,.3); color:var(--accent-color); font-size:11px; padding:3px 8px; border-radius:4px; cursor:pointer; transition:all .2s; white-space:nowrap; }
 		.ab-sync-btn:hover { background:rgba(102,126,234,.4); }
-
 		/* Pattern Grid (Auto Accept) */
 		.ab-pattern-grid { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
 		.ab-pattern-item { display:flex; align-items:center; gap:6px; padding:6px 10px; background:rgba(0,0,0,.3); border:1px solid var(--border-color); border-radius:6px; cursor:pointer; transition:all .2s; font-size:12px; color:#ccc; }
 		.ab-pattern-item:hover { background:rgba(255,255,255,.05); }
 		.ab-pattern-item.active { border-color:var(--accent-color); background:rgba(102,126,234,.15); color:var(--text-main); }
 		.ab-pattern-item input[type="checkbox"] { accent-color:var(--accent-color); width:14px; height:14px; cursor:pointer; outline:none !important; box-shadow:none !important; border:none !important; }
-
 		/* 统计面板 */
 		.ab-stats-panel { display:flex; justify-content:space-around; padding:12px; background:rgba(0,0,0,.2); border-radius:8px; margin-top:12px; }
 		.ab-stat-item { text-align:center; flex:1; }
 		.ab-stat-icon { margin-bottom:4px; }
 		.ab-stat-value { display:block; font-size:18px; font-weight:700; color:var(--text-main); }
 		.ab-stat-label { font-size:10px; color:var(--text-sub); text-transform:uppercase; }
-
 		/* Textarea */
 		.ab-textarea { width:100% !important; min-height:100px; background:rgba(0,0,0,.3) !important; border:1px solid var(--border-color) !important; border-radius:6px !important; color:#ccc !important; font-family:'Consolas','Monaco',monospace; font-size:11px !important; padding:10px !important; resize:vertical; outline:none !important; box-sizing:border-box; }
 		.ab-textarea:focus { border-color:var(--accent-color) !important; outline:none !important; }
-
 		/* Toast */
 		#ab-toast { position:absolute; top:10px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,.85); color:#fff; padding:10px 20px; border-radius:20px; font-size:13px; z-index:20000; display:none; opacity:0; transition:opacity .3s ease,top .3s ease; box-shadow:0 4px 12px rgba(0,0,0,.3); border:1px solid rgba(255,255,255,.1); cursor:default; max-width:90%; text-align:center; }
 		#ab-toast.show { display:flex; align-items:center; gap:8px; opacity:1; top:20px; }
 		#ab-toast.warn { background:rgba(220,38,38,.92); border-color:rgba(255,100,100,.4); animation:abToastPulse 2s ease-in-out infinite; }
+            #ab-toast.success { background:rgba(16,185,129,.92); border-color:rgba(100,255,150,.4); }
 		@keyframes abToastPulse { 0%,100%{box-shadow:0 4px 12px rgba(220,38,38,.3)} 50%{box-shadow:0 4px 20px rgba(220,38,38,.6)} }
 		#ab-toast .ab-toast-close { background:none; border:none; color:rgba(255,255,255,.7); font-size:16px; cursor:pointer; padding:0 0 0 4px; line-height:1; }
 		#ab-toast .ab-toast-close:hover { color:#fff; }
-
 		/* ===== 颜色覆盖 (V0.2 选择器) ===== */
 		body.color-user-message .antigravity-agent-side-panel .bg-gray-500\/15 .whitespace-pre-wrap,
 		body.color-user-message .antigravity-agent-side-panel .bg-gray-500\/15 [style*="word-break"] { color:var(--color-user-message) !important; }
-
 		body.color-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) p,
 		body.color-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) li,
 		body.color-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) h1,
@@ -244,19 +225,15 @@
 		body.color-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) table,
 		body.color-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) th,
 		body.color-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) td { color:var(--color-ai-response) !important; }
-
 		body.color-code-block .antigravity-agent-side-panel .leading-relaxed pre,
 		body.color-code-block .antigravity-agent-side-panel .leading-relaxed pre code,
 		body.color-code-block .antigravity-agent-side-panel .leading-relaxed pre span,
 		body.color-code-block .antigravity-agent-side-panel .leading-relaxed code.whitespace-pre-wrap { color:var(--color-code-block) !important; }
-
 		body.color-thinking .antigravity-agent-side-panel .leading-relaxed.select-text.opacity-70,
 		body.color-thinking .antigravity-agent-side-panel .leading-relaxed.select-text.opacity-70 * { color:var(--color-thinking) !important; }
-
 		/* ===== 字体大小覆盖 (V0.2 选择器) ===== */
 		body.fontsize-user-message .antigravity-agent-side-panel .bg-gray-500\/15 .whitespace-pre-wrap,
 		body.fontsize-user-message .antigravity-agent-side-panel .bg-gray-500\/15 [style*="word-break"] { font-size:var(--fontsize-user-message) !important; }
-
 		body.fontsize-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) p,
 		body.fontsize-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) li,
 		body.fontsize-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) h2,
@@ -267,14 +244,11 @@
 		body.fontsize-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) table,
 		body.fontsize-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) th,
 		body.fontsize-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) td { font-size:var(--fontsize-ai-response) !important; }
-
 		body.fontsize-code-block .antigravity-agent-side-panel .leading-relaxed pre,
 		body.fontsize-code-block .antigravity-agent-side-panel .leading-relaxed pre code,
 		body.fontsize-code-block .antigravity-agent-side-panel .leading-relaxed pre span { font-size:var(--fontsize-code-block) !important; }
-
 		body.fontsize-thinking .antigravity-agent-side-panel .leading-relaxed.select-text.opacity-70,
 		body.fontsize-thinking .antigravity-agent-side-panel .leading-relaxed.select-text.opacity-70 * { font-size:var(--fontsize-thinking) !important; }
-
 		/* ===== 复制按钮 ===== */
 		.copy-btn { position:absolute; top:6px; right:26px; width:26px; height:26px; background:rgba(60,60,60,.9); border:1px solid rgba(255,255,255,.1); border-radius:5px; cursor:pointer; display:flex; align-items:center; justify-content:center; opacity:0; transition:all .2s ease; z-index:10; }
 		.copy-btn svg { width:14px; height:14px; fill:#ccc; }
@@ -284,7 +258,6 @@
 		.copy-btn.copied svg { fill:#fff; }
 		.copy-target { position:relative; }
 		.copy-target:hover .copy-btn { opacity:1; }
-
 		/* ===== LaTeX 公式 ===== */
 		.latex-block { display:block; text-align:center; margin:1em 0; overflow-x:auto; }
 		.latex-error { color:#f87171; font-size:12px; background:rgba(248,113,113,.1); padding:2px 6px; border-radius:3px; font-family:monospace; }
@@ -293,7 +266,6 @@
 		/* v0.2.2-patch: 行内公式样式 */
 		.latex-inline { display:inline; }
 		.latex-inline .katex { font-size:1em; }
-
 		/* ===== SVG 图标 ===== */
 		.ab-icon { width:16px; height:16px; fill:currentColor; flex-shrink:0; vertical-align:middle; }
 		.ab-icon-sm { width:14px; height:14px; }
@@ -306,23 +278,38 @@
 		.ab-stat-icon .ab-icon { width:18px; height:18px; }
 		.ab-accordion-icon { display:flex; align-items:center; transition:transform .3s; }
 		.ab-accordion-icon .ab-icon { width:12px; height:12px; color:var(--text-sub); }
+		/* 二次确认模态框 */
+		#ab-danger-overlay { position:absolute; top:0;left:0;right:0;bottom:0; background:rgba(0,0,0,.65); z-index:10010; display:none; opacity:0; transition:opacity .25s ease; align-items:center; justify-content:center; }
+		#ab-danger-overlay.show { display:flex; }
+		#ab-danger-overlay.visible { opacity:1; }
+		#ab-danger-modal { background:#252526; border-radius:8px; width:440px; max-width:92%; padding:24px; box-shadow:0 16px 36px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.08); border:none; display:flex; flex-direction:column; gap:16px; box-sizing:border-box; }
+		.ab-danger-title { font-size:16px; font-weight:600; color:#f59e0b; display:flex; align-items:center; gap:8px; margin:0; }
+		.ab-danger-body { font-size:13px; line-height:1.65; color:#cccccc; white-space:pre-wrap; background:rgba(0,0,0,0.25); padding:14px 18px; border-radius:6px; border:1px solid rgba(255,255,255,0.06); }
+		.ab-danger-actions { display:flex; gap:12px; margin-top:8px; width:100%; box-sizing:border-box; }
+		.ab-danger-actions button { flex:1 1 0% !important; height:36px !important; padding:0 16px !important; border-radius:6px !important; font-size:13px !important; font-weight:500 !important; display:flex !important; align-items:center !important; justify-content:center !important; box-sizing:border-box !important; cursor:pointer !important; transition:all 0.2s ease !important; margin:0 !important; }
+		.ab-danger-actions .ab-btn.secondary { background:#333333 !important; color:#e0e0e0 !important; border:1px solid rgba(255,255,255,0.12) !important; }
+		.ab-danger-actions .ab-btn.secondary:hover { background:#404040 !important; border-color:rgba(255,255,255,0.25) !important; }
+		.ab-danger-actions .ab-btn-danger { background:#da3633 !important; color:#ffffff !important; border:1px solid transparent !important; box-shadow:none !important; }
+		.ab-danger-actions .ab-btn-danger:hover { background:#e5403c !important; }
 	</style>
 </head>
-
 <body aria-label="">
-
-
-
+<script>
+window.addEventListener('error', function(e) {
+    var errDiv = document.createElement('div');
+    errDiv.style.cssText = 'position:fixed;top:0;left:0;width:100%;background:red;color:white;z-index:999999;padding:10px;font-family:monospace;white-space:pre-wrap;';
+    errDiv.innerHTML = '<b>[AB] 全局崩溃拦截:</b><br>' + e.message + '<br>' + (e.error ? e.error.stack : '');
+    document.body.appendChild(errDiv);
+});
+</script>
 </body>
-
 <!-- Startup (do not modify order of script tags!) -->
 <script src="./workbench.js" type="module"></script>
 <script>
 (function () {
 	'use strict';
-	/* ===== Antigravity Better v0.2.11 ===== */
-	console.log('[AB] Antigravity Better v0.2.11 Loading...');
-
+	/* ===== Antigravity Better v0.2.13 ===== */
+	console.log('[AB] Antigravity Better v0.2.13 Loading...');
 	// ===== Trusted Types Policy =====
 	let abPolicy = null;
 	if (window.trustedTypes && trustedTypes.createPolicy) {
@@ -332,7 +319,7 @@
 		} catch (e) { console.warn('[AB] ⚠️ Trusted Types Policy 创建失败:', e.message); }
 	}
 	function safeSetHTML(el, html) { el.innerHTML = abPolicy ? abPolicy.createHTML(html) : html; }
-
+	const svgNS = 'http://www.w3.org/2000/svg';
 	// ===== SVG 图标字典 =====
 	const ICONS = {
 		appearance: 'M12,22C6.49,22,2,17.51,2,12S6.49,2,12,2s10,4.49,10,10S17.51,22,12,22z M12,4c-4.41,0-8,3.59-8,8s3.59,8,8,8s8-3.59,8-8S16.41,4,12,4z M15.5,17c-0.83,0-1.5-0.67-1.5-1.5S14.67,14,15.5,14s1.5,0.67,1.5,1.5S16.33,17,15.5,17z M12,17c-0.83,0-1.5-0.67-1.5-1.5S11.17,14,12,14s1.5,0.67,1.5,1.5S12.83,17,12,17z M8.5,17c-0.83,0-1.5-0.67-1.5-1.5S7.67,14,8.5,14s1.5,0.67,1.5,1.5S9.33,17,8.5,17z M15.5,11c-0.83,0-1.5-0.67-1.5-1.5S14.67,8,15.5,8s1.5,0.67,1.5,1.5S16.33,11,15.5,11z M12,11c-0.83,0-1.5-0.67-1.5-1.5S11.17,8,12,8s1.5,0.67,1.5,1.5S12.83,11,12,11z M8.5,11C7.67,11,7,10.33,7,9.5S7.67,8,8.5,8s1.5,0.67,1.5,1.5S9.33,11,8.5,11z',
@@ -355,7 +342,6 @@
 		toolbox: 'M20.71,7.04c-0.34-0.34-0.85-0.56-1.36-0.56h-2.67l-0.55-1.1C15.72,4.53,14.85,4,13.9,4h-3.8C9.15,4,8.28,4.53,7.87,5.38L7.32,6.48H4.65c-0.51,0-1.02,0.22-1.36,0.56C2.95,7.38,2.73,7.89,2.73,8.4v9.12c0,0.51,0.22,1.02,0.56,1.36c0.34,0.34,0.85,0.56,1.36,0.56h14.7c0.51,0,1.02-0.22,1.36-0.56c0.34-0.34,0.56-0.85,0.56-1.36V8.4C21.27,7.89,21.05,7.38,20.71,7.04z M12,17c-2.76,0-5-2.24-5-5s2.24-5,5-5s5,2.24,5,5S14.76,17,12,17z M12,9c-1.66,0-3,1.34-3,3s1.34,3,3,3s3-1.34,3-3S13.66,9,12,9z',
 	};
 	function createSvgIcon(id, extraClass) {
-		const svgNS = 'http://www.w3.org/2000/svg';
 		const svg = document.createElementNS(svgNS, 'svg');
 		svg.setAttribute('viewBox', '0 0 24 24');
 		svg.setAttribute('class', 'ab-icon' + (extraClass ? ' ' + extraClass : ''));
@@ -365,7 +351,6 @@
 		svg.appendChild(path);
 		return svg;
 	}
-
 	// ===== I18N 字典 =====
 	const T = {
 		zh: {
@@ -379,6 +364,12 @@
 			lbl_remaining: '剩余次数', lbl_unlimited: '无限', btn_clear_stats: '清零',
 			toast_remaining_zero: '自动操作已暂停：剩余次数已用完',
 			stat_clicks: '已点击', stat_blocked: '已阻止', stat_verified: '已验证',
+			lbl_allow_dangerous: '允许执行高危命令',
+			danger_confirm_title: '⚠️ 开启高危命令跳过',
+			danger_confirm_body: '开启后将自动执行 rm、删库、格式化等高危指令。\n\n请在开启前务必确认：\n• 【环境隔离】仅在测试目录中运行，不波及关键系统文件；\n• 【行为约束】时刻留意并核验 AI 的终端执行行为；\n• 【数据备份】确保代码已提交 Git 或备份，防止不可逆损失。\n\n是否确认开启？',
+			btn_confirm_danger: '允许高危指令', btn_cancel: '取消',
+			toast_dangerous_blocked: '🛡️ 已安全跳过高危指令: ', toast_dangerous_executed: '⚠️ 已自动执行高危指令: ', toast_dangerous_enabled: '⚠️ 高危命令自动执行已开启，请务必做好数据备份！',
+			toast_new_version: '发现新版本可用: ',
 			banned_title: '安全规则', banned_desc: '包含以下关键词的命令将不会被自动执行（每行一个）',
 			btn_save: '保存', btn_reset: '重置', banned_saved: '✓ 安全规则已保存', banned_reset: '✓ 已重置为默认值',
 			version_title: '版本更新', lbl_auto_update: '启动时自动检测', lbl_manual_update: '手动检测更新', btn_check_update: '立即检测',
@@ -398,6 +389,12 @@
 			lbl_remaining: 'Remaining', lbl_unlimited: 'Unlimited', btn_clear_stats: 'Clear',
 			toast_remaining_zero: 'Auto-accept paused: quota exhausted',
 			stat_clicks: 'Clicked', stat_blocked: 'Blocked', stat_verified: 'Verified',
+			lbl_allow_dangerous: 'Allow High-Risk Commands',
+			danger_confirm_title: '⚠️ High-Risk Command Execution Warning',
+			danger_confirm_body: 'Enabling this allows destructive commands (rm, wipe, format, etc.) to execute automatically without being skipped or blocked.\n\nPlease ensure:\n1. Scope boundary: Work only in isolated test directories;\n2. Supervised behavior: Constrain AI operations;\n3. Git checkpoint & backups: Ensure uncommitted work is backed up.\n\nDo you confirm enabling this?',
+			btn_confirm_danger: 'I accept risks, Enable', btn_cancel: 'Cancel',
+			toast_dangerous_blocked: '🛡️ Safely skipped high-risk command: ', toast_dangerous_executed: '⚠️ Auto-executed high-risk command: ', toast_dangerous_enabled: '⚠️ High-risk command execution enabled. Ensure backups!',
+			toast_new_version: 'New version available: ',
 			banned_title: 'Safety Rules', banned_desc: 'Commands containing these keywords will not be auto-executed (one per line)',
 			btn_save: 'Save', btn_reset: 'Reset', banned_saved: '✓ Safety rules saved', banned_reset: '✓ Reset to defaults',
 			version_title: 'Version Update', lbl_auto_update: 'Auto check on startup', lbl_manual_update: 'Manual check', btn_check_update: 'Check Now',
@@ -408,11 +405,9 @@
 		}
 	};
 	function t(key) { return (T[currentSettings.lang] || T.zh)[key] || key; }
-
 	// ===== 配置 =====
-	const APP_VERSION = '0.2.11';
+	const APP_VERSION = '0.2.13';
 	const STORAGE_KEY = 'antigravity-better-settings';
-
 	const COLOR_CONFIGS = [
 		{ id: 'user-message', cssVar: '--color-user-message', cssClass: 'color-user-message', default: '#60A5FA', enabled: true, icon: 'user' },
 		{ id: 'ai-response', cssVar: '--color-ai-response', cssClass: 'color-ai-response', default: '#E0E0E0', enabled: true, icon: 'robot' },
@@ -420,7 +415,6 @@
 		{ id: 'action-status', cssVar: '--color-action-status', cssClass: 'color-action-status', default: '#4ADE80', enabled: false, icon: 'check' },
 		{ id: 'thinking', cssVar: '--color-thinking', cssClass: 'color-thinking', default: '#9CA3AF', enabled: false, icon: 'thought' },
 	];
-
 	const FONTSIZE_CONFIGS = [
 		{ id: 'user-message', cssVar: '--fontsize-user-message', cssClass: 'fontsize-user-message', default: 14, enabled: true, icon: 'user' },
 		{ id: 'ai-response', cssVar: '--fontsize-ai-response', cssClass: 'fontsize-ai-response', default: 14, enabled: true, icon: 'robot' },
@@ -428,21 +422,18 @@
 		{ id: 'action-status', cssVar: '--fontsize-action-status', cssClass: 'fontsize-action-status', default: 13, enabled: false, icon: 'check' },
 		{ id: 'thinking', cssVar: '--fontsize-thinking', cssClass: 'fontsize-thinking', default: 13, enabled: false, icon: 'thought' },
 	];
-
 	// V0.2 复制配置：选择器已适配
 	const COPY_CONFIGS = [
 		{ id: 'copy-user', selector: '.bg-gray-500\\/15.select-text', textSelector: '.whitespace-pre-wrap', type: 'user' },
 		{ id: 'copy-thinking', selector: '.opacity-70.leading-relaxed', textSelector: null, type: 'thinking' },
 		{ id: 'copy-ai', selector: '.leading-relaxed.select-text:not(.opacity-70)', textSelector: null, type: 'ai' },
 	];
-
 	const HOTKEY_OPTIONS = [
 		{ id: 'enter', label: 'Enter', check: (e) => e.key === 'Enter' && !e.metaKey && !e.ctrlKey && !e.shiftKey },
 		{ id: 'cmd+enter', label: '⌘ Cmd + Enter', check: (e) => e.key === 'Enter' && e.metaKey },
 		{ id: 'ctrl+enter', label: 'Ctrl + Enter', check: (e) => e.key === 'Enter' && e.ctrlKey },
 		{ id: 'shift+enter', label: '⇧ Shift + Enter', check: (e) => e.key === 'Enter' && e.shiftKey },
 	];
-
 	const AUTO_ACCEPT_CONFIGS = [
 		{ id: 'confirm', label: 'Confirm', defaultEnabled: false },
 		{ id: 'allow', label: 'Allow', defaultEnabled: false },
@@ -457,9 +448,7 @@
 		{ id: 'apply', label: 'Apply', defaultEnabled: true },
 		{ id: 'execute', label: 'Execute', defaultEnabled: true },
 	];
-
 	const DEFAULT_BANNED_COMMANDS = ['rm -rf /','rm -rf ~','rm -rf *','format c:','del /f /s /q','rmdir /s /q',':(){:|:&};:','dd if=','mkfs.','> /dev/sda','chmod -R 777 /'];
-
 	const defaultSettings = {
 		lang: 'zh',
 		masterEnabled: false,
@@ -475,9 +464,8 @@
 		autoAcceptUnlimited: false,
 		bannedCommands: [...DEFAULT_BANNED_COMMANDS],
 		autoAcceptStats: { clicks: 0, blocked: 0, verified: 0 },
-		autoUpdateEnabled: true, latexEnabled: false, dismissCorruptEnabled: true,
+		autoUpdateEnabled: true, latexEnabled: true, dismissCorruptEnabled: true,
 	};
-
 	// ===== 存储 =====
 	function loadSettings() {
 		try {
@@ -490,6 +478,7 @@
 					copy: { ...defaultSettings.copy, ...p.copy },
 					autoAcceptPatterns: { ...defaultSettings.autoAcceptPatterns, ...p.autoAcceptPatterns },
 					autoAcceptStats: { ...defaultSettings.autoAcceptStats, ...p.autoAcceptStats },
+					allowDangerousCommands: p.allowDangerousCommands ?? false,
 					bannedCommands: p.bannedCommands ?? [...DEFAULT_BANNED_COMMANDS],
 				};
 			}
@@ -498,7 +487,6 @@
 	}
 	function saveSettings(s) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch (e) { /* ignore */ } }
 	let currentSettings = loadSettings();
-
 	// ===== 应用颜色/字体设置 =====
 	function applyColorSettings() {
 		COLOR_CONFIGS.forEach(c => {
@@ -514,7 +502,6 @@
 			document.body.classList.toggle(c.cssClass, currentSettings.fontsizeMasterEnabled && s.enabled);
 		});
 	}
-
 	// ===== DOM 工具 =====
 	function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text) e.textContent = text; return e; }
 	function createToggle(checked, onChange) {
@@ -557,7 +544,6 @@
 		row.appendChild(left); row.appendChild(right);
 		return { row, right };
 	}
-
 	// ===== I18N 更新 =====
 	let langSwitchBtn = null;
 	function updateLanguage() {
@@ -567,24 +553,19 @@
 		});
 		if (langSwitchBtn) langSwitchBtn.textContent = currentSettings.lang === 'zh' ? 'English' : '中文';
 	}
-
 	// ===== 创建设置面板 =====
 	function createSettingsUI(panelEl) {
 		if (panelEl.querySelector('#ab-settings-btn')) return;
-		const autoAcceptPatternControls = {};
-
+		
 		// 悬浮按钮
 		const btn = el('button'); btn.id = 'ab-settings-btn'; btn.title = 'Antigravity Better Settings';
-		const svgNS = 'http://www.w3.org/2000/svg';
 		const svg = document.createElementNS(svgNS, 'svg'); svg.setAttribute('viewBox', '0 0 24 24');
 		const path = document.createElementNS(svgNS, 'path');
 		path.setAttribute('d', 'M19.14,12.94c0.04-0.31,0.06-0.63,0.06-0.94c0-0.31-0.02-0.63-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.37,4.8,11.69,4.8,12s0.02,0.63,0.06,0.94l-2.03,1.58c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z');
 		svg.appendChild(path); btn.appendChild(svg); panelEl.appendChild(btn);
-
 		// 遮罩层 + 弹窗
 		const overlay = el('div'); overlay.id = 'ab-overlay';
 		const modal = el('div'); modal.id = 'ab-modal';
-
 		// === Header ===
 		const header = el('div', 'ab-header');
 		const headerLeft = el('div', 'ab-header-left');
@@ -602,7 +583,6 @@
 		headerRight.appendChild(langSwitchBtn); headerRight.appendChild(closeBtn);
 		header.appendChild(headerLeft); header.appendChild(headerRight);
 		modal.appendChild(header);
-
 		// === Tab 导航 ===
 		const tabNav = el('div', 'ab-tab-nav');
 		const tabs = [
@@ -622,7 +602,6 @@
 			tabContents[tab.id] = content;
 		});
 		modal.appendChild(tabNav);
-
 		// Tab 切换逻辑
 		tabNav.addEventListener('click', (e) => {
 			const tb = e.target.closest('.ab-tab-btn'); if (!tb) return;
@@ -631,15 +610,12 @@
 			Object.values(tabContents).forEach(c => c.classList.remove('active'));
 			tabContents[tb.dataset.tab].classList.add('active');
 		});
-
 		// === Body ===
 		const body = el('div', 'ab-body');
-
 		// ============ Tab: 外观 ============
 		const tabAppearance = tabContents['appearance'];
-
 		// -- 颜色自定义 --
-		const colorAcc = createAccordion('colors_title', true, 'appearance');
+		const colorAcc = createAccordion('colors_title', false, 'appearance');
 		colorAcc.inner.appendChild(createMainToggle('enable_custom_colors', currentSettings.masterEnabled, (v) => {
 			currentSettings.masterEnabled = v; saveSettings(currentSettings); applyColorSettings();
 		}));
@@ -654,7 +630,6 @@
 			colorAcc.inner.appendChild(row);
 		});
 		tabAppearance.appendChild(colorAcc.item);
-
 		// -- 字体大小 --
 		const fontAcc = createAccordion('fontsize_title', false, 'math');
 		fontAcc.inner.appendChild(createMainToggle('enable_custom_fontsize', currentSettings.fontsizeMasterEnabled, (v) => {
@@ -682,7 +657,6 @@
 			fontAcc.inner.appendChild(row);
 		});
 		tabAppearance.appendChild(fontAcc.item);
-
 		// -- LaTeX --
 		const latexAcc = createAccordion('latex_title', false, 'math');
 		const latexStatusEl = el('div', 'ab-save-status');
@@ -692,42 +666,9 @@
 		const latexDesc = el('div', 'ab-setting-desc', t('latex_desc')); latexDesc.dataset.i18n = 'latex_desc';
 		latexAcc.inner.appendChild(latexDesc); latexAcc.inner.appendChild(latexStatusEl);
 		tabAppearance.appendChild(latexAcc.item);
-
 		// ============ Tab: 功能 ============
 		const tabFeatures = tabContents['features'];
-
-		// -- 一键复制 --
-		const copyAcc = createAccordion('copy_title', true, 'copy');
-		copyAcc.inner.appendChild(createMainToggle('enable_copy', currentSettings.copyEnabled, (v) => {
-			currentSettings.copyEnabled = v; saveSettings(currentSettings); applyCopySettings(panelEl);
-		}));
-		const copyI18nMap = { 'copy-user': 'lbl_user_msg', 'copy-thinking': 'lbl_thinking', 'copy-ai': 'lbl_ai_resp' };
-		const copyIconMap = { 'copy-user': 'user', 'copy-thinking': 'thought', 'copy-ai': 'robot' };
-		COPY_CONFIGS.forEach(c => {
-			const { row, right } = createSettingItem(copyIconMap[c.id], copyI18nMap[c.id]);
-			right.appendChild(createToggle(currentSettings.copy[c.id]?.enabled ?? true, (v) => {
-				currentSettings.copy[c.id].enabled = v; saveSettings(currentSettings);
-				removeCopyButtons(panelEl); if (currentSettings.copyEnabled) injectCopyButtons(panelEl);
-			}));
-			copyAcc.inner.appendChild(row);
-		});
-		tabFeatures.appendChild(copyAcc.item);
-
-		// -- 快捷键 --
-		const hotkeyAcc = createAccordion('hotkey_title', false, 'keyboard');
-		hotkeyAcc.inner.appendChild(createMainToggle('enable_hotkey', currentSettings.hotkeyEnabled, (v) => {
-			currentSettings.hotkeyEnabled = v; saveSettings(currentSettings); applyHotkeySettings();
-		}));
-		const { row: hkRow, right: hkRight } = createSettingItem('enter', 'lbl_send_hotkey');
-		const hkSelect = el('select', 'ab-select-input');
-		HOTKEY_OPTIONS.forEach(o => { const opt = el('option', null, o.label); opt.value = o.id; hkSelect.appendChild(opt); });
-		hkSelect.value = currentSettings.sendHotkey;
-		hkSelect.addEventListener('change', () => { currentSettings.sendHotkey = hkSelect.value; saveSettings(currentSettings); if (currentSettings.hotkeyEnabled) applyHotkeySettings(); });
-		hkRight.appendChild(hkSelect);
-		hotkeyAcc.inner.appendChild(hkRow);
-		tabFeatures.appendChild(hotkeyAcc.item);
-
-		// -- 自动操作 --
+		// -- 自动操作 (第一栏置顶) --
 		const autoAcc = createAccordion('auto_accept_title', false, 'robot');
 		autoAcc.inner.appendChild(createMainToggle('enable_auto_accept', currentSettings.autoAcceptEnabled, (v) => {
 			currentSettings.autoAcceptEnabled = v; saveSettings(currentSettings); applyAutoAcceptSettings(panelEl);
@@ -740,11 +681,46 @@
 			const isOn = currentSettings.autoAcceptPatterns[c.id];
 			const lbl = el('label', 'ab-pattern-item' + (isOn ? ' active' : ''));
 			const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = isOn;
-			autoAcceptPatternControls[c.id] = { checkbox: cb, label: lbl };
-			cb.addEventListener('change', () => { currentSettings.autoAcceptPatterns[c.id] = cb.checked; lbl.classList.toggle('active', cb.checked); saveSettings(currentSettings); });
+						cb.addEventListener('change', () => { currentSettings.autoAcceptPatterns[c.id] = cb.checked; lbl.classList.toggle('active', cb.checked); saveSettings(currentSettings); });
 			lbl.appendChild(cb); lbl.appendChild(el('span', null, c.label)); patternGrid.appendChild(lbl);
 		});
 		autoAcc.inner.appendChild(patternGrid);
+		// -- 高危命令执行二次确认弹窗与开关 --
+		const dangerOverlay = el('div'); dangerOverlay.id = 'ab-danger-overlay';
+		const dangerModal = el('div'); dangerModal.id = 'ab-danger-modal';
+		const dangerTitle = el('div', 'ab-danger-title', t('danger_confirm_title')); dangerTitle.dataset.i18n = 'danger_confirm_title';
+		const dangerBody = el('div', 'ab-danger-body', t('danger_confirm_body')); dangerBody.dataset.i18n = 'danger_confirm_body';
+		const dangerActions = el('div', 'ab-danger-actions');
+		const dangerCancelBtn = el('button', 'ab-btn secondary', t('btn_cancel')); dangerCancelBtn.dataset.i18n = 'btn_cancel';
+		const dangerConfirmBtn = el('button', 'ab-btn-danger', t('btn_confirm_danger')); dangerConfirmBtn.dataset.i18n = 'btn_confirm_danger';
+		dangerActions.appendChild(dangerCancelBtn); dangerActions.appendChild(dangerConfirmBtn);
+		dangerModal.appendChild(dangerTitle); dangerModal.appendChild(dangerBody); dangerModal.appendChild(dangerActions);
+		dangerOverlay.appendChild(dangerModal); panelEl.appendChild(dangerOverlay);
+		const closeDangerModal = () => { dangerOverlay.classList.remove('visible'); setTimeout(() => dangerOverlay.classList.remove('show'), 250); };
+		dangerCancelBtn.addEventListener('click', closeDangerModal);
+		const { row: dangerRow, right: dangerRight } = createSettingItem('shield', 'lbl_allow_dangerous');
+		let dangerCb = null;
+		const dangerToggle = createToggle(currentSettings.allowDangerousCommands, (v) => {
+			if (v) {
+				// 打开二次确认弹窗
+				dangerCb.checked = false;
+				dangerOverlay.classList.add('show');
+				(window.requestAnimationFrame || setTimeout)(() => dangerOverlay.classList.add('visible'), 16);
+			} else {
+				currentSettings.allowDangerousCommands = false;
+				saveSettings(currentSettings);
+			}
+		});
+		dangerCb = dangerToggle.querySelector('input');
+		dangerConfirmBtn.addEventListener('click', () => {
+			currentSettings.allowDangerousCommands = true;
+			if (dangerCb) dangerCb.checked = true;
+			saveSettings(currentSettings);
+			closeDangerModal();
+			showToast(t('toast_dangerous_enabled'), { warn: true });
+		});
+		dangerRight.appendChild(dangerToggle);
+		autoAcc.inner.appendChild(dangerRow);
 		// 剩余次数设置
 		const { row: remainRow, right: remainRight } = createSettingItem('counter', 'lbl_remaining');
 		const remainInput = document.createElement('input'); remainInput.type = 'number'; remainInput.className = 'ab-fontsize-input';
@@ -789,8 +765,6 @@
 		statsRow.appendChild(statsPanel); statsPanel.style.flex = '1';
 		statsRow.appendChild(clearStatsBtn);
 		autoAcc.inner.appendChild(statsRow);
-		tabFeatures.appendChild(autoAcc.item);
-
 		// -- 安全规则 --
 		const bannedAcc = createAccordion('banned_title', false, 'shield');
 		const bannedDescEl = el('div', 'ab-setting-desc', t('banned_desc')); bannedDescEl.dataset.i18n = 'banned_desc';
@@ -812,11 +786,42 @@
 		});
 		bannedBtnGroup.appendChild(saveBtn); bannedBtnGroup.appendChild(resetBtn);
 		bannedAcc.inner.appendChild(bannedBtnGroup); bannedAcc.inner.appendChild(bannedSaveStatus);
+		
+		// 组装功能页顺序：1. 自动操作, 2. 安全规则, 3. 一键复制, 4. 快捷键
+		tabFeatures.appendChild(autoAcc.item);
 		tabFeatures.appendChild(bannedAcc.item);
-
+		// -- 一键复制 (第三栏) --
+		const copyAcc = createAccordion('copy_title', false, 'copy');
+		copyAcc.inner.appendChild(createMainToggle('enable_copy', currentSettings.copyEnabled, (v) => {
+			currentSettings.copyEnabled = v; saveSettings(currentSettings); applyCopySettings(panelEl);
+		}));
+		const copyI18nMap = { 'copy-user': 'lbl_user_msg', 'copy-thinking': 'lbl_thinking', 'copy-ai': 'lbl_ai_resp' };
+		const copyIconMap = { 'copy-user': 'user', 'copy-thinking': 'thought', 'copy-ai': 'robot' };
+		COPY_CONFIGS.forEach(c => {
+			const { row, right } = createSettingItem(copyIconMap[c.id], copyI18nMap[c.id]);
+			right.appendChild(createToggle(currentSettings.copy[c.id]?.enabled ?? true, (v) => {
+				currentSettings.copy[c.id].enabled = v; saveSettings(currentSettings);
+				removeCopyButtons(panelEl); if (currentSettings.copyEnabled) injectCopyButtons(panelEl);
+			}));
+			copyAcc.inner.appendChild(row);
+		});
+		tabFeatures.appendChild(copyAcc.item);
+		// -- 快捷键 (第四栏) --
+		const hotkeyAcc = createAccordion('hotkey_title', false, 'keyboard');
+		hotkeyAcc.inner.appendChild(createMainToggle('enable_hotkey', currentSettings.hotkeyEnabled, (v) => {
+			currentSettings.hotkeyEnabled = v; saveSettings(currentSettings); applyHotkeySettings();
+		}));
+		const { row: hkRow, right: hkRight } = createSettingItem('enter', 'lbl_send_hotkey');
+		const hkSelect = el('select', 'ab-select-input');
+		HOTKEY_OPTIONS.forEach(o => { const opt = el('option', null, o.label); opt.value = o.id; hkSelect.appendChild(opt); });
+		hkSelect.value = currentSettings.sendHotkey;
+		hkSelect.addEventListener('change', () => { currentSettings.sendHotkey = hkSelect.value; saveSettings(currentSettings); if (currentSettings.hotkeyEnabled) applyHotkeySettings(); });
+		hkRight.appendChild(hkSelect);
+		hotkeyAcc.inner.appendChild(hkRow);
+		tabFeatures.appendChild(hotkeyAcc.item);
 		// ============ Tab: 系统 ============
 		const tabSystem = tabContents['system'];
-		const verAcc = createAccordion('version_title', true, 'update');
+		const verAcc = createAccordion('version_title', false, 'update');
 		const { row: autoRow, right: autoRight } = createSettingItem('sync', 'lbl_auto_update');
 		autoRight.appendChild(createToggle(currentSettings.autoUpdateEnabled, (v) => { currentSettings.autoUpdateEnabled = v; saveSettings(currentSettings); }));
 		verAcc.inner.appendChild(autoRow);
@@ -850,16 +855,14 @@
 		// -- 版本更新 --
 		verAcc.inner.appendChild(manualRow); verAcc.inner.appendChild(updateStatusEl);
 		tabSystem.appendChild(verAcc.item);
-
 		// 组装 body
 		Object.values(tabContents).forEach(c => body.appendChild(c));
 		modal.appendChild(body);
 		overlay.appendChild(modal); panelEl.appendChild(overlay);
-
 		// Toast 通知 (options: { persistent, warn })
 		let toastEl = panelEl.querySelector('#ab-toast');
 		if (!toastEl) { toastEl = el('div'); toastEl.id = 'ab-toast'; panelEl.appendChild(toastEl); }
-		function hideToast() { toastEl.classList.remove('show', 'warn'); }
+		function hideToast() { toastEl.classList.remove('show', 'warn', 'success'); }
 		function showToast(msg, opts) {
 			const o = typeof opts === 'number' ? { duration: opts } : (opts || {});
 			while (toastEl.firstChild) toastEl.removeChild(toastEl.firstChild);
@@ -870,22 +873,19 @@
 				toastEl.appendChild(closeBtn);
 			}
 			toastEl.classList.toggle('warn', !!o.warn);
-			toastEl.classList.add('show');
+                    toastEl.classList.toggle('success', !!o.success);
+                    toastEl.classList.add('show');
 			clearTimeout(window._abToastTimer);
-			if (!o.persistent) window._abToastTimer = setTimeout(hideToast, o.duration || 4000);
+			if (!o.persistent) window._abToastTimer = setTimeout(hideToast, o.duration || 2500);
 		}
 		panelEl._abShowToast = showToast;
-
 		// === 事件 ===
-		btn.addEventListener('click', () => { overlay.classList.add('show'); requestAnimationFrame(() => overlay.classList.add('visible')); });
+		btn.addEventListener('click', () => { overlay.classList.add('show'); (window.requestAnimationFrame || setTimeout)(() => overlay.classList.add('visible'), 16); });
 		const closeModal = () => { overlay.classList.remove('visible'); setTimeout(() => overlay.classList.remove('show'), 300); };
 		closeBtn.addEventListener('click', closeModal);
 		overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
-
 		console.log('[AB] ✅ 设置面板创建成功');
-
 		// ===== 功能逻辑函数引用 (需要 panelEl) =====
-
 		// -- 更新统计 --
 		function updateStats(delta) {
 			if (delta.clicks) currentSettings.autoAcceptStats.clicks += delta.clicks;
@@ -902,25 +902,22 @@
 			statBlockedEl.textContent = currentSettings.autoAcceptStats.blocked;
 			statVerifiedEl.textContent = currentSettings.autoAcceptStats.verified;
 		}
-		// 存入 panelEl 供外部调用
+		// 存入 panelEl 与全局 window 供外部调用
 		panelEl._abUpdateStats = updateStats;
+		window._abUpdateStats = updateStats;
 	}
-
 	// ===== 复制功能 =====
 	let copyObserver = null;
 	const COPY_ICON_SVG = 'M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z';
 	const CHECK_ICON_SVG = 'M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z';
-
 	// 提取纯文本，排除 <style>/<script> 标签内容
 	function getCleanText(el) {
 		const clone = el.cloneNode(true);
 		clone.querySelectorAll('style, script').forEach(s => s.remove());
 		return clone.textContent.trim();
 	}
-
 	function createCopyButton(getText) {
 		const btn = el('button', 'copy-btn');
-		const svgNS = 'http://www.w3.org/2000/svg';
 		function setSvg(d) { while (btn.firstChild) btn.removeChild(btn.firstChild); const s = document.createElementNS(svgNS, 'svg'); s.setAttribute('viewBox', '0 0 24 24'); const p = document.createElementNS(svgNS, 'path'); p.setAttribute('d', d); s.appendChild(p); btn.appendChild(s); }
 		setSvg(COPY_ICON_SVG);
 		btn.addEventListener('click', (e) => {
@@ -961,12 +958,10 @@
 			}
 		} else { if (copyObserver) { copyObserver.disconnect(); copyObserver = null; } removeCopyButtons(panelEl); }
 	}
-
 	// ===== 快捷键功能 =====
 	let hotkeyHandler = null;
 	const INPUT_SELECTOR = 'div[contenteditable="true"][data-lexical-editor="true"]';
 	const SEND_BTN_SELECTOR = 'button[data-tooltip-id="input-send-button-send-tooltip"]';
-
 	function applyHotkeySettings() {
 		if (hotkeyHandler) { document.removeEventListener('keydown', hotkeyHandler, { capture: true }); hotkeyHandler = null; }
 		if (!currentSettings.hotkeyEnabled) return;
@@ -989,25 +984,79 @@
 		};
 		document.addEventListener('keydown', hotkeyHandler, { capture: true });
 	}
-
 	// ===== 自动操作功能 =====
 	let autoAcceptObserver = null, autoAcceptIntervalTimer = null;
+	const ACTION_PATTERN_MAP = {
+		'confirm': /^(?:confirm|确认|好|ok)$/i,
+		'allow': /^(?:allow|允许|allow\s+once)$/i,
+		'always allow': /^(?:always\s+allow|总是允许)$/i,
+		'allow this conversation': /^(?:allow\s+this\s+conversation|在此会话中允许)$/i,
+		'submit': /^(?:submit|提交)$/i,
+		'accept': /^(?:accept|接受)$/i,
+		'accept all': /^(?:accept\s+all|全部接受)$/i,
+		'retry': /^(?:retry|重试)$/i,
+		'run': /^(?:run|运行|运行命令|run\s+command|run\s+in\s+terminal)$/i,
+		'apply': /^(?:apply|应用|全部应用|应用更改|应用修改|apply\s+all|apply\s+changes?)$/i,
+		'execute': /^(?:execute|执行|执行命令|execute\s+command)$/i
+	};
+	function cleanButtonText(raw) {
+		return (raw || '')
+			.trim()
+			.toLowerCase()
+			.replace(/^[✓✔•\s\-_]+/, '')
+			.replace(/\s*\([^)]*\)$/, '')
+			.replace(/\s*(?:↵|↩|⏎|enter|cmd\+enter|ctrl\+enter)$/, '')
+			.trim();
+	}
+	const _abRecentClicks = new Map();
+	function isRecentlyClicked(btn, text, nearby) {
+		const now = Date.now();
+		for (const [k, time] of _abRecentClicks.entries()) {
+			if (now - time > 10000) _abRecentClicks.delete(k);
+		}
+		const signature = (text || '') + ':' + (btn.id || (btn.className ? btn.className.toString().slice(0, 40) : '')) + ':' + (nearby || '').slice(0, 40);
+		const last = _abRecentClicks.get(signature);
+		if (last && (now - last) < 2500) {
+			return true;
+		}
+		_abRecentClicks.set(signature, now);
+		return false;
+	}
 	function isAutoAcceptButton(btn) {
-		const text = (btn.textContent || '').trim().toLowerCase();
-		if (!text || text.length > 35) return false;
-		
-		// 排除自身设置弹窗中的按钮
-		if (btn.closest('#ab-overlay') || btn.closest('#ab-modal')) return false;
+		const rawText = (btn.textContent || '').trim();
+		if (!rawText || rawText.length > 50) return false;
 
-		// 排除下拉菜单触发器、折叠面板、建议列表项
+		// 1. 排除自身设置弹窗中的按钮
+		if (btn.closest('#ab-overlay') || btn.closest('#ab-modal') || btn.closest('#ab-danger-overlay')) return false;
+
+		// 2. 排除编辑器工作区、Monaco 编辑区、标签页与文件列表项 (防止抢夺焦点与切换文件)
+		if (btn.closest('.monaco-workbench .part.editor, [role="tablist"], [role="tab"], .tabs-and-actions-container, .tab, .editor-group-container')) return false;
+
+		// 3. 排除可拖拽文件胶囊、产物卡片与文件图标项 (防止误触 Artifact / 文件导航)
+		if (btn.getAttribute('draggable') === 'true' || btn.closest('[draggable="true"]')) return false;
+		if (btn.closest('[data-artifact-id], [class*="artifact"], [class*="file-item"], [class*="file-tree"]')) return false;
+		if (btn.querySelector && btn.querySelector('img[src*="file"], img[src*="document"], svg.lucide-file, svg[class*="file"]')) return false;
+
+		// 4. 排除消息正文 Markdown、代码高亮块与用户气泡内部 (正文中的代码/文本绝非操作按钮)
+		if (btn.closest('.leading-relaxed.select-text, pre, code, .line-content, .terminal, .bg-gray-500\\/15, [data-artifact-id]')) return false;
+
+		// 5. 排除下拉菜单触发器、折叠面板、建议列表项、复制按钮
 		if (btn.hasAttribute('aria-haspopup')) return false;
 		if (btn.hasAttribute('aria-expanded')) return false;
-		if (btn.title && btn.classList.contains('grow')) return false;
+		if (btn.title && btn.classList && btn.classList.contains('grow')) return false;
+		if (btn.classList && (btn.classList.contains('copy-btn') || btn.classList.contains('grow'))) return false;
 
-		const rejects = ['reject', 'cancel', 'close', 'refine', 'dismiss'];
-		if (rejects.some(r => text.includes(r))) return false;
+		const cleanedText = cleanButtonText(rawText);
+		if (!cleanedText) return false;
 
-		// 向上寻找弹窗/卡片容器（逐层向上最多 8 层，排除 SidePanel 自身）
+		// 6. 排除含有明显文件后缀的按钮文本 (如 script.js, test.py)
+		if (/\.(?:js|jsx|ts|tsx|py|html|css|json|md|txt|sh|c|cpp|go|rs|java|php|rb|yml|yaml|xml|sql)\b/i.test(cleanedText)) return false;
+
+		// 7. 显式拒绝词过滤
+		const rejects = ['reject', 'cancel', 'close', 'refine', 'dismiss', '拒绝', '取消', '关闭'];
+		if (rejects.some(r => cleanedText.includes(r))) return false;
+
+		// 8. 向上寻找弹窗/卡片容器（逐层向上最多 8 层，排除 SidePanel 自身）
 		let container = btn.parentElement;
 		let depth = 0;
 		while (container && depth < 8) {
@@ -1022,132 +1071,137 @@
 			depth++;
 		}
 		const containerText = container ? (container.textContent || '').toLowerCase() : '';
-
 		// 调查问卷/方案选择防呆判断 (含有交互式输入框或选项，且不含权限特征)
 		const hasTextInput = container ? container.querySelector('textarea, input[type="text"], vscode-text-field') !== null : false;
 		const hasOptions = container ? container.querySelector('input[type="checkbox"], input[type="radio"], [role="checkbox"], [role="radio"]') !== null : false;
-		
+
 		// 判断是否为工具权限/命令放行弹窗
 		const isPermissionModal = containerText.includes('allow') || containerText.includes('permission') || 
 		                          containerText.includes('running') || containerText.includes('access') ||
 		                          containerText.includes('command') || containerText.includes('tool') ||
-		                          containerText.includes('always allow') || containerText.includes('allow this conversation');
+		                          containerText.includes('always allow') || containerText.includes('allow this conversation') ||
+		                          containerText.includes('允许') || containerText.includes('权限');
 
-		// Submit 核心放行判断
-		if (text.includes('submit')) {
-			// 只有在明确是带有输入框/未选选项的问卷且不是权限弹窗时，才防呆拦截
+		// 9. 精准匹配动作模式 (防止 Apply Final / Apply Updates / Run Tests 等文件或功能名误触发)
+		let matchedPatternId = null;
+		for (const [patternId, regex] of Object.entries(ACTION_PATTERN_MAP)) {
+			if (regex.test(cleanedText)) {
+				matchedPatternId = patternId;
+				break;
+			}
+		}
+
+		if (!matchedPatternId) return false;
+
+		// 10. Submit 与具体 pattern 放行判断
+		if (matchedPatternId === 'submit') {
 			if ((hasTextInput || hasOptions) && !isPermissionModal) {
 				return false;
 			}
-
-			// 如果开启了 tool permissions 或开启了 submit，则放行
-			if (currentSettings.autoAcceptPatterns['tool permissions'] || currentSettings.autoAcceptPatterns['submit']) {
-				// 放行
-			} else {
+			if (!currentSettings.autoAcceptPatterns['tool permissions'] && !currentSettings.autoAcceptPatterns['submit']) {
 				return false;
 			}
 		} else {
-			// 其他按钮按 pattern 检查
-			const patterns = Object.entries(currentSettings.autoAcceptPatterns).filter(([_, v]) => v).map(([k]) => k);
-			if (!patterns.length) return false;
-			if (text === 'accept all' && !currentSettings.autoAcceptPatterns['accept all']) return false;
-			if (!patterns.some(p => text === p || (text.includes(p) && text.length <= p.length + 10))) return false;
+			if (matchedPatternId === 'accept all' && !currentSettings.autoAcceptPatterns['accept all']) return false;
+			if (!currentSettings.autoAcceptPatterns[matchedPatternId]) return false;
 		}
 
-		// 检查可见性与可用性
+		// 11. 检查可见性与可用性
 		const style = window.getComputedStyle(btn); 
 		const rect = btn.getBoundingClientRect();
 		return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0 && !btn.disabled && btn.getAttribute('aria-disabled') !== 'true';
 	}
-	// ===== 高危命令核心防御正则规则库 =====
+		// ===== 高危命令核心防御正则规则库 =====
+	const DANGER_CMD_PREFIX = '(?:^|[;&|`\\n\\(\\[\\{\'"<>]|\\b(?:sudo|xargs|nohup|exec|env)\\s+|(?:\\b(?:bash|sh|zsh|busybox)\\s+-c\\s+["\']?)|(?:\\bcommand(?:line)?\\s*:?\\s*["\']?)|(?::\\s*["\']?))\\s*(?:\\/bin\\/|\\/usr\\/bin\\/|\\\\)?';
 	const CRITICAL_DANGEROUS_PATTERNS = [
-		// 1. 拦截各类带递归/强制删除的 rm 命令 (rm -rf, rm -fr, rm -r, rm -f, rm -r -f, rm -rf path, sudo rm 等)
-		/\brm\s+[^;&|\n]*-[a-z]*r[a-z]*/i,
-		/\brm\s+[^;&|\n]*-[a-z]*f[a-z]*/i,
-		/\brm\s+--recursive/i,
-		/\brm\s+--force/i,
-
-		// 2. 拦截 sudo rm
-		/\bsudo\s+rm\b/i,
-
-		// 3. 拦截磁盘与文件系统高危破坏指令 (mkfs, fdisk, parted, dd if=, format c:, del/rmdir 等)
-		/\b(mkfs(\.[a-z0-9]+)?|fdisk|parted)\b/i,
+		// 1. 拦截各类以命令方式调用的 rm (包括 rm -rf, rm -fr, rm -r, rm -f, rm file, rm -v, sudo rm, nohup rm, 管道/分号/引号内的 rm 等)
+		new RegExp(DANGER_CMD_PREFIX + 'rm\\s+', 'i'),
+		// 2. 拦截 Windows / PowerShell 删除与擦除命令 (del, rmdir, rd, erase, Remove-Item)
+		new RegExp(DANGER_CMD_PREFIX + '(?:rmdir|rd|erase)\\s+', 'i'),
+		new RegExp(DANGER_CMD_PREFIX + 'del\\s+', 'i'),
+		new RegExp(DANGER_CMD_PREFIX + 'Remove-Item\\s+', 'i'),
+		// 3. 拦截磁盘与文件系统高危破坏指令 (mkfs, fdisk, parted, diskpart, cipher, shred)
+		/\b(?:mkfs(?:\.[a-z0-9]+)?|fdisk|parted|diskpart|cipher|shred)\b/i,
 		/\bdd\s+if=/i,
 		/\bformat\s+[a-z]:/i,
-		/\b(del|rmdir)\s+\/[a-z0-9\s\/]*/i,
-
-		// 4. 拦截向物理/虚拟裸设备重定向写入 (如 > /dev/sda, > /dev/nvme0n1)
-		/>\s*\/dev\/(sd[a-z]|nvme[0-9]|hd[a-z])/i,
-
+		/\b(?:Format-Volume|Clear-Disk|Initialize-Disk)\b/i,
+		// 4. 拦截向物理/虚拟裸设备重定向写入
+		/>\s*\/dev\/(?:sd[a-z]|nvme[0-9]|hd[a-z])/i,
 		// 5. 拦截全盘提权与 Fork 炸弹
 		/\bchmod\s+(-R\s+)?777\s+\//i,
-		/:\(\)\s*{\s*:|:&\s*};:/
+		/\bchown\s+(-R\s+)?[^\s]+\s+\//i,
+		/:\(\)\s*\{\s*:\s*\|\s*:&\s*\};\s*:/,
+		/%0\s*\|\s*%0/
 	];
-
 	function findNearbyCommandText(btnEl) {
 		if (!btnEl) return '';
 		let cmd = '';
-		let container = btnEl;
+		let curr = btnEl;
 		let depth = 0;
+		let bestContainer = btnEl.parentElement || btnEl;
+		let foundCodeContainer = null;
+		let dialogContainer = null;
 
-		// 向上寻找所属卡片或弹窗容器（最多 10 层）
-		while (container && depth < 10) {
-			if (container.matches && container.matches('[role="dialog"], form, [class*="modal"], [class*="dialog"], [class*="popup"], [class*="card"], [class*="item"], [class*="message"], [class*="tool"], [class*="call"], [class*="panel-content"]')) {
+		// 向上寻找所属卡片或弹窗容器（最多 12 层）
+		while (curr && depth < 12) {
+			if (curr.classList && (curr.classList.contains('antigravity-agent-side-panel') || curr.tagName === 'BODY' || curr.tagName === 'HTML')) {
 				break;
 			}
-			if ((container.classList && container.classList.contains('antigravity-agent-side-panel')) || container.tagName === 'BODY') {
-				container = btnEl.parentElement;
+			if (curr.matches && curr.matches('[role="dialog"], form, [class*="modal"], [class*="dialog"], [class*="popup"]')) {
+				dialogContainer = curr;
 				break;
 			}
-			container = container.parentElement;
+			if (curr.querySelector && curr.querySelector('pre, code, textarea, input, [class*="terminal"], [class*="command"], [class*="mono"]')) {
+				foundCodeContainer = curr;
+			}
+			if (curr.matches && curr.matches('[class*="card"], [class*="message"], [data-tool-call-id], [class*="tool-call"]')) {
+				bestContainer = curr;
+				if (foundCodeContainer) break;
+			}
+			curr = curr.parentElement;
 			depth++;
 		}
 
-		if (!container) container = btnEl.parentElement || btnEl;
+		const container = dialogContainer || foundCodeContainer || bestContainer || btnEl.parentElement || btnEl;
 
 		// 1. 优先提取代码/终端/命令类特定元素文本
-		const codeEls = container.querySelectorAll('pre, code, .terminal, [class*="mono"], [class*="command"], [class*="code"], [class*="terminal"], textarea, input');
+		const codeEls = container.querySelectorAll('pre, code, textarea, input, [class*="terminal"], [class*="command"], [class*="mono"], [class*="code"]');
 		codeEls.forEach(e => {
 			const val = e.value || e.textContent || '';
 			cmd += ' ' + val.trim();
 		});
-
-		// 2. 提取所属容器的全量文本（确保无特定 class 包裹的普通文本指令不被漏检）
-		const containerAllText = container.textContent || '';
-		cmd += ' ' + containerAllText.trim();
-
-		// 3. 检查前置兄弟节点（解决操作按钮处于独立底部栏、命令文本在上方卡片的问题）
-		let sib = container.previousElementSibling;
-		let sc = 0;
-		while (sib && sc < 5) {
-			if (sib.matches && sib.matches('.antigravity-agent-side-panel, #ab-overlay, #ab-modal')) break;
-			const sibCodeEls = sib.querySelectorAll('pre, code, .terminal, [class*="mono"], [class*="command"], [class*="code"], textarea, input');
-			sibCodeEls.forEach(e => {
-				cmd += ' ' + (e.value || e.textContent || '').trim();
-			});
+		// 2. 提取容器自身文本
+		cmd += ' ' + (container.textContent || '').trim();
+		// 3. 补充前置兄弟元素文本
+		let sib = btnEl.parentElement ? btnEl.parentElement.previousElementSibling : null;
+		let sibDepth = 0;
+		while (sib && sibDepth < 4) {
+			const sibCodeEls = sib.querySelectorAll ? sib.querySelectorAll('pre, code, textarea, input, [class*="terminal"], [class*="command"], [class*="mono"]') : [];
+			sibCodeEls.forEach(e => { cmd += ' ' + (e.value || e.textContent || '').trim(); });
 			cmd += ' ' + (sib.textContent || '').trim();
 			sib = sib.previousElementSibling;
-			sc++;
+			sibDepth++;
 		}
-
 		return cmd.trim().toLowerCase();
 	}
-
 	function isCommandBanned(text) {
 		if (!text) return false;
-		// 1. 核心高危正则规则库检测
+		const trimmed = text.trim();
+		// 排除明确的安全开发命令 (如 git commit 描述中出现 rm, echo 打印中出现 rm 等)
+		if (/^\s*(?:echo|printf)\s+/i.test(trimmed)) return false;
+		if (/^\s*git\s+(?:commit|log|diff|status|tag)\b/i.test(trimmed)) return false;
+
 		if (CRITICAL_DANGEROUS_PATTERNS.some(rgx => rgx.test(text))) {
 			return true;
 		}
-		// 2. 用户自定义黑名单检测
 		const list = currentSettings.bannedCommands || [];
 		const lower = text.toLowerCase();
 		return list.some(p => {
 			if (!p) return false;
 			const pl = p.toLowerCase().trim();
 			if (!pl) return false;
-			if (pl.length <= 3) {
-				const reg = new RegExp('\\b' + pl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i');
+			if (/^[a-z0-9_-]+$/i.test(pl)) {
+				const reg = new RegExp(DANGER_CMD_PREFIX + pl + '(?=[\\s;&|`\\n"\'\\)]|$)', 'i');
 				return reg.test(lower);
 			}
 			return lower.includes(pl);
@@ -1164,7 +1218,6 @@
 		}
 		return false;
 	}
-
 	function findDiffAcceptAllTarget(scope) {
 		const root = scope || document.querySelector('.antigravity-agent-side-panel');
 		if (!root) return null;
@@ -1174,34 +1227,43 @@
 			return text === 'accept all' && className.includes('cursor-pointer') && isDiffConfirmationArea(el);
 		});
 	}
-
 	function normalizeAutoAcceptText(text) {
-		return (text || '').toLowerCase().replace(/[\u200B-\u200D\uFEFF]/g, '').replace(/\s+/g, '').trim();
+		return (text || '').toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9\u4e00-\u9fa5]/g, '');
 	}
-
-	function isVisibleEnabledActionElement(el) {
-		if (!el) return false;
-		const style = window.getComputedStyle(el);
-		const rect = el.getBoundingClientRect();
-		return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0 && !el.disabled && el.getAttribute('aria-disabled') !== 'true';
+	function resolvePermissionClickTarget(target, root) {
+		if (!target) return null;
+		let curr = target;
+		while (curr && curr !== root) {
+			const role = (curr.getAttribute && curr.getAttribute('role') || '').toLowerCase();
+			if (role === 'button' || role === 'radio' || role === 'checkbox' || role === 'option' || curr.tagName === 'BUTTON' || curr.tagName === 'VSCODE-BUTTON') {
+				return curr;
+			}
+			curr = curr.parentElement;
+		}
+		return target;
 	}
-
-	function resolvePermissionClickTarget(candidate, root) {
-		if (!candidate) return null;
-		const directButton = candidate.matches('button, [role="button"], vscode-button') ? candidate : null;
-		const nestedButton = candidate.querySelector('button, [role="button"], vscode-button');
-		const clickableSelf = typeof candidate.className === 'string' && candidate.className.includes('cursor-pointer') ? candidate : null;
-		const targets = [directButton, nestedButton, candidate.closest('button, [role="button"], vscode-button'), candidate.closest('[class*="cursor-pointer"]'), clickableSelf].filter(Boolean);
-		return targets.find(el => root.contains(el) && !el.closest('#ab-overlay') && !el.closest('#ab-modal') && isVisibleEnabledActionElement(el));
-	}
-
 	function findScopedPermissionTarget(scope, expectedText) {
 		const root = scope || document.querySelector('.antigravity-agent-side-panel');
 		if (!root) return null;
 		const normalizedExpected = normalizeAutoAcceptText(expectedText);
-		const candidates = Array.from(root.querySelectorAll('button, [role="button"], vscode-button, span, div')).filter(el => {
-			if (el.closest('#ab-overlay') || el.closest('#ab-modal')) return false;
-			return normalizeAutoAcceptText(el.textContent) === normalizedExpected;
+		const candidates = Array.from(root.querySelectorAll('button, [role="button"], vscode-button, label, input[type="radio"], input[type="checkbox"], [role="radio"], [role="checkbox"], [role="option"], [data-selectable="true"]')).filter(el => {
+			if (el.closest('#ab-overlay') || el.closest('#ab-modal') || el.closest('#ab-danger-overlay')) return false;
+
+			// 核心防呆：绝对排除代码块、终端输出、Markdown 正文、用户气泡与产物区 (防止代码内容中的文字误触发放行)
+			if (el.closest('pre, code, .terminal, .line-content, .leading-relaxed.select-text, .bg-gray-500\\/15, [data-artifact-id]')) return false;
+			if (el.closest('[class*="completed"], [data-state="completed"], [class*="history"]')) return false;
+
+			const raw = (el.textContent || '').trim();
+			if (!raw || raw.length > 500) return false;
+			const norm = normalizeAutoAcceptText(raw);
+			if (norm === normalizedExpected) return true;
+			if (expectedText === 'allow this conversation') {
+				return (norm.includes('inthisconversation') || norm.includes('allowthisconversation') || norm.includes('在此会话中')) && !norm.includes('never') && !norm.includes('notallow');
+			}
+			if (expectedText === 'always allow') {
+				return (norm.includes('alwaysallow') || norm.includes('总是允许')) && !norm.includes('conversation') && !norm.includes('在此会话') && !norm.includes('never') && !norm.includes('notallow');
+			}
+			return false;
 		});
 		for (const candidate of candidates) {
 			const target = resolvePermissionClickTarget(candidate, root);
@@ -1209,50 +1271,102 @@
 		}
 		return null;
 	}
-
 	function triggerAutoAcceptClick(target) {
 		if (!target) return;
-		// 焦点守卫：记录当前活动元素，若用户正在终端或编辑器输入，点击后立刻归还焦点
 		const prevActive = document.activeElement;
-		const isTerminalOrEditorFocused = prevActive && (
-			prevActive.closest('.terminal, .xterm, .monaco-editor, .terminal-wrapper, .terminal-tabs') ||
+		const shouldPreserveFocus = prevActive && (
 			prevActive.tagName === 'TEXTAREA' ||
-			prevActive.tagName === 'INPUT'
+			prevActive.tagName === 'INPUT' ||
+			prevActive.classList.contains('xterm-helper-textarea') ||
+			prevActive.closest('.monaco-editor, .terminal, .xterm')
 		) && !prevActive.closest('.antigravity-agent-side-panel, [role="dialog"], #ab-modal');
 
-		if (typeof target.click === 'function') {
-			target.click();
-		} else if (typeof target.dispatchEvent === 'function') {
-			target.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, composed: true, view: window }));
-		}
-
-		if (isTerminalOrEditorFocused && prevActive && typeof prevActive.focus === 'function') {
-			try { prevActive.focus(); } catch (e) { /* ignore */ }
+		['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click'].forEach(type => {
+			target.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, view: window }));
+		});
+		if (shouldPreserveFocus && prevActive && typeof prevActive.focus === 'function' && document.activeElement !== prevActive) {
+			try { prevActive.focus(); } catch (e) {}
 		}
 	}
-
+	// 辅助提交触发
+	function triggerSubmitAfterOption(scopeEl) {
+		setTimeout(() => {
+			if (!scopeEl) return;
+			const candidates = Array.from(scopeEl.querySelectorAll('button, [role="button"], vscode-button, .monaco-button, a[class*="button"]'));
+			const submitBtn = candidates.find(el => {
+				const txt = (el.textContent || '').trim().toLowerCase();
+				return txt.includes('submit') || txt === 'ok' || txt === 'confirm';
+			});
+			if (submitBtn) {
+				submitBtn.dataset.abClicked = Date.now().toString();
+				triggerAutoAcceptClick(submitBtn);
+			}
+		}, 150);
+	}
+	// 高危命令自动 Skip 跳过核心逻辑
+	function executeAutoSkipDanger(scope, targetStats, nearby) {
+		if (!scope) return;
+		console.log('[AB] 🛡️ 发现高危命令，正在自动点击 Skip 执行跳过:', (nearby || '').slice(0, 100));
+		// 寻找弹窗内的 Skip 按钮
+		const clickables = Array.from(scope.querySelectorAll('button, [role="button"], vscode-button, a, span'));
+		const skipBtn = clickables.find(el => {
+			if (el.closest('#ab-overlay') || el.closest('#ab-modal') || el.closest('#ab-danger-overlay')) return false;
+			const txt = (el.textContent || '').trim().toLowerCase();
+			return txt === 'skip' || txt === 'cancel' || txt === 'reject' || txt === 'deny' || txt === '跳过' || txt === '取消';
+		});
+		if (skipBtn) {
+			skipBtn.dataset.abClicked = Date.now().toString();
+			triggerAutoAcceptClick(skipBtn);
+			console.log('[AB] 🛡️ 已自动点击 Skip 按钮成功跳过高危指令');
+		}
+		// 弹出绿色安全跳过提示
+		const toastFn = (targetStats && targetStats._abShowToast) || window._abShowToast;
+		if (toastFn) {
+			toastFn(t('toast_dangerous_blocked') + (nearby.replace(/.*?((?:rm|mkdir|touch|ls|echo|cat|del|rmdir|mkfs) .*)/, '$1').slice(0, 40) + '...'), { success: true, duration: 3000 });
+		}
+		if (window._abUpdateStats) window._abUpdateStats({ blocked: 1 });
+		else if (targetStats && targetStats._abUpdateStats) targetStats._abUpdateStats({ blocked: 1 });
+		// 给该 scope 打上 5 秒熔断标记，绝不再触碰后续 Submit
+		scope.dataset.abDangerBlocked = Date.now().toString();
+	}
 	async function performScopedPermissionAutoAccept(scope, statsScope) {
 		if (!scope || !currentSettings.autoAcceptEnabled) return;
 		if (!currentSettings.autoAcceptUnlimited && currentSettings.autoAcceptRemaining <= 0) return;
 		const targetStats = statsScope || document.querySelector('.antigravity-agent-side-panel');
+		// 对 scope 容器进行全局指令安全审计
+		const scopeContextText = ((scope.textContent || '') + ' ' + findNearbyCommandText(scope)).toLowerCase();
+		const isScopeBanned = isCommandBanned(scopeContextText);
 
 		if (currentSettings.autoAcceptPatterns['allow this conversation'] && (currentSettings.autoAcceptUnlimited || currentSettings.autoAcceptRemaining > 0)) {
 			const allowConversationTarget = findScopedPermissionTarget(scope, 'allow this conversation');
 			if (allowConversationTarget) {
 				if (allowConversationTarget.dataset.abBlocked && (Date.now() - parseInt(allowConversationTarget.dataset.abBlocked)) < 5000) {
-					// 已安全拦截，跳过
+					// 冷却中
 				} else if (!allowConversationTarget.dataset.abClicked || (Date.now() - parseInt(allowConversationTarget.dataset.abClicked)) >= 2000) {
-					// 前置高危命令安全审计
-					const nearby = findNearbyCommandText(allowConversationTarget);
-					if (isCommandBanned(nearby)) {
+					const nearby = (findNearbyCommandText(allowConversationTarget) + ' ' + scopeContextText).trim();
+					if (isRecentlyClicked(allowConversationTarget, 'allow-this-conversation', nearby)) {
+						return;
+					}
+					if ((isScopeBanned || isCommandBanned(nearby)) && !currentSettings.allowDangerousCommands) {
 						allowConversationTarget.dataset.abBlocked = Date.now().toString();
-						if (targetStats && targetStats._abUpdateStats) targetStats._abUpdateStats({ blocked: 1 });
-						console.warn('[AB] 🚨 Allow This Conversation 检测到高危指令，已强制拦截自动放行:', nearby.slice(0, 100));
+						executeAutoSkipDanger(scope, targetStats, nearby);
+						return;
 					} else {
 						allowConversationTarget.dataset.abClicked = Date.now().toString();
 						triggerAutoAcceptClick(allowConversationTarget);
-						if (targetStats && targetStats._abUpdateStats) targetStats._abUpdateStats({ clicks: 1 });
+						triggerSubmitAfterOption(scope);
+						const allowToast = (targetStats && targetStats._abShowToast) || window._abShowToast;
+						if (allowToast) {
+							if (isScopeBanned || isCommandBanned(nearby)) {
+								allowToast(t('toast_dangerous_executed') + (nearby.replace(/.*?((?:rm|mkdir|touch|ls|echo|cat|del|rmdir|mkfs) .*)/, '$1').slice(0, 40) + '...'), { warn: true, duration: 3000 });
+							} else {
+								allowToast('✅ 已自动放行指令: ' + (nearby.replace(/.*?((?:rm|mkdir|touch|ls|echo|cat) .*)/, '$1').slice(0, 35) + '...'), { success: true, duration: 2000 });
+							}
+						}
+						if (window._abUpdateStats) window._abUpdateStats({ clicks: 1 });
+						else if (targetStats && targetStats._abUpdateStats) targetStats._abUpdateStats({ clicks: 1 });
 						await new Promise(r => setTimeout(r, 100));
+						return;
 					}
 				}
 			}
@@ -1261,19 +1375,32 @@
 			const alwaysAllowTarget = findScopedPermissionTarget(scope, 'always allow');
 			if (alwaysAllowTarget) {
 				if (alwaysAllowTarget.dataset.abBlocked && (Date.now() - parseInt(alwaysAllowTarget.dataset.abBlocked)) < 5000) {
-					// 已安全拦截，跳过
+					// 冷却中
 				} else if (!alwaysAllowTarget.dataset.abClicked || (Date.now() - parseInt(alwaysAllowTarget.dataset.abClicked)) >= 2000) {
-					// 前置高危命令安全审计
-					const nearby = findNearbyCommandText(alwaysAllowTarget);
-					if (isCommandBanned(nearby)) {
+					const nearby = (findNearbyCommandText(alwaysAllowTarget) + ' ' + scopeContextText).trim();
+					if (isRecentlyClicked(alwaysAllowTarget, 'always-allow', nearby)) {
+						return;
+					}
+					if ((isScopeBanned || isCommandBanned(nearby)) && !currentSettings.allowDangerousCommands) {
 						alwaysAllowTarget.dataset.abBlocked = Date.now().toString();
-						if (targetStats && targetStats._abUpdateStats) targetStats._abUpdateStats({ blocked: 1 });
-						console.warn('[AB] 🚨 Always Allow 检测到高危指令，已强制拦截自动放行:', nearby.slice(0, 100));
+						executeAutoSkipDanger(scope, targetStats, nearby);
+						return;
 					} else {
 						alwaysAllowTarget.dataset.abClicked = Date.now().toString();
 						triggerAutoAcceptClick(alwaysAllowTarget);
-						if (targetStats && targetStats._abUpdateStats) targetStats._abUpdateStats({ clicks: 1 });
+						triggerSubmitAfterOption(scope);
+						const allowToast = (targetStats && targetStats._abShowToast) || window._abShowToast;
+						if (allowToast) {
+							if (isScopeBanned || isCommandBanned(nearby)) {
+								allowToast(t('toast_dangerous_executed') + (nearby.replace(/.*?((?:rm|mkdir|touch|ls|echo|cat|del|rmdir|mkfs) .*)/, '$1').slice(0, 40) + '...'), { warn: true, duration: 3000 });
+							} else {
+								allowToast('✅ 已自动放行指令: ' + (nearby.replace(/.*?((?:rm|mkdir|touch|ls|echo|cat) .*)/, '$1').slice(0, 35) + '...'), { success: true, duration: 2000 });
+							}
+						}
+						if (window._abUpdateStats) window._abUpdateStats({ clicks: 1 });
+						else if (targetStats && targetStats._abUpdateStats) targetStats._abUpdateStats({ clicks: 1 });
 						await new Promise(r => setTimeout(r, 100));
+						return;
 					}
 				}
 			}
@@ -1285,44 +1412,56 @@
 		if (!currentSettings.autoAcceptUnlimited && currentSettings.autoAcceptRemaining <= 0) return;
 		
 		const sidePanel = panelEl || document.querySelector('.antigravity-agent-side-panel');
-		// 仅扫描侧边栏及真正的独立弹窗容器，杜绝在全局 document.body 遍历误触终端或编辑器控件
 		const modals = Array.from(document.querySelectorAll('[role="dialog"], form, [class*="modal"], [class*="popup"], [class*="overlay"]'))
 			.filter(m => !m.closest('#ab-overlay') && !m.closest('#ab-modal') && (!sidePanel || !sidePanel.contains(m)));
 		const scopes = [sidePanel, ...modals].filter(Boolean);
 		const statsScope = sidePanel || document.body;
-
 		for (const scope of scopes) {
+			if (scope.dataset.abDangerBlocked && (Date.now() - parseInt(scope.dataset.abDangerBlocked)) < 5000) {
+				continue;
+			}
+			// 1. 优先执行专属权限与高危拦截
+			await performScopedPermissionAutoAccept(scope, statsScope);
+			if (scope.dataset.abDangerBlocked && (Date.now() - parseInt(scope.dataset.abDangerBlocked)) < 5000) {
+				continue;
+			}
+			// 2. 遍历通用按钮
 			const buttons = scope.querySelectorAll('button, [role="button"], vscode-button');
 			for (const btn of buttons) {
 				if (!currentSettings.autoAcceptUnlimited && currentSettings.autoAcceptRemaining <= 0) break;
 				if (btn.closest('#ab-overlay') || btn.closest('#ab-modal')) continue;
 				if (!isAutoAcceptButton(btn)) continue;
 				
-				// 2 秒防死循环冷却机制
 				if (btn.dataset.abClicked && (Date.now() - parseInt(btn.dataset.abClicked)) < 2000) continue;
-
-				// 高危命令拦截冷却（5 秒内不重复触发 blocked 计数与告警）
 				if (btn.dataset.abBlocked && (Date.now() - parseInt(btn.dataset.abBlocked)) < 5000) continue;
-
-				const text = (btn.textContent || '').trim().toLowerCase();
-				if (text === 'accept all' && !isDiffConfirmationArea(btn)) continue;
-				if (text === 'allow this conversation' || text === 'always allow') continue;
-
-				// 【全按钮统一安全审计】：无论按钮是 Submit、Allow、Confirm、Run 还是 Execute，一律前置检测所属上下文中的高危指令
-				const nearby = findNearbyCommandText(btn); 
-				if (isCommandBanned(nearby)) { 
-					btn.dataset.abBlocked = Date.now().toString();
-					if (statsScope._abUpdateStats) statsScope._abUpdateStats({ blocked: 1 }); 
-					console.warn('[AB] 🚨 检测到高危指令，已强制拦截自动放行:', nearby.slice(0, 100));
-					continue; 
+					const cleanedText = cleanButtonText(btn.textContent);
+					if (cleanedText === 'accept all' && !isDiffConfirmationArea(btn)) continue;
+					if (cleanedText === 'allow this conversation' || cleanedText === 'always allow') continue;
+					// 全按钮安全审计
+					const nearby = findNearbyCommandText(btn);
+					if (isRecentlyClicked(btn, cleanedText, nearby)) continue; 
+				if (isCommandBanned(nearby)) {
+					if (!currentSettings.allowDangerousCommands) {
+						btn.dataset.abBlocked = Date.now().toString();
+						executeAutoSkipDanger(scope, statsScope, nearby);
+						break;
+					} else {
+						console.log('[AB] ⚠️ 高危命令自动执行已开启，放行指令:', nearby.slice(0, 80));
+						const toastFn = (statsScope && statsScope._abShowToast) || window._abShowToast;
+						if (toastFn) {
+							toastFn(t('toast_dangerous_executed') + (nearby.replace(/.*?((?:rm|mkdir|touch|ls|echo|cat|del|rmdir|mkfs) .*)/, '$1').slice(0, 40) + '...'), { warn: true, duration: 3000 });
+						}
+					}
 				}
-
 				btn.dataset.abClicked = Date.now().toString();
 				triggerAutoAcceptClick(btn);
-				if (statsScope._abUpdateStats) statsScope._abUpdateStats({ clicks: 1 });
+				if (window._abUpdateStats) {
+					window._abUpdateStats({ clicks: 1 });
+				} else if (statsScope._abUpdateStats) {
+					statsScope._abUpdateStats({ clicks: 1 });
+				}
 				await new Promise(r => setTimeout(r, 100));
 			}
-
 			if (currentSettings.autoAcceptPatterns['accept all'] && (currentSettings.autoAcceptUnlimited || currentSettings.autoAcceptRemaining > 0)) {
 				const acceptAllTarget = findDiffAcceptAllTarget(scope);
 				if (acceptAllTarget && (!acceptAllTarget.dataset.abClicked || (Date.now() - parseInt(acceptAllTarget.dataset.abClicked)) >= 2000)) {
@@ -1332,35 +1471,28 @@
 					await new Promise(r => setTimeout(r, 100));
 				}
 			}
-			await performScopedPermissionAutoAccept(scope, statsScope);
 		}
 	}
-
 	function applyAutoAcceptSettings(panelEl) {
 		if (autoAcceptObserver) { autoAcceptObserver.disconnect(); autoAcceptObserver = null; }
 		if (autoAcceptIntervalTimer) { clearInterval(autoAcceptIntervalTimer); autoAcceptIntervalTimer = null; }
 		if (!currentSettings.autoAcceptEnabled) return;
-
 		autoAcceptObserver = new MutationObserver(() => {
 			clearTimeout(window._abAATimer);
 			window._abAATimer = setTimeout(() => performAutoAccept(panelEl), 100);
 		});
 		autoAcceptObserver.observe(document.body, { childList: true, subtree: true });
-
 		autoAcceptIntervalTimer = setInterval(() => {
 			if (document.hidden) return;
 			if (!document.querySelector('.antigravity-agent-side-panel') && !document.querySelector('[role="dialog"], #ab-modal, .quick-input-widget')) return;
 			performAutoAccept(panelEl).catch(() => {});
 		}, 400);
-
 		performAutoAccept(panelEl);
 	}
-
 	// ===== LaTeX 渲染 =====
 	let katexLoaded = false, katexLoading = false, latexObserver = null;
 	const KATEX_CSS = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css';
 	const KATEX_JS = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js';
-
 	function loadKaTeX() {
 		return new Promise((resolve, reject) => {
 			if (katexLoaded) { resolve(); return; }
@@ -1373,6 +1505,8 @@
 				fetch(KATEX_CSS).then(r => r.text()),
 				fetch(KATEX_JS).then(r => r.text())
 			]).then(([css, js]) => {
+				// 重写字体路径为 CDN 绝对路径，杜绝本地 file 协议 404
+				css = css.replace(/url\(fonts\//g, 'url(https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/fonts/');
 				const style = document.createElement('style'); style.textContent = css; document.head.appendChild(style);
 				// 包装 IIFE：遮蔽 Electron 全局的 module/exports/define
 				const wrappedJs = '(function(module, exports, define) {\n' + js + '\n}).call(window, undefined, undefined, undefined);';
@@ -1394,7 +1528,6 @@
 	// v0.2.2-patch: 增强正则，支持 \(...\) / \[...\] 格式，扩展元素选择器
 	// 统一的 LaTeX 匹配模式（$...$, $$...$$, \(...\), \[...\]）
 	const LATEX_PATTERN = /(\$\$[\s\S]+?\$\$|\$(?!\$)(?:[^$\n]|\n(?!\n))+?\$(?!\$)|\\\[[\s\S]+?\\\]|\\\((?:[^\\]|\\(?!\)))+?\\\))/g;
-
 	// v0.2.2-patch: 修复 markdown 渲染器将 LaTeX 下标 _ 误解析为 <em>/<strong> 的问题
 	// 当公式 $\mathcal{L}_{\text{total}}$ 中的 _ 被 markdown 当作斜体标记时，
 	// DOM 中 $...$ 的内容会被 <em> 标签拆分，导致正则无法在单个文本节点中完整匹配。
@@ -1403,33 +1536,128 @@
 		const text = elem.textContent;
 		LATEX_PATTERN.lastIndex = 0;
 		if (!LATEX_PATTERN.test(text)) return;
-		// 没有行内格式化元素则无需处理
-		const fmtEls = elem.querySelectorAll('em, strong, i, b');
-		if (fmtEls.length === 0) return;
+		LATEX_PATTERN.lastIndex = 0;
+
 		let changed = false;
-		fmtEls.forEach(fmt => {
-			if (fmt.closest('pre, .latex-rendered')) return;
-			// 通过计算此元素之前的 $ 符号数量来判断是否处于公式内部
-			let dollars = 0;
-			const tw = document.createTreeWalker(elem, NodeFilter.SHOW_TEXT);
-			let nd;
-			while (nd = tw.nextNode()) {
-				// 判断此文本节点是否在 fmt 元素之前
-				if (fmt.compareDocumentPosition(nd) & Node.DOCUMENT_POSITION_PRECEDING) {
-					dollars += (nd.textContent.match(/\$/g) || []).length;
+
+		// 1. 处理公式内部的 <br> 标签 (Markdown 将公式内部换行渲染为 <br> 导致文本节点断裂)
+		const brEls = elem.querySelectorAll('br');
+		if (brEls.length > 0) {
+			brEls.forEach(br => {
+				if (br.closest('pre, .latex-rendered')) return;
+				let doubleDollars = 0;
+				let singleDollars = 0;
+				let openBrackets = 0;
+				let closeBrackets = 0;
+				const tw = document.createTreeWalker(elem, NodeFilter.SHOW_TEXT);
+				let nd;
+				while (nd = tw.nextNode()) {
+					if (br.compareDocumentPosition(nd) & Node.DOCUMENT_POSITION_PRECEDING) {
+						const c = nd.textContent;
+						doubleDollars += (c.match(/\$\$/g) || []).length;
+						const singles = c.replace(/\$\$/g, '').match(/\$/g) || [];
+						singleDollars += singles.length;
+						openBrackets += (c.match(/\\\[/g) || []).length;
+						closeBrackets += (c.match(/\\\]/g) || []).length;
+					}
 				}
-			}
-			// 奇数个 $ → 此格式化元素位于公式 $...$ 内部
-			if (dollars % 2 === 1) {
-				const delim = (fmt.tagName === 'EM' || fmt.tagName === 'I') ? '_' : '**';
-				const tn = document.createTextNode(delim + fmt.textContent + delim);
-				fmt.parentNode.replaceChild(tn, fmt);
-				changed = true;
-			}
-		});
+				if (doubleDollars % 2 === 1 || singleDollars % 2 === 1 || openBrackets > closeBrackets) {
+					const tn = document.createTextNode('\n');
+					br.parentNode.replaceChild(tn, br);
+					changed = true;
+				}
+			});
+		}
+
+		// 2. 处理公式内部被 markdown 拆分为 <em>/<strong> 的下划线 (支持 $$, $, \[)
+		const fmtEls = elem.querySelectorAll('em, strong, i, b');
+		if (fmtEls.length > 0) {
+			fmtEls.forEach(fmt => {
+				if (fmt.closest && fmt.closest('pre, .latex-rendered')) return;
+				let doubleDollars = 0;
+				let singleDollars = 0;
+				let openBrackets = 0;
+				let closeBrackets = 0;
+				const tw = document.createTreeWalker(elem, NodeFilter.SHOW_TEXT);
+				let nd;
+				while (nd = tw.nextNode()) {
+					if (fmt.compareDocumentPosition(nd) & Node.DOCUMENT_POSITION_PRECEDING) {
+						const c = nd.textContent;
+						doubleDollars += (c.match(/\$\$/g) || []).length;
+						const singles = c.replace(/\$\$/g, '').match(/\$/g) || [];
+						singleDollars += singles.length;
+						openBrackets += (c.match(/\\\[/g) || []).length;
+						closeBrackets += (c.match(/\\\]/g) || []).length;
+					}
+				}
+				if (doubleDollars % 2 === 1 || singleDollars % 2 === 1 || openBrackets > closeBrackets) {
+					const isUnder = fmt.tagName === 'EM' || fmt.tagName === 'I';
+					const prevText = fmt.previousSibling ? (fmt.previousSibling.textContent || '') : '';
+					const nextText = fmt.nextSibling ? (fmt.nextSibling.textContent || '') : '';
+					const leftDelim = isUnder ? (prevText.endsWith('_') ? '' : '_') : '**';
+					const rightDelim = isUnder ? (nextText.startsWith('_') ? '' : '_') : '**';
+					const tn = document.createTextNode(leftDelim + fmt.textContent + rightDelim);
+					fmt.parentNode.replaceChild(tn, fmt);
+					changed = true;
+				}
+			});
+		}
 		if (changed) elem.normalize(); // 合并相邻文本节点
 	}
 
+	function sanitizeLatexFormula(formula) {
+		if (!formula) return "";
+		let f = formula.trim();
+
+		// 0. 解码常见的 Markdown/HTML 实体 (防止 &gt; &lt; &quot; &#39; &nbsp; 导致 KaTeX 语法解析失败)
+		f = f.replace(/&lt;/g, "<")
+		     .replace(/&gt;/g, ">")
+		     .replace(/&quot;/g, "\"")
+		     .replace(/&#39;/g, "'")
+		     .replace(/&nbsp;/g, " ");
+
+		// 智能处理 & 与 &amp;: 对齐环境(aligned/cases/matrix/array等)中转为 &，环境之外转为 \& (避免 KaTeX Expected EOF 报错)
+		const alignEnvPattern = /\\begin\{(?:matrix|pmatrix|bmatrix|vmatrix|aligned|cases|array|split|gather|multline)\}[\s\S]*?\\end\{(?:matrix|pmatrix|bmatrix|vmatrix|aligned|cases|array|split|gather|multline)\}/g;
+		let lastIdx = 0, envMatch;
+		let processed = "";
+		while ((envMatch = alignEnvPattern.exec(f)) !== null) {
+			const outside = f.slice(lastIdx, envMatch.index);
+			processed += outside.replace(/&amp;/g, "\\&").replace(/(?<!\\)&/g, "\\&");
+			processed += envMatch[0].replace(/&amp;/g, "&");
+			lastIdx = envMatch.index + envMatch[0].length;
+		}
+		processed += f.slice(lastIdx).replace(/&amp;/g, "\\&").replace(/(?<!\\)&/g, "\\&");
+		f = processed;
+
+		// 1. 修复 AI 常见的 \left{ 和 \right} 缺少反斜杠导致的 KaTeX 红色语法错误
+		f = f.replace(/\\left\s*\{/g, "\\left\\{");
+		f = f.replace(/\\right\s*\}/g, "\\right\\}");
+
+		// 2. 修复意外的列表符号负号断裂
+		f = f.replace(/^[•\-\*]\s+/gm, "- ");
+
+		// 3. 修复矩阵与对齐环境内部因 Markdown 吞噬换行 \\ 导致的行塌陷 (保护并修复 \\[...pt] 间距语法)
+		f = f.replace(/(\\begin\{(?:matrix|pmatrix|bmatrix|vmatrix|aligned|cases|array|split|gather|multline)\}[\s\S]*?\\end\{(?:matrix|pmatrix|bmatrix|vmatrix|aligned|cases|array|split|gather|multline)\})/g, (m) => {
+			return m.split("\n").map((line, idx, arr) => {
+				const trimmed = line.trim();
+				if (!trimmed || idx === 0 || idx === arr.length - 1 || trimmed.startsWith("\\end{")) return line;
+				// 处理 Markdown 吞掉一个反斜杠的行间距语法: \[12pt] -> \\[12pt]
+				if (/(?<!\\)\\\s*(\[\s*\d+\s*(?:pt|em|ex|px)?\s*\])\s*$/.test(trimmed)) {
+					return line.replace(/(?<!\\)\\\s*(\[\s*\d+\s*(?:pt|em|ex|px)?\s*\])\s*$/, "\\\\$1");
+				}
+				// 如果行尾已有 \\ 或 \\[...pt]，不重复添加
+				if (/\\\\(?:\s*\[[^\]]*\])?\s*$/.test(trimmed)) return line;
+				// 如果行尾只有一个反斜杠（被 markdown 吞了一个），补全为两个 \\
+				if (/(?<!\\)\\\s*$/.test(trimmed)) {
+					return line.replace(/(?<!\\)\\\s*$/, "\\\\");
+				}
+				const nextTrimmed = (arr[idx + 1] || "").trim();
+				if (nextTrimmed.startsWith("\\end{")) return line;
+				return line + " \\\\";
+			}).join("\n");
+		});
+		return f;
+	}
 	function processLatexInElement(elem) {
 		if (elem.dataset.latexElemProcessed) return false;
 		// v0.2.2-patch: 先修复被 markdown 破坏的 LaTeX 公式
@@ -1438,12 +1666,12 @@
 		LATEX_PATTERN.lastIndex = 0;
 		if (!LATEX_PATTERN.test(text)) return false; LATEX_PATTERN.lastIndex = 0;
 		// 对于包含 $$ 或 \[...\] 的块级公式段落，整段替换
-		const blockPattern = /^\s*(?:\$\$([\s\S]+?)\$\$|\\\[([\s\S]+?)\\\])\s*$/;
+		const blockPattern = /^\s*(?:\$\$((?:(?!\$\$)[\s\S])+?)\$\$|\\\[((?:(?!\\\])[\s\S])+?)\\\])\s*$/;
 		const blockMatch = text.match(blockPattern);
 		if (blockMatch) {
 			try {
-				const formula = (blockMatch[1] || blockMatch[2]).trim();
-				const html = window.katex.renderToString(formula, { throwOnError: false, displayMode: true });
+				let formula = sanitizeLatexFormula(blockMatch[1] || blockMatch[2]);
+			const html = window.katex.renderToString(formula, { throwOnError: false, displayMode: true });
 				const wrap = document.createElement('div');
 				wrap.className = 'latex-block latex-rendered';
 				wrap.dataset.latexOriginal = text;
@@ -1453,14 +1681,17 @@
 				return true;
 			} catch (e) { return false; }
 		}
-		// v0.2.2-patch: 先将包含纯 LaTeX 的 <code> 元素解包为文本节点
+		// v0.2.2-patch: 将包含纯 LaTeX 的 <code> 元素解包，并记录原标签以支持 revertLatex 完美还原
 		elem.querySelectorAll('code').forEach(code => {
 			if (code.closest('pre')) return; // 不处理 <pre> 内的 <code>
 			const ct = code.textContent;
 			LATEX_PATTERN.lastIndex = 0;
 			if (LATEX_PATTERN.test(ct) && ct.replace(LATEX_PATTERN, '').trim() === '') {
-				// 整个 <code> 内容都是 LaTeX 公式，解包
-				code.replaceWith(document.createTextNode(ct));
+				const marker = document.createElement('span');
+				marker.className = 'latex-unpacked-code';
+				marker.dataset.latexOriginalTag = 'code';
+				marker.textContent = ct;
+				code.replaceWith(marker);
 			}
 		});
 		// 内联公式：逐个文本节点处理
@@ -1488,10 +1719,15 @@
 				else if (full.startsWith('\\(')) formula = full.slice(2, -2).trim();
 				else formula = full.slice(1, -1).trim();
 				try {
-					const html = window.katex.renderToString(formula, { throwOnError: false, displayMode: isBlock });
+					formula = sanitizeLatexFormula(formula);
+			const html = window.katex.renderToString(formula, { throwOnError: false, displayMode: isBlock });
 					const wrap = document.createElement(isBlock ? 'div' : 'span');
 					wrap.className = isBlock ? 'latex-block latex-rendered' : 'latex-inline latex-rendered';
-					wrap.dataset.latexOriginal = full; safeSetHTML(wrap, html); frag.appendChild(wrap);
+					wrap.dataset.latexOriginal = full;
+					if (textNode.parentNode && textNode.parentNode.dataset && textNode.parentNode.dataset.latexOriginalTag) {
+						wrap.dataset.latexOriginalTag = textNode.parentNode.dataset.latexOriginalTag;
+					}
+					safeSetHTML(wrap, html); frag.appendChild(wrap);
 				} catch (e) { frag.appendChild(document.createTextNode(full)); }
 				last = m.index + full.length;
 			}
@@ -1508,19 +1744,24 @@
 			if (pre.dataset.latexCodeProcessed) return;
 			const codeContainer = pre.querySelector('div');
 			if (!codeContainer) return;
-			// 查找语言标签
-			const langLabel = codeContainer.querySelector('.font-sans.text-sm');
+			// 查找语言标签 (兼容多种类名及元素)
+			let langLabel = codeContainer.querySelector('.font-sans.text-sm');
+			if (!langLabel || langLabel.textContent.trim().toLowerCase() !== 'latex') {
+				const candidate = Array.from(codeContainer.querySelectorAll('span, div')).find(e => e.children.length === 0 && e.textContent.trim().toLowerCase() === 'latex');
+				if (candidate) langLabel = candidate;
+			}
 			if (!langLabel || langLabel.textContent.trim().toLowerCase() !== 'latex') return;
 			// 获取代码内容（仅从 .line-content 提取，避免包含 <style> 标签文本）
 			const codeBody = codeContainer.querySelector('.p-3');
 			if (!codeBody) return;
 			const lineContents = codeBody.querySelectorAll('.line-content');
-			const formula = lineContents.length > 0
+			let formula = lineContents.length > 0
 				? Array.from(lineContents).map(l => l.textContent).join('\n').trim()
 				: codeBody.textContent.trim();
 			if (!formula) return;
 			try {
-				const html = window.katex.renderToString(formula, { throwOnError: false, displayMode: true });
+				formula = sanitizeLatexFormula(formula);
+			const html = window.katex.renderToString(formula, { throwOnError: false, displayMode: true });
 				const rendered = document.createElement('div');
 				rendered.className = 'latex-code-rendered latex-rendered';
 				rendered.dataset.latexOriginal = formula;
@@ -1533,32 +1774,143 @@
 			} catch (e) { /* ignore render errors */ }
 		});
 	}
+	
+	function fixSplitLatexBlocks(prose) {
+		const children = Array.from(prose.children);
+		let i = 0;
+		while (i < children.length) {
+			const el = children[i];
+			if (el.tagName === 'P' || el.tagName === 'LI') {
+				let txt = el.textContent;
+				let open$ = (txt.match(/\$\$/g) || []).length;
+				let openBracket = (txt.match(/\\\[/g) || []).length;
+				let closeBracket = (txt.match(/\\\]/g) || []).length;
+				
+				if (open$ % 2 !== 0 || openBracket > closeBracket) {
+					let j = i + 1;
+					let mergedHtml = el.innerHTML;
+					let found = false;
+					let toRemove = [];
+					while (j < children.length) {
+						const nextEl = children[j];
+						if (['P', 'UL', 'OL', 'LI', 'BLOCKQUOTE'].includes(nextEl.tagName)) {
+							mergedHtml += '\n\n' + nextEl.innerHTML;
+							toRemove.push(nextEl);
+							
+							let nextTxt = nextEl.textContent;
+							let n$ = (nextTxt.match(/\$\$/g) || []).length;
+							let nOpen = (nextTxt.match(/\\\[/g) || []).length;
+							let nClose = (nextTxt.match(/\\\]/g) || []).length;
+							
+							open$ += n$;
+							openBracket += nOpen;
+							closeBracket += nClose;
+							
+							if (open$ % 2 === 0 && openBracket === closeBracket) {
+								found = true;
+								break;
+							}
+						} else {
+							break;
+						}
+						j++;
+					}
+					if (found) {
+						el.innerHTML = mergedHtml;
+						toRemove.forEach(n => n.remove());
+					}
+				}
+			}
+			i++;
+		}
+	}
+	
+	function mergeAndRenderCrossElementLatex(prose) {
+		if (!prose || !prose.children) return;
+		const children = Array.from(prose.children);
+		let i = 0;
+		while (i < children.length) {
+			const el = children[i];
+			if (el.classList && el.classList.contains('latex-rendered')) { i++; continue; }
+			if (/^(PRE|CODE|SCRIPT|STYLE)$/i.test(el.tagName)) { i++; continue; }
+			let txt = el.textContent || '';
+			const dollars = (txt.match(/\$\$/g) || []).length;
+			if (dollars % 2 === 1) {
+				let j = i + 1;
+				let elementsToMerge = [el];
+				let combinedFormulaText = txt;
+				let foundEnd = false;
+				while (j < children.length) {
+					const next = children[j];
+					elementsToMerge.push(next);
+					combinedFormulaText += '\n' + (next.textContent || '');
+					const nextDollars = ((next.textContent || '').match(/\$\$/g) || []).length;
+					if (nextDollars % 2 === 1) {
+						foundEnd = true;
+						break;
+					}
+					j++;
+				}
+				if (foundEnd) {
+					const match = combinedFormulaText.match(/\$\$([\s\S]+?)\$\$/);
+					if (match) {
+						try {
+							let formula = sanitizeLatexFormula(match[1]);
+							formula = formula.replace(/^[•\-\*]\s+/gm, '- ');
+							formula = formula.replace(/\\\\\[/g, '\\\\\\\\[').replace(/\\\\\]/g, '\\\\\\\\]');
+							
+							const html = window.katex.renderToString(formula, { throwOnError: false, displayMode: true });
+							const wrap = document.createElement('div');
+							wrap.className = 'latex-block latex-rendered';
+							wrap.dataset.latexOriginal = match[0];
+							safeSetHTML(wrap, html);
+							el.replaceWith(wrap);
+							for (let k = 1; k < elementsToMerge.length; k++) {
+								elementsToMerge[k].remove();
+							}
+							i = j + 1;
+							continue;
+						} catch (e) {
+							console.warn('[AB] 跨元素 LaTeX 合并渲染异常:', e);
+						}
+					}
+				}
+			}
+			i++;
+		}
+	}
+	
 	function scanAndRenderLatex(panelEl) {
 		if (!currentSettings.latexEnabled || !katexLoaded) return;
 		const scope = panelEl || document.querySelector('.antigravity-agent-side-panel');
 		if (!scope) return;
 		// 1. 处理正文中的内联/块级 LaTeX
-		// v0.2.2-patch: 扩展选择器，增加更多容器和元素类型
 		const proseSelectors = [
-			'.leading-relaxed.select-text:not(.opacity-70)',  // 原始选择器
-			'.select-text.leading-relaxed:not(.opacity-70)',  // 备选顺序
-			'[class*="leading-relaxed"][class*="select-text"]:not([class*="opacity"])', // 模糊匹配
+			'.leading-relaxed.select-text',
+			'.select-text.leading-relaxed',
+			'[class*="leading-relaxed"][class*="select-text"]',
+			'.markdown-body',
+			'[class*="markdown"]',
+			'[class*="prose"]',
+			'.whitespace-pre-wrap'
 		];
 		const proseSet = new Set();
 		proseSelectors.forEach(sel => {
 			try { scope.querySelectorAll(sel).forEach(e => proseSet.add(e)); } catch(e) {}
 		});
-		// v0.2.2-patch: 扩展子元素选择器，增加 td, th, h1-h6 等
-		const elemSelector = 'p, li, td, th, h1, h2, h3, h4, h5, h6';
-		proseSet.forEach(prose => {
+		const elemSelector = 'p, li, td, th, h1, h2, h3, h4, h5, h6, .latex-unpacked-code';
+				proseSet.forEach(prose => {
+			fixSplitLatexBlocks(prose);
+			if (prose.matches && prose.matches(elemSelector)) {
+				processLatexInElement(prose);
+			}
 			const elems = prose.querySelectorAll(elemSelector);
 			elems.forEach(elem => { processLatexInElement(elem); });
 		});
-		// v0.2.2-patch: 如果没有通过选择器找到容器，尝试直接处理 scope 内的所有目标元素
 		if (proseSet.size === 0) {
 			console.log('[AB] ⚠️ LaTeX: 未找到 prose 容器，尝试直接搜索 scope 内元素');
 			scope.querySelectorAll(elemSelector).forEach(elem => {
-				if (elem.closest('#ab-overlay') || elem.closest('#ab-modal')) return;
+				if (elem.closest('#ab-overlay') || elem.closest('#ab-modal') || elem.closest('#ab-danger-overlay')) return;
 				processLatexInElement(elem);
 			});
 		}
@@ -1604,7 +1956,6 @@
 			scanAndRenderLatex(panelEl);
 		} catch (e) { console.warn('[AB] LaTeX init failed:', e.message); }
 	}
-
 	// ===== 版本检测 =====
 	const GITHUB_API = 'https://api.github.com/repos/016/Antigravity-Better/releases/latest';
 	const GITHUB_RELEASES = 'https://github.com/016/Antigravity-Better/releases';
@@ -1635,23 +1986,40 @@
 			return { status: 'latest' };
 		} catch (e) { return { status: 'error' }; }
 	}
-
 	// ===== 生命周期 =====
 	function onPanelReady(panelEl) {
-		console.log('[AB] ✅ AI 面板已检测到');
-		createSettingsUI(panelEl);
-		applyColorSettings(); applyFontsizeSettings();
-		applyCopySettings(panelEl); applyHotkeySettings();
-		applyAutoAcceptSettings(panelEl);
-		if (currentSettings.latexEnabled) applyLatexSettings(panelEl);
-		if (currentSettings.autoUpdateEnabled) setTimeout(checkForUpdate, 10000);
+		try {
+			console.log('[AB] ✅ AI 面板已检测到');
+			createSettingsUI(panelEl);
+			applyColorSettings(); applyFontsizeSettings();
+			applyCopySettings(panelEl); applyHotkeySettings();
+			applyAutoAcceptSettings(panelEl);
+			if (currentSettings.latexEnabled) applyLatexSettings(panelEl);
+			if (currentSettings.autoUpdateEnabled) {
+				setTimeout(async () => {
+					const res = await checkForUpdate();
+					if (res && res.status === 'found') {
+						const toastFn = panelEl._abShowToast;
+						if (toastFn) toastFn(t('toast_new_version') + 'v' + res.remoteVersion, { persistent: true });
+					}
+				}, 8000);
+			}
+		} catch (err) {
+			console.error('[AB] 🚨 onPanelReady 严重崩溃:', err);
+		}
 	}
 	function waitForAgentPanel() {
-		const p = document.querySelector('.antigravity-agent-side-panel');
-		if (p) { onPanelReady(p); return; }
-		const obs = new MutationObserver((_, o) => { const p = document.querySelector('.antigravity-agent-side-panel'); if (p) { o.disconnect(); onPanelReady(p); } });
+		function checkAndMount() {
+			const p = document.querySelector('.antigravity-agent-side-panel');
+			if (p && !p.querySelector('#ab-settings-btn')) {
+				onPanelReady(p);
+			}
+		}
+		checkAndMount();
+		// 持续监听以支持用户在左侧侧边栏切换 Tab (如切到 Git/Explorer 再切回 AI 面板) 时的重新挂载
+		const obs = new MutationObserver(() => checkAndMount());
 		obs.observe(document.body, { childList: true, subtree: true });
-		console.log('[AB] ⏳ 等待 AI 面板出现...');
+		console.log('[AB] ⏳ 持续监控 AI 面板挂载状态...');
 	}
 	// ===== 自动关闭"安装损坏"通知 =====
 	function dismissCorruptWarning() {
@@ -1667,13 +2035,12 @@
 				}
 			});
 		}
-		// 通知可能延迟出现，持续监听 30 秒
+		// 通知可能延迟出现，持续监听 30 秒 (取消防抖以避免高频 DOM 变化导致的饿死)
 		const obs = new MutationObserver(() => tryDismiss());
 		obs.observe(document.body, { childList: true, subtree: true });
 		setTimeout(() => obs.disconnect(), 30000);
 		setTimeout(tryDismiss, 2000);
 	}
-
 	function init() {
 		console.log('[AB] 开始初始化...');
 		try { applyColorSettings(); applyFontsizeSettings(); waitForAgentPanel(); dismissCorruptWarning(); console.log('[AB] ✅ 初始化完成'); } catch (e) { console.error('[AB] ❌ 初始化失败:', e); }
@@ -1681,5 +2048,4 @@
 	if (document.body) { setTimeout(init, 1000); } else { document.addEventListener('DOMContentLoaded', () => setTimeout(init, 1000)); }
 })();
 </script>
-
 </html>
