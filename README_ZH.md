@@ -8,7 +8,7 @@
     <strong>中文</strong>
   </p>
   <p>
-    <img src="https://img.shields.io/badge/version-0.2.10-brightgreen" alt="Version">
+    <img src="https://img.shields.io/badge/version-0.2.13-brightgreen" alt="Version">
     <img src="https://img.shields.io/badge/dependencies-zero-green" alt="Zero Dependencies">
     <img src="https://img.shields.io/badge/file-single%20HTML-blue" alt="Single File">
     <img src="https://img.shields.io/badge/target-Antigravity-purple" alt="Antigravity">
@@ -52,6 +52,10 @@
 
 ### 版本发布列表（不完全）
 
+- **v0.2.13**：全面加固高危命令防护、重构 LaTeX 公式渲染引擎与交互体验升级：
+  - **高危命令防护加固**：重构高危命令检测引擎，引入通用命令执行前缀匹配（`DANGER_CMD_PREFIX`），覆盖命令行行首、管道、分号、逻辑与、IDE 标签格式（`CommandLine:` / `"CommandLine":`）、引号包装、`sudo`/`xargs`/`bash -c` 与绝对路径；重构 DOM 上下文回溯算法，剔除 Tailwind 通用样式类导致的深度早断，精准提取代码块与终端指令；在作用域权限弹窗中引入双重高危审计，未开启高危开关时精准自动点击 `Skip` 并触发 5 秒安全熔断，实现高危命令 100% 拦截与常用开发指令 0 误杀。
+  - **LaTeX 渲染引擎增强**：支持公式内部 `<br>` 换行智能清洗与相邻文本节点无缝缝合（`elem.normalize()`），彻底根治带前置说明文字的多行复杂公式渲染失败问题；新增 HTML 实体自动反转义（`&gt;`, `&lt;`, `&quot;`, `&#39;`, `&nbsp;`），消除不等式语法导致的 KaTeX 解析报错；引入环境感知对齐符处理（`aligned`/`cases`/`matrix` 等环境内保留对齐符 `&`，环境外自动转义为 `\&` 杜绝语法崩溃）；自动修复 Markdown 吞噬行间距反斜杠（`\[...pt]` 自动恢复为 `\\[...pt]`）与行尾单反斜杠；全面支持在 `$$...$$` 块级与 `\[...\]` 公式中自动解包由下划线转换而来的 `<em>`/`<strong>` 格式标签。
+  - **交互体验与安全确认升级**：新增高危命令执行独立开关与二次确认弹窗（明确提醒工作范围、规范操作行为与 Git 备份）；设置面板功能菜单默认收起折叠且置顶“自动操作”；操作反馈引入双色分流 Toast（绿色跳过/红色警示放行）与浮层统计实时同步。
 - **v0.2.11**：新增 `Submit` 自动点击支持，并增加了问卷弹窗保护；新增 `Submit`、`Tool Permissions` 独立开关，支持一键放行常规工具权限申请；修复了高危命令过滤在同级容器内的检测盲区。
 - **v0.2.10**：修复对话中 Undo 图标未正确渲染的问题，原因是 CSP 未放行所需的 Google 相关资源；本次通过补充相关策略完成修复，方案来自 hanliangwei。
 - **v0.2.9**：修复新建对话时误点历史会话标题的问题；当按钮同时带有 `title` 且包含 `grow` 类名时，跳过自动点击。
