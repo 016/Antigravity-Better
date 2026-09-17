@@ -59,6 +59,7 @@
 					'script'
 				;
 				trusted-types
+					default
 					amdLoader
 					cellRendererEditorText
 					collapsedCellPreview
@@ -268,6 +269,28 @@
 		/* v0.2.2-patch: 行内公式样式 */
 		.latex-inline { display:inline; }
 		.latex-inline .katex { font-size:1em; }
+		/* ===== Mermaid 图表 ===== */
+		.mermaid-code-rendered { padding:14px 10px; display:flex; flex-direction:column; align-items:center; justify-content:center; overflow-x:auto; background:rgba(0,0,0,.15); border-top:1px solid rgba(255,255,255,.06); position:relative; min-height:60px; border-radius:0 0 6px 6px; }
+		.vscode-light .mermaid-code-rendered { background:rgba(0,0,0,.03); border-top:1px solid rgba(0,0,0,.06); }
+		.mermaid-svg-wrapper { width:100%; display:flex; justify-content:center; align-items:center; overflow-x:auto; }
+		.mermaid-svg-wrapper svg { max-width:100%; height:auto; display:block; }
+		.mermaid-error { color:#f87171; font-size:12px; background:rgba(248,113,113,.1); border:1px solid rgba(248,113,113,.2); padding:8px 12px; border-radius:4px; font-family:monospace; width:100%; box-sizing:border-box; white-space:pre-wrap; margin:4px 0; }
+		.mermaid-header-btn-group { display:inline-flex; align-items:center; gap:4px; margin-right:8px; }
+		.mermaid-tab-btn { background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.12); color:rgba(255,255,255,.7); font-size:11px; line-height:1; padding:3px 8px; border-radius:4px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; transition:all .15s ease; user-select:none; }
+		.mermaid-tab-btn:hover { background:rgba(255,255,255,.15); color:#fff; }
+		.mermaid-tab-btn.active { background:var(--vscode-button-background,#007fd4); border-color:transparent; color:var(--vscode-button-foreground,#fff); font-weight:500; }
+		.vscode-light .mermaid-tab-btn { background:rgba(0,0,0,.05); border-color:rgba(0,0,0,.1); color:rgba(0,0,0,.7); }
+		.vscode-light .mermaid-tab-btn:hover { background:rgba(0,0,0,.1); color:#000; }
+		.vscode-light .mermaid-tab-btn.active { background:var(--vscode-button-background,#007fd4); color:var(--vscode-button-foreground,#fff); }
+		.mermaid-toolbar { display:flex; gap:6px; align-items:center; margin-top:8px; align-self:flex-end; }
+		#ab-mermaid-modal { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,.82); backdrop-filter:blur(6px); z-index:25000; display:none; flex-direction:column; align-items:center; justify-content:center; padding:24px; box-sizing:border-box; }
+		#ab-mermaid-modal.visible { display:flex; }
+		.ab-mermaid-modal-content { position:relative; background:var(--vscode-editor-background,#1e1e1e); border:1px solid rgba(255,255,255,.15); border-radius:8px; box-shadow:0 16px 36px rgba(0,0,0,.5); max-width:95vw; max-height:90vh; width:90%; height:85%; display:flex; flex-direction:column; overflow:hidden; }
+		.ab-mermaid-modal-header { display:flex; align-items:center; justify-content:space-between; padding:10px 16px; border-bottom:1px solid rgba(255,255,255,.1); font-size:13px; font-weight:600; color:var(--vscode-editor-foreground,#ccc); }
+		.ab-mermaid-modal-body { flex:1; overflow:auto; padding:24px; display:flex; align-items:center; justify-content:center; }
+		.ab-mermaid-modal-body svg { max-width:none; height:auto; min-width:320px; }
+		.ab-mermaid-modal-close { background:none; border:none; color:rgba(255,255,255,.7); cursor:pointer; font-size:18px; line-height:1; padding:4px 8px; border-radius:4px; }
+		.ab-mermaid-modal-close:hover { color:#fff; background:rgba(255,255,255,.15); }
 		/* ===== SVG 图标 ===== */
 		.ab-icon { width:16px; height:16px; fill:currentColor; flex-shrink:0; vertical-align:middle; }
 		.ab-icon-sm { width:14px; height:14px; }
@@ -594,13 +617,27 @@
 	let abPolicy = null;
 	if (window.trustedTypes && window.trustedTypes.createPolicy) {
 		try {
+			window.trustedTypes.createPolicy('default', {
+				createHTML: (s) => String(s || ''),
+				createScript: (s) => String(s || ''),
+				createScriptURL: (s) => String(s || '')
+			});
+		} catch (e) {
+			/* default policy may already exist or be restricted */
+		}
+		try {
+			window.trustedTypes.createPolicy('mermaid', {
+				createHTML: (s) => String(s || '')
+			});
+		} catch (e) {}
+		try {
 			abPolicy = window.trustedTypes.createPolicy('antigravityBetter', {
 				createHTML(s) {
 					return String(s || '');
 				},
 				createScriptURL(value) {
 					const url = String(value);
-					if (url.startsWith('blob:') || url.startsWith('./') || url.startsWith('https://cdn.jsdelivr.net/npm/katex@0.16.9/')) {
+					if (url.startsWith('blob:') || url.startsWith('./') || url.startsWith('https://cdn.jsdelivr.net/') || url.startsWith('https://unpkg.com/')) {
 						return url;
 					}
 					throw new TypeError('Untrusted script URL: ' + url);
@@ -609,6 +646,42 @@
 		} catch (e) {
 			console.warn('[AB Security] Trusted Types policy creation failed:', e);
 		}
+	}
+	// Hook Element.prototype.innerHTML and outerHTML to automatically wrap raw strings into TrustedHTML
+	try {
+		const elProto = Element.prototype;
+		const innerHTMLDesc = Object.getOwnPropertyDescriptor(elProto, 'innerHTML');
+		if (innerHTMLDesc && innerHTMLDesc.set) {
+			const origInnerSet = innerHTMLDesc.set;
+			Object.defineProperty(elProto, 'innerHTML', {
+				set(val) {
+					if (typeof val === 'string' && abPolicy && abPolicy.createHTML) {
+						return origInnerSet.call(this, abPolicy.createHTML(val));
+					}
+					return origInnerSet.call(this, val);
+				},
+				get: innerHTMLDesc.get,
+				configurable: true,
+				enumerable: true
+			});
+		}
+		const outerHTMLDesc = Object.getOwnPropertyDescriptor(elProto, 'outerHTML');
+		if (outerHTMLDesc && outerHTMLDesc.set) {
+			const origOuterSet = outerHTMLDesc.set;
+			Object.defineProperty(elProto, 'outerHTML', {
+				set(val) {
+					if (typeof val === 'string' && abPolicy && abPolicy.createHTML) {
+						return origOuterSet.call(this, abPolicy.createHTML(val));
+					}
+					return origOuterSet.call(this, val);
+				},
+				get: outerHTMLDesc.get,
+				configurable: true,
+				enumerable: true
+			});
+		}
+	} catch (hookErr) {
+		console.warn('[AB Security] innerHTML/outerHTML descriptor hook failed:', hookErr);
 	}
 	function safeColor(color, fallback = '#38bdf8') {
 		const s = String(color || '').trim();
@@ -662,6 +735,7 @@
 		enter: 'M19,7v4H5.83l3.58-3.59L8,6l-6,6l6,6l1.41-1.41L5.83,13H21V7H19z',
 		counter: 'M19,3H5C3.9,3,3,3.9,3,5v14c0,1.1,0.9,2,2,2h14c1.1,0,2-0.9,2-2V5C21,3.9,20.1,3,19,3z M17,13h-4v4h-2v-4H7v-2h4V7h2v4h4V13z',
 		toolbox: 'M20.71,7.04c-0.34-0.34-0.85-0.56-1.36-0.56h-2.67l-0.55-1.1C15.72,4.53,14.85,4,13.9,4h-3.8C9.15,4,8.28,4.53,7.87,5.38L7.32,6.48H4.65c-0.51,0-1.02,0.22-1.36,0.56C2.95,7.38,2.73,7.89,2.73,8.4v9.12c0,0.51,0.22,1.02,0.56,1.36c0.34,0.34,0.85,0.56,1.36,0.56h14.7c0.51,0,1.02-0.22,1.36-0.56c0.34-0.34,0.56-0.85,0.56-1.36V8.4C21.27,7.89,21.05,7.38,20.71,7.04z M12,17c-2.76,0-5-2.24-5-5s2.24-5,5-5s5,2.24,5,5S14.76,17,12,17z M12,9c-1.66,0-3,1.34-3,3s1.34,3,3,3s3-1.34,3-3S13.66,9,12,9z',
+		chart: 'M19,3H5C3.9,3,3,3.9,3,5v14c0,1.1,0.9,2,2,2h14c1.1,0,2-0.9,2-2V5C21,3.9,20.1,3,19,3z M9,17H7v-7h2V17z M13,17h-2V7h2V17z M17,17h-2v-4h2V17z',
 	};
 	function createSvgIcon(id, extraClass) {
 		const svg = document.createElementNS(svgNS, 'svg');
@@ -899,6 +973,14 @@ add_pricing_cache_write: '缓存写 ($/1M)',
 			latex_title: 'LaTeX 数学公式渲染',
 			enable_latex: '启用 LaTeX 公式渲染',
 			latex_desc: '使用 KaTeX 自动将聊天中的 $...$ 和 $$...$$ 渲染为美观的数学公式',
+			mermaid_title: 'Mermaid 图表渲染',
+			enable_mermaid: '启用 Mermaid 图表渲染',
+			mermaid_desc: '使用 Mermaid 自动将聊天中的 mermaid 代码块渲染为交互式可视化流程图与架构图',
+			btn_chart_view: '图表',
+			btn_code_view: '代码',
+			btn_zoom_chart: '放大预览',
+			btn_copy_svg: '复制 SVG',
+			toast_copy_svg_success: '✓ SVG 代码已复制到剪贴板',
 			btn_check_update: '检测更新',
 			btn_download: '前往下载',
 			update_checking: '正在检查更新...',
@@ -1185,6 +1267,14 @@ add_pricing_cache_write: 'Cache Write ($/1M)',
 			latex_title: 'LaTeX Math Rendering',
 			enable_latex: 'Enable LaTeX Rendering',
 			latex_desc: 'Use KaTeX to render $...$ and $$...$$ into beautiful math equations',
+			mermaid_title: 'Mermaid Diagram Rendering',
+			enable_mermaid: 'Enable Mermaid Rendering',
+			mermaid_desc: 'Use Mermaid to render mermaid code blocks into interactive flowcharts and diagrams',
+			btn_chart_view: 'Chart',
+			btn_code_view: 'Code',
+			btn_zoom_chart: 'Zoom In',
+			btn_copy_svg: 'Copy SVG',
+			toast_copy_svg_success: '✓ SVG copied to clipboard',
 			btn_check_update: 'Check for Updates',
 			btn_download: 'Go to Download',
 			update_checking: 'Checking for updates...',
@@ -1328,7 +1418,7 @@ add_pricing_cache_write: 'Cache Write ($/1M)',
 		autoAcceptUnlimited: false,
 		bannedCommands: [...DEFAULT_BANNED_COMMANDS],
 		autoAcceptStats: { clicks: 0, blocked: 0, verified: 0 },
-		autoUpdateEnabled: true, latexEnabled: false, dismissCorruptEnabled: true,
+		autoUpdateEnabled: true, latexEnabled: false, mermaidEnabled: true, dismissCorruptEnabled: true,
 	};
 	// ===== 存储 =====
 	function loadSettings() {
@@ -6433,11 +6523,20 @@ applySideButtonsVisibility();
 		const latexAcc = createAccordion('latex_title', false, 'math');
 		const latexStatusEl = el('div', 'ab-save-status');
 		latexAcc.inner.appendChild(createMainToggle('enable_latex', currentSettings.latexEnabled, (v) => {
-			currentSettings.latexEnabled = v; saveSettings(currentSettings); applyLatexSettings();
+			currentSettings.latexEnabled = v; saveSettings(currentSettings); applyLatexSettings(panelEl);
 		}));
 		const latexDesc = el('div', 'ab-setting-desc', t('latex_desc')); latexDesc.dataset.i18n = 'latex_desc';
 		latexAcc.inner.appendChild(latexDesc); latexAcc.inner.appendChild(latexStatusEl);
 		tabAppearance.appendChild(latexAcc.item);
+		// -- Mermaid --
+		const mermaidAcc = createAccordion('mermaid_title', false, 'chart');
+		const mermaidStatusEl = el('div', 'ab-save-status');
+		mermaidAcc.inner.appendChild(createMainToggle('enable_mermaid', currentSettings.mermaidEnabled, (v) => {
+			currentSettings.mermaidEnabled = v; saveSettings(currentSettings); applyMermaidSettings(panelEl);
+		}));
+		const mermaidDesc = el('div', 'ab-setting-desc', t('mermaid_desc')); mermaidDesc.dataset.i18n = 'mermaid_desc';
+		mermaidAcc.inner.appendChild(mermaidDesc); mermaidAcc.inner.appendChild(mermaidStatusEl);
+		tabAppearance.appendChild(mermaidAcc.item);
 		// ============ Tab: 功能 ============
 		const tabFeatures = tabContents['features'];
 		// -- 自动操作 (第一栏置顶) --
@@ -8115,6 +8214,309 @@ refreshStatCards();
 			scanAndRenderLatex(panelEl);
 		} catch (e) { console.warn('[AB] LaTeX init failed:', e.message); }
 	}
+	// ===== Mermaid 图表渲染 =====
+	let mermaidLoaded = false, mermaidLoadPromise = null, mermaidObserver = null;
+	const MERMAID_JS = 'https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js';
+	const MERMAID_FALLBACK_JS = 'https://unpkg.com/mermaid@11.4.1/dist/mermaid.min.js';
+	const MERMAID_JS_SHA256 = 'a43bc1afd446f9c4cc66ac5dd45d02e8d65e26fc5344ec0ef787f88d6ddb6f9e';
+	let mermaidUidCounter = 0;
+
+	function loadMermaid() {
+		if (mermaidLoaded && window.mermaid) return Promise.resolve();
+		if (mermaidLoadPromise) return mermaidLoadPromise;
+		mermaidLoadPromise = new Promise((resolve, reject) => {
+			const fetchScript = (url) => fetch(url).then(r => {
+				if (!r.ok) throw new Error('HTTP ' + r.status);
+				return r.text();
+			});
+
+			fetchScript(MERMAID_JS).catch(() => fetchScript(MERMAID_FALLBACK_JS)).then(async (js) => {
+				if (window.crypto && window.crypto.subtle) {
+					try {
+						const buf = new TextEncoder().encode(js);
+						const hashBuf = await window.crypto.subtle.digest('SHA-256', buf);
+						const hashArr = Array.from(new Uint8Array(hashBuf));
+						const hashHex = hashArr.map(b => b.toString(16).padStart(2, '0')).join('');
+						if (hashHex.toLowerCase() !== MERMAID_JS_SHA256.toLowerCase()) {
+							console.warn('[AB] Mermaid script SHA-256 mismatch, proceeding with caution');
+						}
+					} catch (err) {
+						/* subtle crypto error */
+					}
+				}
+				const blob = new Blob([js], { type: 'application/javascript' });
+				const blobUrl = URL.createObjectURL(blob);
+				const script = document.createElement('script');
+				script.src = abPolicy ? abPolicy.createScriptURL(blobUrl) : blobUrl;
+				script.onload = () => {
+					URL.revokeObjectURL(blobUrl);
+					try {
+						const isLight = document.body.classList.contains('vscode-light');
+						if (window.mermaid) {
+							window.mermaid.initialize({
+								startOnLoad: false,
+								theme: isLight ? 'default' : 'dark',
+								securityLevel: 'loose',
+								fontFamily: 'inherit'
+							});
+						}
+						mermaidLoaded = true;
+						console.log('[AB] ✅ Mermaid 加载成功, window.mermaid:', !!window.mermaid);
+						resolve();
+					} catch (initErr) {
+						console.warn('[AB] Mermaid initialize error:', initErr);
+						resolve();
+					}
+				};
+				script.onerror = () => {
+					URL.revokeObjectURL(blobUrl);
+					mermaidLoadPromise = null;
+					reject(new Error('Mermaid blob script load failed'));
+				};
+				document.head.appendChild(script);
+			}).catch(e => {
+				mermaidLoadPromise = null;
+				reject(new Error('Mermaid fetch failed: ' + e.message));
+			});
+		});
+		return mermaidLoadPromise;
+	}
+
+	function openMermaidModal(svg) {
+		let modal = document.getElementById('ab-mermaid-modal');
+		if (!modal) {
+			modal = document.createElement('div');
+			modal.id = 'ab-mermaid-modal';
+			const content = document.createElement('div');
+			content.className = 'ab-mermaid-modal-content';
+
+			const header = document.createElement('div');
+			header.className = 'ab-mermaid-modal-header';
+			const title = document.createElement('span');
+			title.textContent = '📊 Mermaid Diagram';
+			const closeBtn = document.createElement('button');
+			closeBtn.className = 'ab-mermaid-modal-close';
+			closeBtn.textContent = '✕';
+			closeBtn.title = 'Close';
+			closeBtn.addEventListener('click', () => modal.classList.remove('visible'));
+
+			header.appendChild(title);
+			header.appendChild(closeBtn);
+
+			const body = document.createElement('div');
+			body.className = 'ab-mermaid-modal-body';
+
+			content.appendChild(header);
+			content.appendChild(body);
+			modal.appendChild(content);
+
+			modal.addEventListener('click', (e) => {
+				if (e.target === modal) modal.classList.remove('visible');
+			});
+			const escHandler = (e) => {
+				if (e.key === 'Escape' && modal.classList.contains('visible')) {
+					modal.classList.remove('visible');
+				}
+			};
+			window.addEventListener('keydown', escHandler);
+
+			const panel = document.querySelector('.antigravity-agent-side-panel') || document.body;
+			panel.appendChild(modal);
+		}
+		const body = modal.querySelector('.ab-mermaid-modal-body');
+		safeSetHTML(body, svg);
+		modal.classList.add('visible');
+	}
+
+	function sanitizeMermaidCode(raw) {
+		return raw
+			.replace(/&lt;/g, '<')
+			.replace(/&gt;/g, '>')
+			.replace(/&quot;/g, '"')
+			.replace(/&#39;/g, "'")
+			.replace(/&amp;/g, '&')
+			.trim();
+	}
+
+	function processMermaidCodeBlocks(scope) {
+		scope.querySelectorAll('pre').forEach(async (pre) => {
+			if (pre.dataset.mermaidCodeProcessed) return;
+			const codeContainer = pre.querySelector('div');
+			if (!codeContainer) return;
+
+			let langLabel = codeContainer.querySelector('.font-sans.text-sm');
+			if (!langLabel || langLabel.textContent.trim().toLowerCase() !== 'mermaid') {
+				const candidate = Array.from(codeContainer.querySelectorAll('span, div')).find(e => e.children.length === 0 && e.textContent.trim().toLowerCase() === 'mermaid');
+				if (candidate) langLabel = candidate;
+			}
+			if (!langLabel || langLabel.textContent.trim().toLowerCase() !== 'mermaid') return;
+
+			const codeBody = codeContainer.querySelector('.p-3');
+			if (!codeBody) return;
+			const lineContents = codeBody.querySelectorAll('.line-content');
+			let code = lineContents.length > 0
+				? Array.from(lineContents).map(l => l.textContent).join('\n').trim()
+				: codeBody.textContent.trim();
+			if (!code) return;
+
+			pre.dataset.mermaidCodeProcessed = 'true';
+			pre.dataset.mermaidCodeOriginal = code;
+
+			const cleanCode = sanitizeMermaidCode(code);
+
+			const rendered = document.createElement('div');
+			rendered.className = 'mermaid-code-rendered';
+
+			const headerEl = codeContainer.querySelector('div:first-child');
+			let toggleGroup = null;
+			let chartBtn = null, codeBtn = null;
+
+			if (headerEl) {
+				toggleGroup = document.createElement('div');
+				toggleGroup.className = 'mermaid-header-btn-group';
+
+				chartBtn = document.createElement('button');
+				chartBtn.className = 'mermaid-tab-btn active';
+				chartBtn.textContent = '📊 ' + t('btn_chart_view');
+				chartBtn.title = t('btn_chart_view');
+
+				codeBtn = document.createElement('button');
+				codeBtn.className = 'mermaid-tab-btn';
+				codeBtn.textContent = '💻 ' + t('btn_code_view');
+				codeBtn.title = t('btn_code_view');
+
+				chartBtn.addEventListener('click', (ev) => {
+					ev.stopPropagation();
+					chartBtn.classList.add('active');
+					codeBtn.classList.remove('active');
+					rendered.style.display = 'flex';
+					codeBody.style.display = 'none';
+				});
+
+				codeBtn.addEventListener('click', (ev) => {
+					ev.stopPropagation();
+					codeBtn.classList.add('active');
+					chartBtn.classList.remove('active');
+					rendered.style.display = 'none';
+					codeBody.style.display = codeBody.dataset.mermaidOriginalDisplay || '';
+				});
+
+				toggleGroup.appendChild(chartBtn);
+				toggleGroup.appendChild(codeBtn);
+
+				const actionContainer = headerEl.querySelector('.flex.items-center') || headerEl.lastElementChild;
+				if (actionContainer && actionContainer !== headerEl) {
+					headerEl.insertBefore(toggleGroup, actionContainer);
+				} else {
+					headerEl.appendChild(toggleGroup);
+				}
+			}
+
+			codeBody.dataset.mermaidOriginalDisplay = codeBody.style.display || '';
+			codeBody.style.display = 'none';
+			codeBody.parentNode.insertBefore(rendered, codeBody.nextSibling);
+
+			try {
+				const diagId = 'mermaid-svg-' + (++mermaidUidCounter) + '-' + Math.floor(Math.random() * 10000);
+				const isLight = document.body.classList.contains('vscode-light');
+				window.mermaid.initialize({
+					startOnLoad: false,
+					theme: isLight ? 'default' : 'dark',
+					securityLevel: 'loose',
+					fontFamily: 'inherit'
+				});
+
+				const { svg } = await window.mermaid.render(diagId, cleanCode);
+
+				const svgWrap = document.createElement('div');
+				svgWrap.className = 'mermaid-svg-wrapper';
+				safeSetHTML(svgWrap, svg);
+				rendered.appendChild(svgWrap);
+
+				const toolbar = document.createElement('div');
+				toolbar.className = 'mermaid-toolbar';
+
+				const copySvgBtn = document.createElement('button');
+				copySvgBtn.className = 'mermaid-tab-btn';
+				copySvgBtn.textContent = '📋 ' + t('btn_copy_svg');
+				copySvgBtn.title = t('btn_copy_svg');
+				copySvgBtn.addEventListener('click', async (ev) => {
+					ev.stopPropagation();
+					try {
+						await navigator.clipboard.writeText(svg);
+						const toastFn = window._abShowToast;
+						if (toastFn) toastFn(t('toast_copy_svg_success'));
+					} catch (err) {
+						/* ignore */
+					}
+				});
+				toolbar.appendChild(copySvgBtn);
+
+				const zoomBtn = document.createElement('button');
+				zoomBtn.className = 'mermaid-tab-btn';
+				zoomBtn.textContent = '🔍 ' + t('btn_zoom_chart');
+				zoomBtn.title = t('btn_zoom_chart');
+				zoomBtn.addEventListener('click', (ev) => {
+					ev.stopPropagation();
+					openMermaidModal(svg);
+				});
+				toolbar.appendChild(zoomBtn);
+
+				rendered.appendChild(toolbar);
+			} catch (renderErr) {
+				console.warn('[AB] Mermaid 渲染失败:', renderErr);
+				const errDiv = document.createElement('div');
+				errDiv.className = 'mermaid-error';
+				errDiv.textContent = '⚠️ Mermaid: ' + (renderErr.message || String(renderErr));
+				rendered.appendChild(errDiv);
+				if (codeBtn) codeBtn.click();
+			}
+		});
+	}
+
+	function scanAndRenderMermaid(panelEl) {
+		const scope = panelEl || document.querySelector('.antigravity-agent-side-panel');
+		if (!scope) return;
+		if (!currentSettings.mermaidEnabled || !mermaidLoaded) return;
+		processMermaidCodeBlocks(scope);
+	}
+
+	function revertMermaid(panelEl) {
+		const scope = panelEl || document.querySelector('.antigravity-agent-side-panel');
+		if (!scope) return;
+		scope.querySelectorAll('.mermaid-code-rendered').forEach(e => {
+			const codeBody = e.previousElementSibling;
+			if (codeBody && codeBody.dataset.mermaidOriginalDisplay !== undefined) {
+				codeBody.style.display = codeBody.dataset.mermaidOriginalDisplay || '';
+				delete codeBody.dataset.mermaidOriginalDisplay;
+			}
+			e.remove();
+		});
+		scope.querySelectorAll('.mermaid-header-btn-group').forEach(e => e.remove());
+		scope.querySelectorAll('[data-mermaid-code-processed]').forEach(e => {
+			delete e.dataset.mermaidCodeProcessed;
+			delete e.dataset.mermaidCodeOriginal;
+		});
+		const modal = document.getElementById('ab-mermaid-modal');
+		if (modal) modal.remove();
+	}
+
+	async function applyMermaidSettings(panelEl) {
+		if (mermaidObserver) { mermaidObserver.disconnect(); mermaidObserver = null; }
+		if (!currentSettings.mermaidEnabled) { revertMermaid(panelEl); return; }
+		try {
+			await loadMermaid();
+			const scope = panelEl || document.querySelector('.antigravity-agent-side-panel');
+			if (scope) {
+				mermaidObserver = new MutationObserver(() => {
+					clearTimeout(window._abMMTimer);
+					window._abMMTimer = setTimeout(() => scanAndRenderMermaid(panelEl), 300);
+				});
+				mermaidObserver.observe(scope, { childList: true, subtree: true });
+			}
+			scanAndRenderMermaid(panelEl);
+		} catch (e) { console.warn('[AB] Mermaid init failed:', e.message); }
+	}
 	// ===== 版本检测 =====
 	const GITHUB_API = 'https://api.github.com/repos/016/Antigravity-Better/releases/latest';
 	const FALLBACK_API = 'https://hub.lib00.com/api/v1/antigravity-better/version';
@@ -8154,6 +8556,7 @@ refreshStatCards();
 			applyCopySettings(panelEl); applyHotkeySettings();
 			applyAutoAcceptSettings(panelEl);
 			if (currentSettings.latexEnabled) applyLatexSettings(panelEl);
+			if (currentSettings.mermaidEnabled) applyMermaidSettings(panelEl);
 			if (currentSettings.autoUpdateEnabled) {
 				setTimeout(async () => {
 					const res = await checkForUpdate();
